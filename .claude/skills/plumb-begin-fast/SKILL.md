@@ -22,7 +22,7 @@ Turn a single unit of work into shipped, test-driven code. The fast track is: **
 
 ## Task source: GitHub issue, tolerate absence
 
-Plumb's tracker is GitHub Issues, but the repo/issues may not be reachable (`gh` unauthenticated, Issues disabled, the remote not created yet, or the work was never filed). The pipeline degrades gracefully:
+Plumb's tracker is GitHub Issues, but the repo/issues may not be reachable (`gh` unauthenticated, Issues disabled, or the work was never filed). The pipeline degrades gracefully:
 
 - If `id` is numeric and `gh issue view <id>` succeeds → use it as the source (Phase 1).
 - Otherwise → ask the user for a one-paragraph **inline brief** and treat that as the source. Skip the `gh` fetch; everything else is identical.
@@ -37,7 +37,7 @@ Run phases in order. **Do not skip the review gate.** Every phase runs through t
 
 - Branch name: `<type>/<id>/aliz` (e.g. `bug/12/aliz`, `feat/claim-extraction/aliz`).
 - Worktree dir: `.claude/worktrees/<type>-<id>` (e.g. `.claude/worktrees/bug-12`).
-- Create from `main` — Plumb's base branch is **`main`**, never `master`. Until a remote exists, branch from **local `main`**; once pushed, use `origin/main`. Plumb has no `.worktreeinclude` files to copy today.
+- Create from `master` — Plumb's base branch is **`master`**, never `main`. Prefer `origin/master`; fall back to local `master` if the remote ref isn't fetched. Plumb has no `.worktreeinclude` files to copy today.
 - **Greenfield:** there is still no `pyproject.toml`, so `uv sync` will fail. Run `uv sync` in the worktree only once the Python core is scaffolded — if your work *is* the scaffolding, the failing test comes first. See `plumb-worktrees`.
 - All subsequent work (context dump, PRD, plan) happens **inside this worktree.**
 
@@ -125,10 +125,10 @@ Gates, user-facing summaries, and integration stay with you — the agents do th
 | Mistake | Fix |
 |---|---|
 | Working in the primary checkout | Always create the Phase 0 worktree first |
-| Branching from `master` | Plumb's base branch is `main`; `master` doesn't exist |
+| Branching from `main` | Plumb's base branch is `master`; `main` doesn't exist |
 | Slug = `bug-12` | Use a descriptive slug; the id stays in branch/PR |
 | Treating a `gh` failure as fatal | Fall back to an inline brief, keep going |
-| Treating a missing `pyproject.toml` / remote as fatal | Plumb is greenfield — see `plumb-worktrees` for both fallbacks |
+| Treating a missing `pyproject.toml` as fatal | Plumb is greenfield — see `plumb-worktrees` |
 | Skipping the review gate | PRD must be approved before tech-plan |
 | A verdict from an LLM's opinion instead of re-execution | Stop and flag — verification is execution-grounded; a model may extract/propose, execution decides |
 | Rendering `UNVERIFIED` as `REPRODUCED` | Never — the verdict contract is honest by design |

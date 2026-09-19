@@ -8,7 +8,7 @@ arguments: "type id"
 
 ## Overview
 
-Closes out a unit of work's local state after the PR has merged: **main → pull → remove worktree → delete branch**, with a **release phase that is deferred until Plumb has release machinery**. No report (use `plumb-end` / `pe` for that).
+Closes out a unit of work's local state after the PR has merged: **master → pull → remove worktree → delete branch**, with a **release phase that is deferred until Plumb has release machinery**. No report (use `plumb-end` / `pe` for that).
 
 **Invocation:** `pef <type> <id>` — e.g. `pef bug 12`, `pef feat claim-extraction`.
 
@@ -17,7 +17,7 @@ Closes out a unit of work's local state after the PR has merged: **main → pull
 - Owner is `aliz`
 - Branch: `<type>/<id>/aliz`; worktree dir: `.claude/worktrees/<type>-<id>`
 
-Plumb is a single repo, so this runs once. The base branch is **`main`**, never `master`.
+Plumb is a single repo, so this runs once. The base branch is **`master`**, never `main`.
 
 ## Pipeline
 
@@ -29,7 +29,7 @@ Before removing anything:
 - **Branch merged?** Confirm the PR is merged (`gh pr view <PR> --json state,mergedAt` if reachable). `git branch -d` will refuse an unmerged branch on purpose; do not bypass with `-D` without explicit user OK.
 - **You may be inside the worktree being removed.** Resolve the primary checkout first (Phase 1) and run all commands from there.
 
-### Phase 1 — Main, pulled
+### Phase 1 — Master, pulled
 
 Resolve the **primary** checkout (not the worktree). The first line of `git worktree list` is the primary:
 
@@ -37,11 +37,11 @@ Resolve the **primary** checkout (not the worktree). The first line of `git work
 PRIMARY=$(git worktree list | head -1 | awk '{print $1}')
 ```
 
-Switch and pull, fast-forward only (once a remote exists; if there's no remote yet, just `checkout main`):
+Switch and pull, fast-forward only:
 
 ```bash
-git -C "$PRIMARY" checkout main
-git -C "$PRIMARY" pull --ff-only origin main   # skip if no remote exists yet
+git -C "$PRIMARY" checkout master
+git -C "$PRIMARY" pull --ff-only origin master
 ```
 
 ### Phase 2 — Remove worktree, delete branch
@@ -56,7 +56,7 @@ git -C "$PRIMARY" branch -d "$BRANCH"
 
 If `worktree remove` refuses due to uncommitted/untracked files, go back to Phase 0 — don't pass `--force` silently.
 
-If `branch -d` refuses because the branch isn't merged into main, surface the message — the PR may not be merged, or there are unpushed commits. Don't use `-D` silently.
+If `branch -d` refuses because the branch isn't merged into `master`, surface the message — the PR may not be merged, or there are unpushed commits. Don't use `-D` silently.
 
 After both succeed, verify:
 
@@ -69,15 +69,15 @@ git -C "$PRIMARY" branch --list "$BRANCH" # should print nothing
 
 **Plumb has no release machinery today**, so this phase does **not** run yet. There is no `pyproject.toml` version, no `CHANGELOG.md`, no `RELEASING.md`, and no `.github/workflows/release.yml`. Cleanup ends at Phase 2. Do **not** hand-craft a release, tag, or publish anything — a release cut without the workflow and the pre-registered rules is exactly the kind of unmeasured, irreversible action the product's own discipline forbids.
 
-**When release machinery lands** (its own unit of work — mirror Belay's `RELEASING.md` + `release.yml`), this phase becomes ALWAYS-run and follows these rules, recorded here so they aren't reinvented:
+**When release machinery lands** (its own unit of work — a `RELEASING.md` + `release.yml` pair), this phase becomes ALWAYS-run and follows these rules, recorded here so they aren't reinvented:
 
 1. **Version from the work type:** `feat`/`feature` → **minor**, `bug`/`chore`/`task` → **patch**. Read the current version and compute the next; confirm the exact `vX.Y.Z` only if ambiguous.
-2. **Bump + changelog**, commit to `main` as `aliz@foresightanalytics.ca` (maps to **haqaliz**).
+2. **Bump + changelog**, committed to `master`.
 3. **CI must be green before tagging.** A release is irreversible (a PyPI version can never be reused, even if yanked).
 4. **Tag and push** to trigger the workflow — never `gh release create` by hand, never build/upload artifacts manually.
 5. **Verify each channel is live before calling it done** — the honesty rule the product enforces: an unchecked channel is `UNVERIFIED`, not shipped. Report which channels published and surface any failed job.
 
-**Release identity, do not get this wrong (for when it lands):** the release belongs to the **haqaliz** account (`git@github.com:haqaliz/plumb.git`), never `playdolphia`/`aliz-manifold`. Commit as `aliz@foresightanalytics.ca`. The PyPI distribution name is not yet decided (`plumb` is likely taken; a name like `plumb-verify` is a candidate) — settle it in the release-machinery unit, don't guess it here.
+**Release identity, do not get this wrong (for when it lands):** the release belongs to the **haqaliz** account (`git@github.com:haqaliz/plumb.git`). The PyPI distribution name is not yet decided (`plumb` is likely taken; a name like `plumb-verify` is a candidate) — settle it in the release-machinery unit, don't guess it here.
 
 ### Phase 4 — Comment on the issue (optional)
 
@@ -107,8 +107,8 @@ Otherwise:
 | Mistake | Fix |
 |---|---|
 | Running from inside the worktree being removed | Resolve `PRIMARY` first, run commands from there |
-| Checking out / pulling `master` | Plumb's base branch is `main`; `master` doesn't exist |
-| Using `git pull` (allowing merge) | Use `--ff-only` (once a remote exists) |
+| Checking out / pulling `main` | Plumb's base branch is `master`; `main` doesn't exist |
+| Using `git pull` (allowing merge) | Use `--ff-only` |
 | Forcing branch delete with `-D` | Only after explicit user OK — `-d` refuses unmerged for a reason |
 | Forcing worktree remove with `--force` | Same — never silently discard uncommitted work |
 | Worktree dir vs branch confusion | Worktree dir is `<type>-<id>` (e.g. `bug-12`); branch is `<type>/<id>/aliz` |

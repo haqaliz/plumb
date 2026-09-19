@@ -19,7 +19,7 @@ Don't use this for one-off file edits that finish in a single session — a work
 Plumb is a **single repo**. Worktrees live **inside it** at `.claude/worktrees/<name>/`. `.claude/worktrees/` must be in `.gitignore` so worktree contents never show up as untracked files in the primary.
 
 ```
-/Users/aliz/dev/at/plumb/                                    ← primary (main)
+/Users/aliz/dev/at/plumb/                                    ← primary (master)
 /Users/aliz/dev/at/plumb/.claude/worktrees/bug-12/           ← bug #12 worktree
 /Users/aliz/dev/at/plumb/.claude/worktrees/feat-claim-extraction/
 ```
@@ -39,24 +39,24 @@ This is the layout documented at https://code.claude.com/docs/en/worktrees. Olde
 
 Worktree dir name drops the slashes: `<type>-<id>` (e.g. `bug-12`, `feat-claim-extraction`).
 
-## The base branch is `main`
+## The base branch is `master`
 
-Plumb's base branch is **`main`**. Every branch-from, rebase target, and PR base is `main`.
+Plumb's base branch is **`master`**. Every branch-from, rebase target, and PR base is `master`.
 
-**Greenfield remote caveat:** the repo was `git init`-ed locally on `main`; there may be **no remote yet** (`git@github.com:haqaliz/plumb.git` is the intended remote, to be created). Until a remote exists and `main` is pushed, branch from **local `main`**:
-
-```bash
-git worktree add -b feat/claim-extraction/aliz .claude/worktrees/feat-claim-extraction main
-```
-
-Once `origin/main` exists, prefer it (it's the shared truth, and the local ref may be stale):
+The remote is `git@github.com:haqaliz/plumb.git` and `master` is its default branch. Branch from local `master` when the local ref is current:
 
 ```bash
-git fetch origin main
-git worktree add -b feat/claim-extraction/aliz .claude/worktrees/feat-claim-extraction origin/main
+git worktree add -b feat/claim-extraction/aliz .claude/worktrees/feat-claim-extraction master
 ```
 
-Never assume a `master` branch — Plumb uses `main`.
+Prefer `origin/master` (it's the shared truth, and the local ref may be stale):
+
+```bash
+git fetch origin master
+git worktree add -b feat/claim-extraction/aliz .claude/worktrees/feat-claim-extraction origin/master
+```
+
+Never assume a `main` branch — Plumb uses `master`.
 
 ## Creating a worktree
 
@@ -122,10 +122,10 @@ git -C /Users/aliz/dev/at/plumb branch -d feat/claim-extraction/aliz
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `git worktree add` fails: `invalid reference: origin/main` | No remote yet (greenfield) | Branch from local `main`; once pushed, `git fetch origin main` first |
-| Branching from `master` | Plumb's base branch is `main` | `master` does not exist — always use `main` |
+| `git worktree add` fails: `invalid reference: origin/master` | Remote ref not fetched | `git fetch origin master` first, or branch from local `master` |
+| Branching from `main` | Plumb's base branch is `master` | `main` does not exist — always use `master` |
 | Worktree contents appear as untracked in primary | `.claude/worktrees/` not ignored | Already in `.gitignore`; verify with `git check-ignore -v '.claude/worktrees/'` (trailing slash) |
 | `uv sync` fails: no `pyproject.toml` | Python core not scaffolded yet (greenfield) | Expected — scaffold it (test-first) or skip for docs-only work |
 | `uv run` reinstalls everything on first call in a worktree | `.venv` not shared between worktrees | Expected — `uv sync` once per worktree |
 | `pytest` import errors in worktree | Forgot `uv sync` (no venv yet) | `uv sync` in the worktree root first |
-| `git worktree add` fails: "already checked out" | Branch is checked out in another worktree (often the primary) | `git checkout main` in the conflicting worktree, then retry |
+| `git worktree add` fails: "already checked out" | Branch is checked out in another worktree (often the primary) | `git checkout master` in the conflicting worktree, then retry |

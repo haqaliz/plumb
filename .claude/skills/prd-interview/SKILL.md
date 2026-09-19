@@ -29,7 +29,7 @@ Output is a structured PRD plus aspect-level specs that feed directly into `tech
 
 Read the user's input — the issue dump, brief, or pasted requirements.
 Read key files to understand the current architecture. Plumb is **greenfield**: today that means `docs/technical/CAPABILITY_ROADMAP.md` (the C1..C8 capabilities, their dependencies and guardrail tie-ins), `docs/technical/ARCHITECTURE.md` (the design), and `docs/ROADMAP.md` (phases, gates, the R1..R7 risk register), plus `src/plumb/` once it exists.
-Ask if the user is aware of prior art or similar internal/external solutions — offer to search if not. (Contig's C8 "reproduce & verify published work" is the direct lineage; statcheck/GRIM are prior art for the no-code path.)
+Ask if the user is aware of prior art or similar internal/external solutions — offer to search if not. (statcheck/GRIM are prior art for the no-code path.)
 
 Then pressure-test. Do not soften these. Frame as collaborative due diligence, not criticism.
 

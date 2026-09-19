@@ -30,5 +30,5 @@ or propose a binding; only **execution** decides the verdict.
 
 ## Lineage
 
-Plumb generalizes Contig's "reproduce & verify published work" capability out of genomics and
-points it at the literature at large. Sibling of Belay, Contig, and Whetstone.
+Plumb generalizes a "reproduce & verify published work" capability out of genomics and points it
+at the literature at large.

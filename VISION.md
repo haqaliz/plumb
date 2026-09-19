@@ -36,8 +36,8 @@ The moat is **engineering** — reproducible environment building, execution cap
 claim↔artifact binding, deterministic re-derivation, a signed replayable bundle, and the
 compounding discrepancy corpus. That is exactly a **full-stack developer + ML engineer's** edge.
 Plumb needs no proprietary dataset, credential, or model the founder lacks. And it reuses a
-proven core: Contig already reproduces and verifies published work in genomics — Plumb lifts
-that out of one domain.
+proven core: reproducing and verifying published work has already been demonstrated in genomics
+— Plumb lifts that out of one domain.
 
 ---
 
@@ -71,8 +71,8 @@ re-executed number does not.
 3. **Hosted layer:** the managed service journals, labs, and authors run submissions through
    (BYOK, opt-in) — the business.
 
-Same playbook as the founder's other projects (Belay, Contig, Whetstone): earn trust with a
-free verifiable tool, monetize the managed/enterprise layer later.
+The playbook: earn trust with a free verifiable tool, monetize the managed/enterprise layer
+later.
 
 ---
 

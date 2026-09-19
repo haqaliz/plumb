@@ -103,7 +103,7 @@ never rendered as a ground-truth `DIVERGED` from re-execution.
 **What:** a managed service journals, labs, and authors run submissions through, with the OSS
 engine underneath. BYOK, opt-in, runs on infrastructure the customer authorizes.
 
-**Why:** the revenue layer, on the same OSS-on-ramp → managed-layer playbook as Belay/Contig.
+**Why:** the revenue layer, on the usual OSS-on-ramp → managed-layer playbook.
 
 **Depends on:** C4 + C5 + C6. **Guardrail:** constraint #2 — no raw-data egress the customer
 didn't authorize; verdicts and bundles, not datasets.

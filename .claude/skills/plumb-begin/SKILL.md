@@ -11,7 +11,7 @@ arguments: "type id"
 Same pipeline as `plumb-begin-fast`, plus a **proposal phase**: after the PRD is approved, produce diagrams and two review PDFs (technical + non-technical) for stakeholders, get approval, then plan.
 
 **Invocation:** `pb <type> <id>` — e.g. `pb bug 12`, `pb feat claim-extraction`.
-Arguments and conventions (type set, `<type>/<id>/aliz` branch, descriptive slug, worktree from `main`, GitHub-issue-or-inline-brief source) are identical to `plumb-begin-fast`.
+Arguments and conventions (type set, `<type>/<id>/aliz` branch, descriptive slug, worktree from `master`, GitHub-issue-or-inline-brief source) are identical to `plumb-begin-fast`.
 
 The two non-negotiables carry over from `plumb-begin-fast`: **always work through the agents team** (every phase, including diagrams and the two proposals), and **implementation is test-first** via `superpowers:test-driven-development`, executed by the agents team.
 

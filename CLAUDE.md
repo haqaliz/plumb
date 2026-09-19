@@ -20,10 +20,9 @@ Status: **greenfield.** Today only the design docs exist (`CLAUDE.md`, `VISION.m
 The engine, CLI, and hosted layer are not built yet. When in doubt, verify against the code and
 `git log` rather than the prose — but there is no code yet, so say so plainly.
 
-Lineage: Plumb is a spin-out and generalization of Contig's "reproduce & verify published
-work" capability (Contig C8), lifted out of genomics and pointed at the literature at large.
-There is real, proven design to reuse there; read `~/dev/at/contig` for prior art, but Plumb is
-its own repo with its own guardrails.
+Lineage: Plumb is a spin-out and generalization of a "reproduce & verify published work"
+capability, lifted out of genomics and pointed at the literature at large. There is real, proven
+design behind that idea, but Plumb is its own repo with its own guardrails.
 
 ---
 

@@ -17,7 +17,7 @@ Arguments and conventions are identical to `plumb-end-fast`.
 
 **REQUIRED SUB-SKILL:** Use `plumb-end-fast` for the cleanup pipeline.
 
-Run its **Phase 0 → Phase 2 exactly as written** (safety check → main + pull → remove worktree → delete branch). Plumb's base branch is **`main`**, never `master`. **Phase 3 (release) is deferred** — Plumb has no release machinery yet, so there is nothing to cut; do not hand-craft one. Only proceed to the report once cleanup verification passes.
+Run its **Phase 0 → Phase 2 exactly as written** (safety check → master + pull → remove worktree → delete branch). Plumb's base branch is **`master`**, never `main`. **Phase 3 (release) is deferred** — Plumb has no release machinery yet, so there is nothing to cut; do not hand-craft one. Only proceed to the report once cleanup verification passes.
 
 ### Phase 4 — Completion report
 
@@ -51,6 +51,6 @@ The comment can mirror the report's plain-English summary in a sentence or two. 
 | Skipping the report on purpose | Use `plumb-end-fast` / `pef` instead |
 | Passing the wrong type to `plumb-report` | Apply the mapping table (`feat`/`feature` → `feature`, `chore` → `task`) |
 | Posting the issue comment before the report | The comment (Phase 5) comes after the report (Phase 4); the report's plain-English summary is good source material |
-| Cleaning up against `master` | Plumb's base branch is `main` |
+| Cleaning up against `main` | Plumb's base branch is `master` |
 | Trying to cut a release during end | Deferred — Plumb has no release machinery yet |
 | Posting the comment without confirmation | Draft first, confirm with the user, then post |
