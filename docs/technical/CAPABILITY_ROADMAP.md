@@ -1,0 +1,127 @@
+# Plumb Capability Roadmap (C1..C8)
+
+The engine as a set of capabilities in build order. This is the primary candidate set for
+`plumb-next`. Each entry states what it does, why it matters, its dependencies, and its guardrail
+tie-in. Phasing lives in [`../ROADMAP.md`](../ROADMAP.md); the design in
+[`ARCHITECTURE.md`](ARCHITECTURE.md).
+
+**The moat is C4.** C1–C3 feed it; C5–C6 compound and prove it; C7 extends it to no-code papers;
+C8 sells it. Do not let effort drift into anything that a stronger base model would make
+redundant (see CLAUDE.md constraint #4).
+
+Verdict vocabulary used throughout: `REPRODUCED` / `WITHIN-TOLERANCE` / `DIVERGED` /
+`UNVERIFIED`. A model may extract or propose; **execution decides**.
+
+---
+
+## C1. Paper-claim extraction
+
+**What:** take a paper (text, PDF, or DOI → text) and produce a set of typed **quantitative
+claims** — each with the reported value, units, location in the paper, and the artifact it should
+be derivable from.
+
+**Why:** you can't verify what you haven't pinned down. The claim is the unit of work.
+
+**Design:** deterministic core (numeric/table/stat parsing) + an **optional BYOK LLM proposer**
+that suggests candidate claims. Every LLM-proposed claim is deterministically re-grounded against
+the paper text before it is admitted. The proposer never assigns a verdict.
+
+**Depends on:** nothing. **Guardrail:** constraints #1, #3 — a proposed claim the paper doesn't
+actually make is dropped, not carried forward as `DIVERGED`.
+
+## C2. Artifact intake & pinned environment
+
+**What:** resolve the code/data behind the paper — a local path, an `https` git URL with
+`--rev`, an archive — into a **pinned checkout** (tree hash recorded) and build a reproducible
+environment on the **user's compute**.
+
+**Why:** reproducibility is impossible without a pinned, rebuildable environment.
+
+**Depends on:** nothing. **Guardrail:** constraint #2 — everything stays local; nothing is
+fetched to a third party the user didn't authorize.
+
+## C3. Execution & result capture
+
+**What:** run the repo's own entry point(s) and capture structured outputs — JSON, CSV, stdout,
+notebook cell outputs — **content-addressed** and **freshness-guarded** (an output file whose
+mtime/provenance predates this run is never read as a fresh result).
+
+**Why:** the re-derived value must come from an actual run, not a committed artifact.
+
+**Depends on:** C2. **Guardrail:** constraint #5 — reproduce what ran, not what was committed.
+
+## C4. Claim↔artifact binding & re-derivation verdict — **the moat**
+
+**What:** bind each C1 claim to a value re-derived in C3 via a **locator** (JSON pointer, table
+cell reference, regex/stdout capture, notebook cell), compare within a stated tolerance, and emit
+the per-claim verdict: `REPRODUCED` / `WITHIN-TOLERANCE` / `DIVERGED` / `UNVERIFIED`.
+
+**Why:** this is the product. Everything else exists to make this verdict trustworthy.
+
+**Design:** a model may *propose* a binding; the comparison and verdict are done by code. Any
+failure to bind, run, or set a tolerance resolves to `UNVERIFIED` with a named cause. `DIVERGED`
+requires the artifact's own run to contradict its own claim.
+
+**Depends on:** C1 + C3. **Guardrail:** constraints #1, #3 — never `REPRODUCED` on a model's
+say-so, never `DIVERGED` on a harness-side failure.
+
+## C5. Discrepancy corpus & calibration benchmark
+
+**What:** accumulate every (claim, re-derived value, verdict, locator, cause) into a labeled
+corpus; publish a precision/recall benchmark over a public paper corpus.
+
+**Why:** the compounding moat and the credibility instrument. Precision on `DIVERGED` is the
+number the whole reputation rests on.
+
+**Depends on:** C4. **Guardrail:** constraint #4 — the corpus is the asset that a better base
+model cannot hand you for free.
+
+## C6. Signed, replayable reproduction bundle
+
+**What:** a signed record binding paper hash + repo tree hash + environment + run traces +
+per-claim verdicts, such that a third party can **replay** and reach the same verdicts.
+
+**Why:** a finding nobody can independently replay is an opinion. This makes `DIVERGED`
+defensible and `REPRODUCED` auditable.
+
+**Depends on:** C4. **Guardrail:** constraints #2, #3 — only what the user chooses to publish is
+in the bundle; the bundle is the evidence, not an accusation.
+
+## C7. Internal-consistency checks (no-code path)
+
+**What:** for PDF-only papers with no runnable artifacts, run statcheck/GRIM-style
+internal-consistency checks (do the reported statistics agree with each other and the reported N).
+
+**Why:** extends coverage to the majority of papers that ship no code — but as a **weaker,
+clearly labeled** signal.
+
+**Depends on:** C1. **Guardrail:** constraint #3 — an internal inconsistency is labeled as such,
+never rendered as a ground-truth `DIVERGED` from re-execution.
+
+## C8. Hosted layer (BYOK, opt-in) — the business
+
+**What:** a managed service journals, labs, and authors run submissions through, with the OSS
+engine underneath. BYOK, opt-in, runs on infrastructure the customer authorizes.
+
+**Why:** the revenue layer, on the same OSS-on-ramp → managed-layer playbook as Belay/Contig.
+
+**Depends on:** C4 + C5 + C6. **Guardrail:** constraint #2 — no raw-data egress the customer
+didn't authorize; verdicts and bundles, not datasets.
+
+---
+
+## Sequencing summary
+
+| Order | Capability | Rationale | Depends on |
+|---|---|---|---|
+| 1 | C1 Claim extraction | Defines the unit of work | — |
+| 2 | C2 Artifact intake & pinned env | Reproducibility precondition | — |
+| 3 | C3 Execution & result capture | Produces the re-derived value | C2 |
+| 4 | **C4 Binding & verdict** | **The moat** | C1, C3 |
+| 5 | C5 Discrepancy corpus & benchmark | Compounds + proves precision | C4 |
+| 6 | C6 Signed replayable bundle | Makes findings defensible | C4 |
+| 7 | C7 No-code consistency checks | Extends coverage (weaker signal) | C1 |
+| 8 | C8 Hosted layer | The business | C4, C5, C6 |
+
+**One-line mantra:** run the paper, check its numbers against what it actually produced, prove
+which ones hold.

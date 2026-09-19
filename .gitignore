@@ -1,0 +1,29 @@
+# Claude Code worktrees live inside the repo; never track their contents.
+.claude/worktrees/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+*.egg-info/
+
+# Plumb run state — the user's own data, never committed, never egressed.
+/runs/
+/traces/
+/checkouts/
+/_sandbox/
+/corpus/local/
+
+# Env / secrets (BYOK for any LLM assist)
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+*.swp
