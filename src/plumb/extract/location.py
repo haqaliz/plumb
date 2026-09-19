@@ -52,7 +52,18 @@ class Location(ABC):
 
     Abstract on purpose: a bare `Location` would be a reference with no way to resolve
     it back to source text.
+
+    **`__slots__ = ()` is load-bearing — do not delete it as boilerplate.** A base class
+    that omits `__slots__` carries a `__dict__` descriptor, and every subclass inherits
+    it. That silently defeats the subclass's own `slots=True`: the variant declares its
+    slots, looks sealed, and still accepts `object.__setattr__(span, "confidence", 0.9)`
+    into the inherited dict. Removing this line would re-open every variant of the union
+    at once — including ones that did everything right — which is exactly the guardrail
+    `CLAUDE.md` #1 keeps off these records. Both declarations are required: the empty
+    slots here, and `slots=True` on each variant.
     """
+
+    __slots__ = ()
 
     kind: ClassVar[str]
 
@@ -70,7 +81,7 @@ class Location(ABC):
             )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CharSpan(Location):
     """A half-open `[start, end)` character span of the normalized text.
 

@@ -6,6 +6,8 @@ hash covers the normalized text, so if these offsets indexed anything else, a
 published verdict would point at different content than it was derived from.
 """
 
+from dataclasses import FrozenInstanceError, dataclass
+from typing import ClassVar
 import unicodedata
 
 import pytest
@@ -138,6 +140,86 @@ class TestUnionShape:
         assert len({CharSpan(4, 9), CharSpan(4, 9)}) == 1
         with pytest.raises(Exception):
             loc.start = 5  # type: ignore[misc]
+
+
+class TestSlotsSealTheRecord:
+    """A span must not be able to acquire fields nobody declared.
+
+    This is the same guardrail `Claim` and `ClaimValue` carry, and it needs *two*
+    declarations to hold: `slots=True` on the variant **and** `__slots__ = ()` on the
+    union base. Either one alone leaves the record open — a base without `__slots__`
+    carries a `__dict__` descriptor that every variant inherits, which silently defeats
+    the variant's own slots.
+    """
+
+    def test_the_union_base_declares_empty_slots(self) -> None:
+        """Asserted at the source, because this is where the hole reopens.
+
+        `__slots__ = ()` on an abstract base looks like noise and invites deletion. It
+        is not: removing it re-opens every variant of the union at once, including ones
+        that correctly declare `slots=True` themselves, and nothing else in the file
+        would fail. This test is what makes that deletion loud.
+        """
+        assert Location.__dict__.get("__slots__") == ()
+        assert "__dict__" not in Location.__dict__
+
+    def test_an_attribute_cannot_be_forced_on_with_object_setattr(self) -> None:
+        """The check that actually proves slots — `frozen=True` alone would pass.
+
+        On a frozen dataclass *without* slots, ordinary assignment still raises, so a
+        `setattr` test cannot tell the two apart. Going through `object.__setattr__`
+        bypasses the frozen guard and reaches the real question: is there a `__dict__`
+        to put the value in?
+        """
+        loc = CharSpan(1, 2)
+
+        with pytest.raises(AttributeError):
+            object.__setattr__(loc, "confidence", 0.9)
+
+        assert not hasattr(loc, "confidence")
+
+    def test_an_undeclared_attribute_cannot_be_attached(self) -> None:
+        """The exception *type* is deliberately not pinned.
+
+        With `slots=True` the generated `__setattr__` closes over the pre-slots class
+        object, so assigning an *undeclared* attribute raises a confusing `TypeError`
+        from `super()` rather than `FrozenInstanceError` (3.12.13, verified). That is an
+        interpreter detail and may change; the invariant defended here is the one
+        asserted last.
+        """
+        loc = CharSpan(1, 2)
+
+        with pytest.raises((FrozenInstanceError, AttributeError, TypeError)):
+            loc.confidence = 0.9  # type: ignore[attr-defined]
+
+        assert not hasattr(loc, "confidence")
+
+    def test_a_span_carries_no_instance_dict(self) -> None:
+        assert not hasattr(CharSpan(1, 2), "__dict__")
+
+    def test_a_future_variant_declared_the_same_way_is_also_sealed(self) -> None:
+        """The reason the base fix matters more than the `CharSpan` fix.
+
+        `Location` exists as a union so a PDF `PageBox` variant can join it later. A
+        variant that declares `slots=True` exactly as `CharSpan` does must come out
+        sealed; if the base ever loses its own `__slots__`, this fails even though
+        the variant did everything right.
+        """
+
+        @dataclass(frozen=True, slots=True)
+        class PageBoxLike(Location):
+            kind: ClassVar[str] = "page_box_like"
+
+            page: int
+
+            def __post_init__(self) -> None:
+                pass
+
+        box = PageBoxLike(3)
+
+        assert not hasattr(box, "__dict__")
+        with pytest.raises(AttributeError):
+            object.__setattr__(box, "confidence", 0.9)
 
 
 class TestInvalidOffsets:
