@@ -58,6 +58,15 @@ field set (aspect 1).
 
 ## Open questions
 
+- 🔴 **Are `.87` and `0.87` one claim or two?** Aspect 1 made value-identity the
+  verbatim `text` string, so `0.87`, `.87` and `0.870` are currently **three**
+  identities. That errs toward splitting rather than merging, which is the conservative
+  direction — a false split is visible in the coverage number, a false merge silently
+  loses a claim. But a paper writing `.87` in a table and `0.87` in the abstract would
+  double-count one result in the Phase 0 denominator. **This aspect owns the decision.**
+  Note the constraint: any canonical form used for identity reintroduces exactly the
+  normalization M2 exists to prevent, so if the answer is "one claim", the canonical
+  form must be used for *identity only* and never for comparison.
 - Which hash algorithm to name (sha256 is the obvious default; it must be *recorded*,
   not just chosen, since C6 replay depends on it).
 - Whether to embed a schema/tool version in the output: doing so changes the

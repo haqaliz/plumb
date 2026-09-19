@@ -13,12 +13,18 @@ Two rules hold across every variant, and they are the reason this module exists:
    (surrounding whitespace aside). It is the only thing a human can check our
    parse against.
 2. **Numeric components are `Decimal`, built from strings.** Never `float(...)`,
-   never `Decimal(some_float)`. `Decimal("0.870") != Decimal("0.87")`, so the
-   reported significant figures survive; `float("0.1") + float("0.2") != 0.3`, so a
-   float that enters here would re-emerge downstream as a tolerance-width
-   discrepancy that the paper never contained. That is risk **R2** in
-   `docs/ROADMAP.md:57` — a false `DIVERGED` seeded upstream, in the parser, long
-   before anything is compared.
+   never `Decimal(some_float)`. `float("0.1") + float("0.2") != 0.3`, so a float
+   that enters here would re-emerge downstream as a tolerance-width discrepancy
+   that the paper never contained. That is risk **R2** in `docs/ROADMAP.md:57` — a
+   false `DIVERGED` seeded upstream, in the parser, long before anything is
+   compared.
+
+   But note what `Decimal` does *not* buy you: `Decimal("0.870") ==
+   Decimal("0.87")` is **`True`**, and the two hash equal. `Decimal` compares
+   numerically, not representationally. Significant figures survive in the verbatim
+   `text` and in `as_tuple()`'s exponent (`-3` vs `-2`) — never in `Decimal`
+   equality. This is why value identity is keyed on `text`: keying it on the
+   `Decimal` would silently merge two values a paper stated differently.
 
 `parse_value` reads a value out of a string and returns `None` when it cannot. It
 never raises and never invents a value: the *caller* decides what a miss means

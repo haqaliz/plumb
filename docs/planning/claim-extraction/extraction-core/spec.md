@@ -69,3 +69,19 @@ BYOK proposer — but M5 preserves the seam the proposer will later plug into.
   stays provisional until the first real corpus run.
 - Whether a "named metric" requires a controlled vocabulary or free text — decide in
   `tech-plan`.
+
+## Inherited from aspect 1 (decided 2026-09-20)
+
+- **Hyphen ranges are unsupported.** `parse_value` accepts only en/em dashes as range
+  separators; `12-15` returns `None`, because an ASCII hyphen is ambiguous against a
+  signed or subtracted value. Papers *do* use hyphens, so this is a known **recall**
+  gap — deliberately left to surface as missed claims in this aspect's blind-label
+  scoring, which is the evidence needed to decide it. Resolving it earlier would have
+  been guessing at how often hyphen ranges occur in real papers.
+- **Units must be separated from the value before `parse_value` is called.** It
+  tolerates only a trailing `%`; `0.87 kg` returns `None`. General units belong in
+  `Claim.units`. This coupling is this aspect's responsibility — accepting arbitrary
+  trailing tokens in the value would silently swallow a unit into the number.
+- **`parse_value` returning `None` is the caller-decides seam for M4.** An unparseable
+  value is data, not a programming error; this aspect decides whether it becomes a
+  non-claim record with a named cause.
