@@ -52,9 +52,21 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
 
 ### C1 — Claim extractor (`src/plumb/extract/`)
 
-- **Input:** paper as text, PDF (→ text), or a DOI the user resolves locally.
-- **Output:** a list of typed `Claim` records — reported value, units, tolerance hint, a
-  citation location in the paper, and the artifact/table/figure it should be derivable from.
+- **Input:** paper as text, Markdown, PDF (→ text), or a DOI the user resolves locally.
+- **Output:** a list of typed `Claim` records — reported value, units, the **metric** it
+  measures, tolerance hint, a citation location in the paper, the artifact/table/figure it should
+  be derivable from, and a derived **`id`**. Plus `StudyParameter` records (reported N and
+  similar), which are **not** claims.
+  - The **`metric`** is required: C4 aims a locator at a *named quantity*, and without it the
+    binder would have to re-interpret prose at bind time.
+  - The **`id`** is derived from `(reported value text, metric, units)` and **excludes
+    `location`**, so that merging duplicate mentions of one result does not change identity.
+  - The reported value keeps the paper's **verbatim text** alongside a `Decimal`. Note
+    `Decimal("0.870") == Decimal("0.87")` is `True`, so value identity is keyed on the text;
+    keying it on the `Decimal` would silently merge two values a paper stated differently.
+  - There is **no `confidence` field**, by construction — a confidence score becomes
+    `if confidence > 0.9` at verdict time, which is a model's opinion standing in for a
+    re-derived value (constraint #1).
 - **Deterministic core** parses numbers, tables, and reported statistics. An **optional BYOK
   LLM proposer** (off by default) suggests additional candidate claims; every proposed claim is
   re-grounded deterministically against the paper text before admission. The proposer never
@@ -154,5 +166,13 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
 - Tolerance policy: per-claim explicit vs a typed default per claim kind; how to represent "no
   defensible tolerance" (→ `UNVERIFIED: NO_TOLERANCE`).
 - Locator grammar: how much a model may propose vs a fixed deterministic set.
+- Value identity across spellings: `0.87`, `.87` and `0.870` are currently three identities,
+  because identity is the verbatim text. That errs toward splitting (visible in the coverage
+  number) over merging (silently loses a claim), but a paper writing `.87` in a table and `0.87`
+  in its abstract double-counts one result. Any canonical form adopted for identity must be used
+  for identity *only*, never for comparison.
+- Whether hyphen-separated ranges (`12-15`) should parse. Today only en/em dashes do, since an
+  ASCII hyphen is ambiguous against a signed or subtracted value — a known recall gap, left to be
+  measured against labelled papers rather than guessed at.
 
 These do not block C1–C3; they must be settled before C4's verdict is published as a finding.

@@ -16,9 +16,10 @@ Verdict vocabulary used throughout: `REPRODUCED` / `WITHIN-TOLERANCE` / `DIVERGE
 
 ## C1. Paper-claim extraction
 
-**What:** take a paper (text, PDF, or DOI → text) and produce a set of typed **quantitative
-claims** — each with the reported value, units, location in the paper, and the artifact it should
-be derivable from.
+**What:** take a paper (text, Markdown, PDF, or DOI → text) and produce a set of typed
+**quantitative claims** — each with the reported value, units, the metric it measures, location in
+the paper, and the artifact it should be derivable from. Reported study parameters (notably N) are
+extracted alongside as a **separate record type**, not as claims.
 
 **Why:** you can't verify what you haven't pinned down. The claim is the unit of work.
 
@@ -26,8 +27,15 @@ be derivable from.
 that suggests candidate claims. Every LLM-proposed claim is deterministically re-grounded against
 the paper text before it is admitted. The proposer never assigns a verdict.
 
-**Depends on:** nothing. **Guardrail:** constraints #1, #3 — a proposed claim the paper doesn't
-actually make is dropped, not carried forward as `DIVERGED`.
+**Depends on:** nothing. **Guardrail:** constraints #1, #3 — a candidate the paper doesn't
+actually make never becomes a `Claim`, and is never carried forward as `DIVERGED`. It is recorded
+as a **non-claim with a named cause** rather than discarded silently: an invisible drop is
+indistinguishable from a claim that was never there, and it flatters the coverage number the
+Phase 0 gate rests on (`ARCHITECTURE.md` "never a silent pass"; `ROADMAP.md` R3).
+
+**Status (2026-09-21):** the deterministic record layer has landed — `ClaimValue`, `Location`,
+`Claim`, `StudyParameter` under `src/plumb/extract/`. Selection (which numbers *are* claims) and
+serialization are not built. **PDF input is not built**, so the Phase 0 C1 minimum is not yet met.
 
 ## C2. Artifact intake & pinned environment
 
@@ -95,8 +103,11 @@ internal-consistency checks (do the reported statistics agree with each other an
 **Why:** extends coverage to the majority of papers that ship no code — but as a **weaker,
 clearly labeled** signal.
 
-**Depends on:** C1. **Guardrail:** constraint #3 — an internal inconsistency is labeled as such,
-never rendered as a ground-truth `DIVERGED` from re-execution.
+**Depends on:** C1 — specifically on C1's `StudyParameter` records, which carry the reported N
+these checks are run against. N is deliberately *not* a `Claim`: no execution re-derives a sample
+size, so counting it as one would distort the bind-and-re-derive coverage number.
+**Guardrail:** constraint #3 — an internal inconsistency is labeled as such, never rendered as a
+ground-truth `DIVERGED` from re-execution.
 
 ## C8. Hosted layer (BYOK, opt-in) — the business
 
