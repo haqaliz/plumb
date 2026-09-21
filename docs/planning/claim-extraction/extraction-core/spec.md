@@ -70,6 +70,31 @@ BYOK proposer — but M5 preserves the seam the proposer will later plug into.
 - Whether a "named metric" requires a controlled vocabulary or free text — decide in
   `tech-plan`.
 
+## Known limits of candidate extraction (recorded 2026-09-21)
+
+Both are safe to defer **only because the first label set covers abstracts only**, and
+every one of the five fixture papers has a literal `## Abstract` heading. Neither
+affects the labels; both affect the selection rule's reach and must be revisited when
+labelling extends beyond abstracts.
+
+- 🟡 **`section_hint` mixes two axes.** `abstract` / `results` / `references` / `other`
+  say *where in the document*; `table` says *what container*. `table` wins the override,
+  so a number in a table inside `## References` reports `table` and its section is
+  unrecoverable. If both facts are ever needed, that is two fields (`section_hint` +
+  `container`) — cheaper to split before table candidates are labelled than after.
+- 🔴 **The heading map matches only 17 of 119 real headings** across the five fixtures.
+  Two papers yield **zero** `results` candidates: their sections read
+  `## 5. Per-Dataset Analysis Results` and `## Review`. Matching is exact by choice —
+  word containment would add 5 headings but mislabel 3 table captions
+  (`### Table 5. … test results …`) as `results`, and honest `other` beats a confident
+  guess.
+
+  **Consequence for M3's criterion (c)** ("appears in abstract, results, or a table"):
+  with this coverage, `results` is unreliable, so in practice the criterion reads
+  "abstract or table" on real papers. The rule must not lean on `results` until the
+  map is widened, and the widening needs evidence about real heading forms rather than
+  a guess.
+
 ## Inherited from aspect 1 (decided 2026-09-20)
 
 - **Hyphen ranges are unsupported.** `parse_value` accepts only en/em dashes as range
