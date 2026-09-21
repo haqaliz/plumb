@@ -35,6 +35,13 @@ Four things this file is careful about, each of which has already bitten somethi
   "float")` and a float arriving through a variable both get past it. Both directions
   are self-tested against synthetic modules, so the guard is known to fire *and* known
   not to misfire.
+- **The division of labour between the two guards.** The source scan reads
+  `src/plumb/extract/` and nothing else, so a value arriving through a caller-supplied
+  parameter — a timestamp intake passes in, say — is outside every AST check, and a
+  content regex only fires on a field the fixture corpus happens to populate. The
+  document's key set is pinned for exactly that case: `TestTheSerializedSchemaIsClosed`
+  fails on any field that appears unannounced, whatever it contains, and with no
+  dependence on how fast the machine runs.
 - **Vacuity.** A guard that scans nothing, or an assertion that holds because the thing
   it forbids could never appear, passes forever. The scans assert they found the
   modules; the path assertion asserts the document does contain a legitimate slash.
@@ -46,6 +53,7 @@ from __future__ import annotations
 
 import ast
 from decimal import Decimal
+import json
 import os
 from pathlib import Path
 import re
@@ -558,6 +566,131 @@ class TestNoAmbientStateInTheOutput:
 
 
 # --------------------------------------------------------------------------------
+# The serialized schema, closed
+# --------------------------------------------------------------------------------
+
+
+def json_key_paths(node: object, prefix: str = "") -> set[str]:
+    """Every key in the document, path-qualified — `claims[].reported_value.kind`.
+
+    Path-qualified rather than a flat set of names, so a field that *moves* is an
+    unexpected key too: `kind` on a location and `kind` on a value are different
+    facts, and a bare name set would let one migrate into the other unnoticed.
+    """
+    paths: set[str] = set()
+    if isinstance(node, dict):
+        for key, value in node.items():
+            path = f"{prefix}.{key}" if prefix else key
+            paths.add(path)
+            paths |= json_key_paths(value, path)
+    elif isinstance(node, list):
+        for item in node:
+            paths |= json_key_paths(item, f"{prefix}[]")
+    return paths
+
+
+#: Every key the serialized document is allowed to contain. This is the schema C6
+#: bundles and a third party replays; adding a line here is a contract change.
+SERIALIZED_SCHEMA = frozenset(
+    {
+        "claims",
+        "claims[].artifact_hint",
+        "claims[].id",
+        "claims[].location",
+        "claims[].location.end",
+        "claims[].location.kind",
+        "claims[].location.start",
+        "claims[].metric",
+        "claims[].reported_value",
+        "claims[].reported_value.center",
+        "claims[].reported_value.high",
+        "claims[].reported_value.kind",
+        "claims[].reported_value.low",
+        "claims[].reported_value.magnitude",
+        "claims[].reported_value.margin",
+        "claims[].reported_value.op",
+        "claims[].reported_value.text",
+        "claims[].reported_value.value",
+        "claims[].tolerance_hint",
+        "claims[].units",
+        "paper_hash",
+        "paper_hash.algorithm",
+        "paper_hash.digest",
+    }
+)
+
+
+class TestTheSerializedSchemaIsClosed:
+    """No field reaches the document unannounced — whatever it happens to contain.
+
+    **This is the half of the guard that covers what the source scan cannot.** The AST
+    guards below read `src/plumb/extract/` only, so a value arriving through a
+    caller-supplied parameter, or through a record field that intake populates, is
+    outside every one of them: nothing in this package would generate it, and nothing
+    in this package would be flagged. A content assertion does not close that either,
+    since a shape regex only fires on a field the fixture corpus happens to populate,
+    and a newly added field by definition is not one.
+
+    So the document's key set is pinned instead. That catches the unannounced field
+    regardless of what is in it — a clock, an epoch integer (deliberately absent from
+    the timestamp shapes above, because `\\d{10}` is too spurious to assert in
+    general), a path, a machine name — and it does so with no dependence on how fast
+    the machine runs, unlike a cross-process comparison against a second-resolution
+    timestamp, which is red only when the two children straddle a second boundary.
+
+    The side effect is the point as much as the guard: C6 replays these documents, so
+    a field appearing unannounced is a contract change whether or not it carries
+    ambient state.
+    """
+
+    def _document(self) -> dict[str, object]:
+        raw = serialize_claims(sample_claims(), paper_hash=hash_paper(PAPER_TEXT))
+        parsed = json.loads(raw.decode("utf-8"))
+        assert isinstance(parsed, dict)
+        return parsed
+
+    def test_every_key_in_the_document_is_declared(self) -> None:
+        unexpected = sorted(json_key_paths(self._document()) - SERIALIZED_SCHEMA)
+        assert not unexpected, (
+            f"undeclared key(s) in the serialized document: {unexpected}. A new field "
+            "is a change to the serialized schema C6 bundles and a third party "
+            "replays — not a test to be silenced. If the field belongs in the "
+            "contract, add it to SERIALIZED_SCHEMA in this file deliberately, and "
+            "check it carries no clock, path, hostname or other ambient state, "
+            "because no source guard can see a value that arrives from a caller."
+        )
+
+    def test_every_declared_key_is_actually_produced(self) -> None:
+        # Keeps the allowlist honest in the other direction: a declared key nothing
+        # produces is a line someone can hide a future field behind, and it means the
+        # corpus no longer exercises the variant that used to emit it.
+        missing = sorted(SERIALIZED_SCHEMA - json_key_paths(self._document()))
+        assert not missing, (
+            f"declared but never produced: {missing}. Either the corpus stopped "
+            "covering a variant, or SERIALIZED_SCHEMA carries a stale line."
+        )
+
+    def test_the_key_scan_sees_a_field_added_anywhere(self) -> None:
+        # The guard tested before it is trusted, at each depth a field could appear.
+        document = self._document()
+        assert "extracted_at" not in json_key_paths(document)
+
+        top = {**document, "extracted_at": "2026-09-21T14:03:55"}
+        assert "extracted_at" in json_key_paths(top) - SERIALIZED_SCHEMA
+
+        claims = [{**claim, "seen_at": 1758412800} for claim in document["claims"]]  # type: ignore[union-attr]
+        nested = {**document, "claims": claims}
+        assert "claims[].seen_at" in json_key_paths(nested) - SERIALIZED_SCHEMA
+
+    def test_a_field_that_moved_is_unexpected_too(self) -> None:
+        # Path-qualified keys: `kind` is legal on a location and on a value, and
+        # illegal at the top level. A flat name set would not notice.
+        document = self._document()
+        assert "kind" in json_key_paths({**document, "kind": "char_span"})
+        assert "kind" not in SERIALIZED_SCHEMA
+
+
+# --------------------------------------------------------------------------------
 # The source-level guard
 # --------------------------------------------------------------------------------
 
@@ -892,6 +1025,7 @@ class TestNoModuleInThePackageReadsAmbientState:
             "dedup.py",
             "hashing.py",
             "location.py",
+            "ordering.py",
             "serialize.py",
             "value.py",
         } <= names
