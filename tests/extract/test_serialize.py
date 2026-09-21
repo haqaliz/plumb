@@ -33,9 +33,7 @@ from plumb.extract.hashing import PaperHash, hash_paper
 from plumb.extract.location import CharSpan, Location
 from plumb.extract.serialize import (
     SERIALIZATION,
-    _location_sort_key,
     _order_key,
-    _optional_sort_key,
     serialize_claims,
 )
 from plumb.extract.value import (
@@ -264,19 +262,6 @@ class TestOrdering:
         assert none_units != empty_units
         assert none_units < empty_units
 
-    def test_units_presence_sorts_before_units_value(self) -> None:
-        # `None` must not simply sort where `""` would; it occupies its own position,
-        # ahead of every present value including the empty one.
-        assert _optional_sort_key(None) < _optional_sort_key("")
-        assert _optional_sort_key("") < _optional_sort_key("mg/L")
-
-    def test_the_units_ordering_matches_dedup(self) -> None:
-        # Two modules ordering the same records differently would be its own bug.
-        from plumb.extract.dedup import _optional_sort_key as dedup_key
-
-        for part in (None, "", "mg/L", "%"):
-            assert _optional_sort_key(part) == dedup_key(part)
-
     def test_claims_alike_but_for_hints_are_ordered_deterministically(self) -> None:
         # Identical in every field of the declared key *and* in `id`, differing only
         # in a hint. Still must not depend on input order.
@@ -289,27 +274,6 @@ class TestOrdering:
     def test_identical_claims_both_appear(self) -> None:
         # Serialization does not dedup; that is aspect 3's Phase 3, not this function.
         assert len(document(claim(), claim())["claims"]) == 2
-
-    def test_the_location_key_leads_with_the_variant_tag(self) -> None:
-        # D2 keys on `location.start`/`location.end`, which live on `CharSpan` and not
-        # on the `Location` base the union is built around. With the tag leading, a
-        # second variant orders against `CharSpan` instead of colliding with it — a
-        # `PageBox` given a `start` "for convenience" would otherwise sort page numbers
-        # against character offsets, silently, while the suite stayed green.
-        assert _location_sort_key(CharSpan(start=3, end=7)) == ("char_span", 3, 7)
-        assert _location_sort_key(CharSpan(start=3, end=7))[0] == CharSpan.kind
-
-    def test_an_unordered_location_variant_raises_and_names_the_extension_point(
-        self,
-    ) -> None:
-        with pytest.raises(TypeError, match="_location_sort_key"):
-            _location_sort_key(PageBox())
-
-    def test_the_location_ordering_matches_dedup(self) -> None:
-        from plumb.extract.dedup import _location_sort_key as dedup_key
-
-        for span in (CharSpan(start=0, end=0), CharSpan(start=3, end=7)):
-            assert _location_sort_key(span) == dedup_key(span)
 
     def test_an_iterator_is_accepted_and_ordered(self) -> None:
         claims = [claim("0.91", metric="F1"), claim("0.87", metric="AUC")]

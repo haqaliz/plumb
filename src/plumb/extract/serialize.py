@@ -43,6 +43,7 @@ from typing import Any, Callable
 from plumb.extract.claim import Claim
 from plumb.extract.hashing import PaperHash
 from plumb.extract.location import CharSpan, Location
+from plumb.extract.ordering import location_sort_key, optional_sort_key
 from plumb.extract.value import (
     Approximate,
     Bound,
@@ -220,7 +221,7 @@ def _encode_location(location: Location) -> dict[str, Any]:
     `CharSpan.kind` is reused rather than re-spelled: `location.py` already enforces
     that every variant carries a `kind` tag, and a second literal here could only ever
     drift from it. A future variant (`PageBox`) must extend this function *and*
-    `_location_sort_key` — the sort key needs an ordering for it, and there is no
+    `location_sort_key` — the sort key needs an ordering for it, and there is no
     honest default for a variant this module has never seen.
     """
     if type(location) is not CharSpan:
@@ -250,40 +251,9 @@ def _encode_claim(claim: Claim) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------------
-# Ordering
+# Ordering — the shared keys live in `ordering.py`. What remains here is the
+# serializer's own key, which ends in the canonical encoding only it can produce.
 # --------------------------------------------------------------------------------
-
-
-def _optional_sort_key(part: str | None) -> tuple[int, str]:
-    """Order a `str | None` field without collapsing `None` into `""`.
-
-    The obvious spelling — `part or ""` — makes `None` and `""` tie, and they are
-    different facts the record layer went out of its way to keep apart ("this metric
-    is dimensionless" versus "someone wrote an empty string"). `Claim.id` distinguishes
-    them; a sort key that does not would hand two distinct claims an order decided by
-    whoever appended them first.
-    """
-    return (0, "") if part is None else (1, part)
-
-
-def _location_sort_key(location: Location) -> tuple[str, int, int]:
-    """Order locations by variant tag, then `(start, end)`.
-
-    The tag leads so that a second variant joining the union orders against `CharSpan`
-    rather than colliding with it. A `PageBox` given a `start` "for convenience" would
-    otherwise sort page numbers against character offsets, and ordering would go
-    silently meaningless while the suite stayed green. Until such a variant exists, an
-    unknown one is refused: it has no offsets to sort on, and ordering it by arrival
-    would reintroduce the dependence on extraction order that this module exists to
-    remove.
-    """
-    if not isinstance(location, CharSpan):
-        raise TypeError(
-            f"{type(location).__name__} has no defined ordering; extend "
-            "`_location_sort_key` when a Location variant joins the union, rather "
-            "than letting output order fall back to extraction order."
-        )
-    return (location.kind, location.start, location.end)
 
 
 def _order_key(claim: Claim, canonical: str) -> tuple[Any, ...]:
@@ -294,13 +264,14 @@ def _order_key(claim: Claim, canonical: str) -> tuple[Any, ...]:
     and a partial key falls back to input order, since `sorted()` is stable but its
     input may not be:
 
-    - `units or ""` erases the `None`/`""` distinction (see `_optional_sort_key`).
+    - `units or ""` erases the `None`/`""` distinction (see `optional_sort_key`).
     - `location.start` / `location.end` are `CharSpan` attributes, not `Location` ones;
-      the union exists so `PageBox` can join it (see `_location_sort_key`).
+      the union exists so `PageBox` can join it (see `location_sort_key`).
 
-    Both are spelled here exactly as `dedup.py` spells them, deliberately: two modules
-    ordering the same records differently would be its own bug. The hint components
-    mirror its `_member_sort_key` for the same reason.
+    Both come from `plumb.extract.ordering`, which `dedup.py` imports too: two modules
+    ordering the same records differently would be its own bug, and a single
+    implementation is what rules it out rather than a test comparing two copies. The
+    hint components use the same helper the shared `member_sort_key` does.
 
     The claim's own canonical encoding is the last component and the backstop. Even
     with every field above accounted for, two records can agree on all of them and
@@ -312,10 +283,10 @@ def _order_key(claim: Claim, canonical: str) -> tuple[Any, ...]:
     return (
         claim.reported_value.text,
         claim.metric,
-        _optional_sort_key(claim.units),
-        _location_sort_key(claim.location),
-        _optional_sort_key(claim.artifact_hint),
-        _optional_sort_key(claim.tolerance_hint),
+        optional_sort_key(claim.units),
+        location_sort_key(claim.location),
+        optional_sort_key(claim.artifact_hint),
+        optional_sort_key(claim.tolerance_hint),
         canonical,
     )
 

@@ -26,9 +26,11 @@ string identity is reimplementable from one sentence, and any normalization woul
 to be documented, versioned, and replayable by C6.
 
 **Ordering is by an explicit total key, never by insertion, `set` iteration or
-`hash()`.** `PYTHONHASHSEED` varies from process to process, so any of those three
-would make output order depend on which interpreter happened to run — and a single
--process test would never see it.
+`hash()`.** The keys themselves are not defined here: they live in `ordering.py`,
+which `serialize.py` imports too, so the two modules cannot drift into ordering the
+same records differently. `PYTHONHASHSEED` varies from process to process, so any of
+those three would make output order depend on which interpreter happened to run — and
+a single-process test would never see it.
 
 **A merged result is its own type, `MergedClaim`, sharing no base with `Claim`.** A
 `Claim` is a *mention*: one value, one place. A `MergedClaim` is a *result*: one value,
@@ -47,7 +49,13 @@ from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 
 from plumb.extract.claim import Claim
-from plumb.extract.location import CharSpan, Location
+from plumb.extract.location import Location
+from plumb.extract.ordering import (
+    ClaimIdentity,
+    identity_sort_key,
+    location_sort_key,
+    member_sort_key,
+)
 from plumb.extract.value import ClaimValue
 
 __all__ = [
@@ -57,10 +65,6 @@ __all__ = [
     "group_claims",
     "merged_locations",
 ]
-
-
-ClaimIdentity = tuple[str, str, str | None]
-"""`(reported_value.text, metric, units)` — the same fields `Claim.id` covers."""
 
 
 def claim_identity(claim: Claim) -> ClaimIdentity:
@@ -79,7 +83,7 @@ def group_claims(claims: Iterable[Claim]) -> tuple[tuple[Claim, ...], ...]:
     """Partition `claims` into one group per distinct identity.
 
     Groups come back in a defined order, and so do the members inside each group, on
-    an explicit total key (see `_identity_sort_key` and `_member_sort_key`). Feeding
+    an explicit total key (see `identity_sort_key` and `member_sort_key`). Feeding
     the same claims in a different order returns exactly the same structure.
 
     Raises `ValueError` when two claims share an identity but carry non-equal
@@ -93,10 +97,10 @@ def group_claims(claims: Iterable[Claim]) -> tuple[tuple[Claim, ...], ...]:
     # `.items()` is insertion-ordered, which is deterministic only if the *input* was.
     # The sort is what makes the output order independent of the caller.
     for identity, members in sorted(
-        grouped.items(), key=lambda item: _identity_sort_key(item[0])
+        grouped.items(), key=lambda item: identity_sort_key(item[0])
     ):
         _require_coherent(identity, members)
-        ordered.append(tuple(sorted(members, key=_member_sort_key)))
+        ordered.append(tuple(sorted(members, key=member_sort_key)))
     return tuple(ordered)
 
 
@@ -112,7 +116,7 @@ def merged_locations(claims: Iterable[Claim]) -> tuple[Location, ...]:
     the collapse a comparison between neighbours and leaves nothing to hash order.
     """
     ordered = sorted(
-        (claim.location for claim in claims), key=_location_sort_key
+        (claim.location for claim in claims), key=location_sort_key
     )
     unique: list[Location] = []
     for location in ordered:
@@ -211,7 +215,7 @@ class MergedClaim:
                     "MergedClaim.locations must hold Location variants, got "
                     f"{type(location).__name__}: {location!r}"
                 )
-        _require_sorted_distinct("locations", self.locations, _location_sort_key)
+        _require_sorted_distinct("locations", self.locations, location_sort_key)
 
         for name in ("artifact_hints", "tolerance_hints"):
             hints = getattr(self, name)
@@ -280,64 +284,6 @@ def _merged_hints(group: Sequence[Claim], attribute: str) -> tuple[str, ...]:
         if not unique or unique[-1] != hint:
             unique.append(hint)
     return tuple(unique)
-
-
-# --------------------------------------------------------------------------------
-# Sort keys. Every one of these must be *total*: a tie is a fallback to input order,
-# and input order is exactly what this module refuses to depend on.
-# --------------------------------------------------------------------------------
-
-
-def _optional_sort_key(part: str | None) -> tuple[int, str]:
-    """Order a `str | None` field without collapsing `None` into `""`.
-
-    The obvious spelling — `part or ""` — makes `None` and `""` tie, and they are
-    different facts the record layer went out of its way to keep apart ("this metric
-    is dimensionless" versus "someone wrote an empty string"). `Claim.id`
-    distinguishes them; a sort key that does not would hand two distinct claims an
-    order decided by whoever appended them first.
-    """
-    return (0, "") if part is None else (1, part)
-
-
-def _identity_sort_key(identity: ClaimIdentity) -> tuple[str, str, tuple[int, str]]:
-    """Order groups by value text, then metric, then units."""
-    text, metric, units = identity
-    return (text, metric, _optional_sort_key(units))
-
-
-def _location_sort_key(location: Location) -> tuple[str, int, int]:
-    """Order locations by variant tag, then `(start, end)`.
-
-    The tag leads so that a second variant joining the union orders against `CharSpan`
-    rather than colliding with it. Until one exists, an unknown variant is refused: it
-    has no offsets to sort on, and ordering it by arrival would reintroduce the
-    dependence on extraction order that this module exists to remove.
-    """
-    if not isinstance(location, CharSpan):
-        raise TypeError(
-            f"{type(location).__name__} has no defined ordering; extend "
-            "`_location_sort_key` when a Location variant joins the union, rather "
-            "than letting output order fall back to extraction order."
-        )
-    return (location.kind, location.start, location.end)
-
-
-def _member_sort_key(
-    claim: Claim,
-) -> tuple[tuple[str, int, int], tuple[int, str], tuple[int, str]]:
-    """Order claims *within* one group — they already share text, metric and units.
-
-    Location, then the two hints, which is every remaining field that may legitimately
-    vary inside a group. Two members can tie here only if they are fully equal records
-    (order unobservable) or if they disagree on `reported_value` components, which
-    `_require_coherent` has already refused.
-    """
-    return (
-        _location_sort_key(claim.location),
-        _optional_sort_key(claim.artifact_hint),
-        _optional_sort_key(claim.tolerance_hint),
-    )
 
 
 # --------------------------------------------------------------------------------
