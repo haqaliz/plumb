@@ -32,6 +32,14 @@ from plumb.extract.candidates import (
 )
 from plumb.extract.location import CharSpan, normalize_text
 from plumb.extract.ordering import location_sort_key
+from plumb.extract.value import (
+    Approximate,
+    Bound,
+    Interval,
+    PlusMinus,
+    Range,
+    parse_value,
+)
 
 # One paper exercising every structural case at once: numbers in prose, in a table, in
 # a heading, in a reference list; a subheading that must inherit its parent's section;
@@ -70,10 +78,9 @@ EXPECTED = (
     ("0.87", SECTION_ABSTRACT),
     ("412", SECTION_ABSTRACT),
     ("91.5", SECTION_RESULTS),
-    (".001", SECTION_RESULTS),
+    ("< .001", SECTION_RESULTS),
     ("0.87", SECTION_TABLE),
-    ("0.85", SECTION_RESULTS),
-    ("0.03", SECTION_RESULTS),
+    ("0.85 ± 0.03", SECTION_RESULTS),
     ("2", SECTION_OTHER),
     ("1", SECTION_REFERENCES),
     ("2019", SECTION_REFERENCES),
@@ -156,6 +163,305 @@ class TestEveryNumberIsFound:
         # `12-15` from becoming `12` and `-15`.
         assert texts_of("The effect was -0.5 overall.\n") == ("-0.5",)
         assert texts_of("AUC-0.87 across 12-15 sites.\n") == ("0.87", "12", "15")
+
+
+def parsed_of(document: str) -> tuple[tuple[str, str], ...]:
+    """Each candidate's text with the `ClaimValue` variant `parse_value` reads from it.
+
+    The pairing is the point. Asserting the text alone would let a composite through
+    that looks right and parses to `None`, and asserting the variant alone would not
+    say which characters the span covers.
+    """
+    return tuple(
+        (candidate.text, type(parse_value(candidate.text)).__name__)
+        for candidate in extract_candidates(document)
+    )
+
+
+class TestCompositeValues:
+    """A value the paper wrote as one thing is one candidate, not its pieces.
+
+    This is a tokenization change, not selection: it changes *what counts as one
+    number*, and nothing here decides which numbers are claims. The pieces do not
+    survive alongside the whole — a `0.001` emitted next to `p < 0.001` would be
+    counted twice by any later metric, and admitted on its own it would assert
+    `p = 0.001`, a number the paper never wrote.
+
+    Two asymmetries are deliberate and pinned below:
+
+    - A **trailing** `%` stays out of the candidate, exactly as it does for a bare
+      number: `12–15%` yields `12–15`, and the unit belongs to `Claim.units`.
+    - The **leading** `95%` of `95% CI [0.81, 0.93]` is *inside* the candidate. It is
+      not a unit but the confidence level, and `Interval` states that it must never
+      surface as an endpoint or as a `Point` of its own — which is precisely what
+      leaving it outside would do.
+    """
+
+    @pytest.mark.parametrize(
+        ("sentence", "text", "variant"),
+        [
+            (
+                "AUC was 0.87 (95% CI [0.81, 0.93]).\n",
+                "95% CI [0.81, 0.93]",
+                Interval,
+            ),
+            ("Effect held at p < 0.001.\n", "< 0.001", Bound),
+            ("Accuracy 0.85 ± 0.03 overall.\n", "0.85 ± 0.03", PlusMinus),
+            ("Range was 12–15% across sites.\n", "12–15", Range),
+            ("About ~10,000 reads per sample.\n", "~10,000", Approximate),
+        ],
+    )
+    def test_a_composite_is_one_candidate_of_the_right_variant(
+        self, sentence: str, text: str, variant: type
+    ) -> None:
+        candidates = extract_candidates(sentence)
+        composite = next(c for c in candidates if c.text == text)
+
+        assert isinstance(parse_value(composite.text), variant)
+
+    @pytest.mark.parametrize(
+        ("sentence", "expected"),
+        [
+            # The `0.87` beside the interval is a value in its own right and stays a
+            # candidate; the `95`, `0.81` and `0.93` inside it do not.
+            (
+                "AUC was 0.87 (95% CI [0.81, 0.93]).\n",
+                (("0.87", "Point"), ("95% CI [0.81, 0.93]", "Interval")),
+            ),
+            ("Effect held at p < 0.001.\n", (("< 0.001", "Bound"),)),
+            ("Accuracy 0.85 ± 0.03 overall.\n", (("0.85 ± 0.03", "PlusMinus"),)),
+            ("Range was 12–15% across sites.\n", (("12–15", "Range"),)),
+        ],
+    )
+    def test_no_piece_of_a_composite_is_emitted_beside_it(
+        self, sentence: str, expected: tuple[tuple[str, str], ...]
+    ) -> None:
+        # An exact set, not a membership check: over-emitting the pieces is the
+        # failure this change exists to remove, and it is invisible to `in`.
+        assert parsed_of(sentence) == expected
+
+    def test_a_bare_number_is_still_a_point(self) -> None:
+        # The control. Widening must not reach a number that stands on its own.
+        assert parsed_of("The AUC was 0.87 overall.\n") == (("0.87", "Point"),)
+
+    def test_every_composite_span_reproduces_its_own_text(self) -> None:
+        document = (
+            "AUC 0.87 (95% CI [0.81, 0.93]), p < 0.001, 0.85 ± 0.03, 12–15%, ~10,000.\n"
+        )
+        normalized = normalize_text(document)
+
+        for candidate in extract_candidates(document):
+            assert normalized[candidate.span.start : candidate.span.end] == (
+                candidate.text
+            )
+
+    def test_adjacent_composites_in_one_sentence_separate(self) -> None:
+        document = "Recall 0.85 ± 0.03 at p < 0.001 over 12–15% of sites.\n"
+
+        assert parsed_of(document) == (
+            ("0.85 ± 0.03", "PlusMinus"),
+            ("< 0.001", "Bound"),
+            ("12–15", "Range"),
+        )
+
+    def test_an_interval_does_not_swallow_a_neighbouring_number(self) -> None:
+        # The number before it and the number after it are both untouched: a
+        # composite may only consume the notation it is made of.
+        document = "We saw 0.87 (95% CI [0.81, 0.93]) and then 0.91 later.\n"
+
+        assert parsed_of(document) == (
+            ("0.87", "Point"),
+            ("95% CI [0.81, 0.93]", "Interval"),
+            ("0.91", "Point"),
+        )
+
+    def test_the_confidence_level_is_not_a_candidate_of_its_own(self) -> None:
+        # `Interval` states it: the 95 of `95% CI` is a property of the estimator, and
+        # a `Point(95)` from it is a value the paper never reported.
+        assert "95" not in texts_of("AUC 0.87 (95% CI [0.81, 0.93]).\n")
+
+    def test_a_trailing_percent_stays_outside_the_candidate(self) -> None:
+        # Same rule as a bare number: `91.5%` is `91.5`, so `12–15%` is `12–15`.
+        assert texts_of("Between 12–15% of cases.\n") == ("12–15",)
+        assert texts_of("Recall 0.85 ± 0.03% overall.\n") == ("0.85 ± 0.03",)
+
+    def test_an_interval_takes_both_endpoint_percents_or_neither(self) -> None:
+        # A `%` *between* the endpoints is interior notation and must be kept, or the
+        # text would not round-trip as written. A `%` only at the end is a trailing
+        # unit like any other, and stays out — the same rule as `12–15%`.
+        assert texts_of("Pooled (95% CI: 0.4%-1.7%) overall.\n") == (
+            "95% CI: 0.4%-1.7%",
+        )
+        assert texts_of("Pooled (95% CI: 0.4-1.7%) overall.\n") == (
+            "95% CI: 0.4-1.7",
+        )
+
+    @pytest.mark.parametrize(
+        ("sentence", "text"),
+        [
+            ("Threshold p<0.001 here.\n", "<0.001"),
+            ("Heterogeneity was > 97 percent.\n", "> 97"),
+            ("Needs R >= 3.5 installed.\n", ">= 3.5"),
+            ("With FDR ≤0.05 applied.\n", "≤0.05"),
+            ("At dCor ≥ 0.0884 overall.\n", "≥ 0.0884"),
+        ],
+    )
+    def test_every_operator_spelling_is_kept(self, sentence: str, text: str) -> None:
+        # All five spellings occur in the fixture corpus. `>=` must beat `>`, or the
+        # candidate would be `> = 3.5` — which parses to nothing.
+        assert texts_of(sentence) == (text,)
+        assert isinstance(parse_value(text), Bound)
+
+    def test_the_bound_does_not_absorb_the_name_in_front_of_it(self) -> None:
+        # `parse_value` would accept `p < 0.001`, and the candidate is still
+        # deliberately `< 0.001`: the name is the *metric*, a field of its own that
+        # `admit` is given separately. Baking it into the value's verbatim text would
+        # let `reported_value.text` name one quantity while `Claim.metric` names
+        # another, with nothing to catch the disagreement.
+        assert texts_of("Effect held at p < 0.001.\n") == ("< 0.001",)
+
+
+class TestCompositesAreNotGuessed:
+    """The forms that look composite and are not, each one measured in the corpus.
+
+    Every case here would, if widened, merge two numbers the paper kept apart —
+    inventing a value rather than recording one. The rule these share: a composite is
+    emitted only where `value.py` would parse it, so extraction can never hand
+    `admit` a span that `parse_value` then refuses.
+    """
+
+    def test_a_percent_sign_blocks_the_minus_that_follows_it(self) -> None:
+        """The sign rule's hole, and the false value it produced.
+
+        `+`/`-` joins a number when nothing *word-like* precedes it, and `%` is not
+        word-like — so in `0.4%-1.7%` the hyphen was read as a minus and the upper
+        endpoint came out `-1.7`, a negative number from a paper reporting a positive
+        one. It grounded, it parsed, and `admit` had no reason to refuse it: a
+        sign-flipped `Point(-1.7)` entered the record as a claim. A minus sign cannot
+        directly follow a percent sign in any notation, so `%` blocks attachment.
+        """
+        assert texts_of("Values ran 0.4%-1.7% overall.\n") == ("0.4", "1.7")
+
+    @pytest.mark.parametrize(
+        ("sentence", "expected"),
+        [
+            ("The effect was -0.5 overall.\n", ("-0.5",)),
+            ("Bounds were (-5.432, -4.092) here.\n", ("-5.432", "-4.092")),
+            ("-0.71 was the correlation.\n", ("-0.71",)),
+            ("Change of -24.0 and then -0.04.\n", ("-24.0", "-0.04")),
+            ("Slope: -1.14 overall.\n", ("-1.14",)),
+        ],
+    )
+    def test_the_sign_rule_still_attaches_everywhere_it_should(
+        self, sentence: str, expected: tuple[str, ...]
+    ) -> None:
+        # Blocking `%` must not cost a real negative. Every shape the sign rule
+        # exists for — after a space, after an opening bracket, at the start of the
+        # text, after a colon — keeps its sign.
+        assert texts_of(sentence) == expected
+
+    def test_a_hyphen_is_not_a_range_separator(self) -> None:
+        # `value.py` accepts only en/em dashes, because `12-15` is ambiguous against a
+        # signed value; widening on a hyphen here would emit a candidate `parse_value`
+        # returns `None` for, turning a known recall gap into an `unparsed_value`
+        # refusal. The gap stays where aspect 1 put it.
+        assert texts_of("Range was 12-15% across sites.\n") == ("12", "15")
+        assert parse_value("12-15") is None
+
+    @pytest.mark.parametrize(
+        ("sentence", "text"),
+        [
+            ("Pooled 1.0% (95% CI: 0.4%-1.7%).\n", "95% CI: 0.4%-1.7%"),
+            ("Ratio 1.97 (95% CI: 1.66–2.54) held.\n", "95% CI: 1.66–2.54"),
+            ("Slope (95% CI: -5.432, -4.092) fell.\n", "95% CI: -5.432, -4.092"),
+            ("Odds (95% CrI: 0.75%-4.1%) rose.\n", "95% CrI: 0.75%-4.1%"),
+            ("AUC (95% CI 0.962–0.998) held.\n", "95% CI 0.962–0.998"),
+        ],
+    )
+    def test_the_confidence_intervals_real_papers_write_are_one_candidate(
+        self, sentence: str, text: str
+    ) -> None:
+        # None of the 29 confidence intervals in the corpus is bracketed. These are
+        # the forms that occur, and each is one value.
+        composite = next(c for c in extract_candidates(sentence) if c.text == text)
+
+        assert isinstance(parse_value(composite.text), Interval)
+        assert normalize_text(sentence)[
+            composite.span.start : composite.span.end
+        ] == composite.text
+
+    def test_a_marked_interval_swallows_its_own_confidence_level(self) -> None:
+        # The `Point(95)` escape, closed. Before the whole notation was one
+        # candidate, the confidence level stood free as a reported value of its own —
+        # and it grounded, so `admit` had no reason to refuse it.
+        assert parsed_of("Pooled 1.0% (95% CI: 0.4%-1.7%).\n") == (
+            ("1.0", "Point"),
+            ("95% CI: 0.4%-1.7%", "Interval"),
+        )
+
+    @pytest.mark.parametrize(
+        ("sentence", "expected"),
+        [
+            # A citation pair and a degrees-of-freedom pair. Both parse as `Interval`
+            # if handed to `parse_value` on their own, and both are two numbers the
+            # paper never joined — so the `CI` marker, not the bracket, is what makes
+            # an interval here.
+            ("Prior work [30,31] agrees.\n", ("30", "31")),
+            ("The model F (6,12) = 15.16 held.\n", ("6", "12", "15.16")),
+        ],
+    )
+    def test_a_bracketed_pair_without_a_ci_marker_is_two_numbers(
+        self, sentence: str, expected: tuple[str, ...]
+    ) -> None:
+        assert texts_of(sentence) == expected
+
+    def test_a_labelled_span_is_not_a_range(self) -> None:
+        # `(A1–A22)` occurs in the fixtures. The dash separates two *labels*, and the
+        # second operand does not start with a digit, so no range is read.
+        assert texts_of("Measurements (A1–A22) were taken.\n") == ("1", "22")
+
+    def test_a_composite_never_crosses_a_line_break(self) -> None:
+        # Only spaces and tabs may sit inside a composite. A number ending one line
+        # and a dash opening the next is a coincidence of wrapping, not a range, and a
+        # span that crossed the break would also cross a table row or a cell boundary.
+        assert texts_of("The value was 12\n–15 overall.\n") == ("12", "15")
+        assert texts_of("| a | 0.85 |\n|---|---|\n| b | ± 0.03 |\n") == (
+            "0.85",
+            "0.03",
+        )
+
+    def test_a_blockquote_marker_is_not_a_bound(self) -> None:
+        # `> 97` opening a line is Markdown quoting, not an operator, and reading it
+        # as `Bound(> 97)` would assert a comparison the paper never made.
+        assert texts_of("Quoted below:\n\n> 97 patients were enrolled.\n") == ("97",)
+
+    def test_an_arrow_is_not_a_bound(self) -> None:
+        assert texts_of("Stage 1 -> 2 was skipped.\n") == ("1", "2")
+
+    def test_a_dash_used_as_prose_punctuation_is_not_a_range(self) -> None:
+        # Every one of the 66 dash ranges in the fixture corpus is written tight; a
+        # spaced em dash in a paper is punctuation. Requiring tightness costs nothing
+        # measured and removes the whole false-positive class.
+        assert texts_of("In 2019 — 0.87 was the best score.\n") == ("2019", "0.87")
+
+    def test_a_dash_chain_of_three_numbers_is_not_a_range(self) -> None:
+        # `Accessed: 2025–12–18` is in the fixture corpus: an ISO date whose hyphens
+        # were typographically converted to en dashes. Two numbers joined by a dash
+        # are a range; three are not, and taking the first two would emit
+        # `Range(2025, 12)` — a value read out of a date. The guard runs at both ends,
+        # or the scan would simply pick the chain's *second* pair instead.
+        assert texts_of("Accessed: 2025–12–18 online.\n") == ("2025", "12", "18")
+
+    def test_a_page_range_becomes_one_range_candidate(self) -> None:
+        # The stated consequence of the tokenization change, not an oversight: a page
+        # range really is one value written with a dash, and nothing is dropped. Both
+        # endpoints were already refused as `partial_value` before this change, so no
+        # claim is gained or lost — only the counting changes.
+        assert parsed_of("1. Smith, Journal, 2019, pages 220–223.\n") == (
+            ("1", "Point"),
+            ("2019", "Point"),
+            ("220–223", "Range"),
+        )
 
 
 class TestSpansRoundTrip:
@@ -292,7 +598,7 @@ class TestSectionHints:
 
     def test_a_subheading_inherits_its_parent_section(self) -> None:
         # Structural, by heading level — not by reading the subheading's words.
-        assert self._hint_of(PAPER, "0.85") == SECTION_RESULTS
+        assert self._hint_of(PAPER, "0.85 ± 0.03") == SECTION_RESULTS
 
     def test_a_sibling_heading_ends_the_section(self) -> None:
         assert self._hint_of(PAPER, "2") == SECTION_OTHER

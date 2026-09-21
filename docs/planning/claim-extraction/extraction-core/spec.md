@@ -89,24 +89,47 @@ Note the general lesson, which applies beyond N: *"the safe direction is a false
 negative"* holds only when something downstream catches the miss. With no selection
 rule built, nothing does.
 
-## Bounded values cannot yet become claims (measured 2026-09-21)
+## Composite values are one candidate (measured 2026-09-21, fixed same day)
 
-`Candidate.text` is the bare number, so the `0.001` of `p < 0.001` would admit as a
-`Point` asserting *p = 0.001* — a value the paper never wrote, and one against which a
-re-derived `0.0009` would read as a contradiction. The gate refuses it as
-`partial_value` rather than inventing it.
+`Candidate.text` used to be a bare number, so the `0.001` of `p < 0.001` would have
+admitted as a `Point` asserting *p = 0.001* — a value the paper never wrote, and one
+against which a re-derived `0.0009` would read as a contradiction. The gate refused it
+as `partial_value` rather than inventing it, which meant **bounded values could not
+become claims at all**. `extract_candidates` now emits the whole notation as one
+candidate, so `Bound`, `PlusMinus`, `Range`, `Interval` and `Approximate` are reachable
+from real extraction for the first time.
 
-**Measured, not estimated.** Of the 79 abstract candidates: 76 admit (96.2%), 2 are
-genuine reported N, **1** is this case. Across all five full papers it is 538/4900, but
-that population differs — 305 are digit/comma-adjacent (superscript citation runs like
-`States.2,3`), 133 are range endpoints, 22 are `±` centres, and **78 are
-operator-preceded real bounds**.
+**Measured across the five fixture papers, before → after:**
 
-So the hole barely touches the labelling set, but 78 real bounds across five papers
-means widening is worth real effort. **Part 2 (M3) must pick it up: something has to
-extract the operator together with the number.** The gate's seam already accepts a
-correctly widened span — it is the extraction side that is missing. The plan assigns
-this to nobody; it is assigned here.
+| | before | after |
+|---|---|---|
+| candidates | 4900 | 4748 |
+| `partial_value` refusals | 538 | 310 |
+| `Bound` / `PlusMinus` / `Range` / `Interval` / `Approximate` | 0 | 55 / 22 / 58 / 36 / 18 |
+| candidates `parse_value` cannot read | 0 | 0 |
+
+The residual 310 is almost entirely the digit/comma-adjacent class (305 superscript
+citation runs like `States.2,3`), which is not composite notation and is correctly
+refused. One composite is still refused, correctly: `>= 3.5` in `(>= 3.5.0)` cuts a
+three-part version string.
+
+Three defects surfaced while measuring this, all fixed:
+
+- 🔴 **A sign-flipped value was reaching the record.** The sign rule attached `+`/`-`
+  whenever nothing *word-like* preceded, and `%` is not word-like — so `0.4%-1.7%`
+  yielded `-1.7`, a negative number from a paper reporting a positive one. It grounded,
+  it parsed, and `admit` had no cause to refuse it. `%` now blocks sign attachment.
+- 🔴 **`Interval` was unreachable, and the bracketed grammar was written from a wrong
+  assumption.** Of 29 confidence intervals across the five papers, **none** is
+  bracketed: 16 are `95% CI: 0.4%-1.7%`, 7 `95% CI 1.66–2.54`, 6 `95% CI: -5.432,
+  -4.092`, plus 8 `CrI` credible intervals. Meanwhile *every* bracketed numeric pair in
+  the corpus is a citation (`[30,31]`) or a degrees-of-freedom pair (`(6,12)`).
+  `parse_value` now reads the marked forms, and an explicit `CI`/`CrI` marker — not the
+  bracket — is what identifies an interval. This also closed a `Point(95)` escape: the
+  confidence level used to stand free as a reported value of its own.
+- 🟡 **`_is_a_fragment`'s digit-before guard over-fired**, refusing five real bounds
+  whose name ends in a digit (`I²<50`, `ΔR2≈0.38`). It now applies only to spans that
+  start like a number, which is the only shape it can describe.
 
 ## Known limits of candidate extraction (recorded 2026-09-21)
 
@@ -135,12 +158,15 @@ labelling extends beyond abstracts.
 
 ## Inherited from aspect 1 (decided 2026-09-20)
 
-- **Hyphen ranges are unsupported.** `parse_value` accepts only en/em dashes as range
-  separators; `12-15` returns `None`, because an ASCII hyphen is ambiguous against a
-  signed or subtracted value. Papers *do* use hyphens, so this is a known **recall**
-  gap — deliberately left to surface as missed claims in this aspect's blind-label
-  scoring, which is the evidence needed to decide it. Resolving it earlier would have
-  been guessing at how often hyphen ranges occur in real papers.
+- **Hyphen ranges are unsupported — outside an interval marker** (amended
+  2026-09-21). `parse_value` accepts only en/em dashes as range separators; `12-15`
+  returns `None`, because an ASCII hyphen is ambiguous against a signed or subtracted
+  value. That still holds everywhere except after an explicit `CI`/`CrI`, where the
+  evidence asked for above arrived: 16 of the corpus's 29 confidence intervals are
+  written `95% CI: 0.4%-1.7%`, and after the marker no subtraction reading is
+  available, because the notation has already said what it is. The hyphen is scoped to
+  exactly that context and nowhere else; the general recall gap is unchanged and still
+  surfaces in blind-label scoring.
 - **Units must be separated from the value before `parse_value` is called.** It
   tolerates only a trailing `%`; `0.87 kg` returns `None`. General units belong in
   `Claim.units`. This coupling is this aspect's responsibility — accepting arbitrary
