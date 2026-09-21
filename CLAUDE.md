@@ -22,9 +22,13 @@ byte-identical serialization, value-identity dedup, Markdown table parsing, exha
 extraction, and the admission gate that is the sole constructor of a `Claim`. Zero runtime
 dependencies; no network reachable from any test.
 
-**Not built:** claim *selection* (which numbers in a paper **are** claims — the substance of C1),
-PDF input, and the whole of C2–C8. **No verdict has ever been emitted**, because nothing that
-emits one exists yet. The Phase 0 gate is not met.
+**Not built:** PDF input and the whole of C2–C8. **Claim *selection* — the substance of C1 — has
+landed**: the M3 rule (`src/plumb/extract/selection.py`) scored pooled precision 1.0 / recall 1.0
+on the 73-row blind set, floored at 0.90. Read that score honestly: it is *conformance*, not
+validation — the labels were criteria-drafted from M3/M11 (owner-delegated pass), so a perfect
+score means the rule implements its criteria. Validation against third-party labels is C5's job.
+**No verdict has ever been emitted**, because nothing that emits one exists yet. The Phase 0 gate
+is not met.
 
 When in doubt, verify against the code and `git log` rather than this prose. Two assumptions in
 these docs have already been falsified by real papers — the interval grammar required brackets no
