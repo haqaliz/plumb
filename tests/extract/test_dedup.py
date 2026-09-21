@@ -30,6 +30,9 @@ import pytest
 from plumb.extract.claim import Claim
 from plumb.extract.dedup import (
     MergedClaim,
+    _identity_sort_key,
+    _member_sort_key,
+    _optional_sort_key,
     claim_identity,
     dedup_claims,
     group_claims,
@@ -651,3 +654,79 @@ class TestMergedClaimIsNotAClaim:
 
     def test_a_merged_claim_never_equals_a_claim(self) -> None:
         assert merged() != claim()
+
+
+class TestSortKeysDirectly:
+    """Assertions on the order keys themselves, with every other component held equal.
+
+    A test that observes only `group_claims`' output cannot distinguish "this key
+    component is total" from "some *later* component separated them anyway". The
+    member key has exactly that hazard: `artifact_hint` is followed by
+    `tolerance_hint`, so a fixture whose tolerance hints differ would pass while the
+    artifact-hint component was broken. These tests hold the backstop equal so only
+    the component under test can decide the order.
+
+    They reach for private helpers deliberately. The keys *are* the determinism
+    contract, and the contract is about to be shared with `serialize.py` — once two
+    modules depend on these functions, "it happened to come out right through dedup's
+    output" stops being evidence about either of them.
+    """
+
+    def test_optional_key_separates_none_from_empty_string(self) -> None:
+        """The whole defect in one line: `None or ""` is `""`."""
+        assert _optional_sort_key(None) != _optional_sort_key("")
+
+    def test_optional_key_orders_none_before_any_string(self) -> None:
+        for present in ("", "a", "±0.01", "\x00"):
+            assert _optional_sort_key(None) < _optional_sort_key(present)
+
+    def test_identity_key_separates_none_units_from_empty_units(self) -> None:
+        """Units is the last component of the identity key, so nothing can mask it."""
+        assert _identity_sort_key(("0.87", "AUC", None)) != _identity_sort_key(
+            ("0.87", "AUC", "")
+        )
+
+    def test_member_key_separates_hints_with_the_backstop_held_equal(self) -> None:
+        """`artifact_hint` must decide on its own, not with `tolerance_hint`'s help."""
+        absent = claim(artifact_hint=None, tolerance_hint=None)
+        empty = claim(artifact_hint="", tolerance_hint=None)
+
+        assert absent.location == empty.location
+        assert absent.tolerance_hint == empty.tolerance_hint
+        assert _member_sort_key(absent) != _member_sort_key(empty)
+
+    def test_member_key_separates_tolerance_hints_with_earlier_parts_equal(
+        self,
+    ) -> None:
+        absent = claim(artifact_hint=None, tolerance_hint=None)
+        empty = claim(artifact_hint=None, tolerance_hint="")
+
+        assert _member_sort_key(absent) != _member_sort_key(empty)
+
+    def test_no_two_members_of_a_group_share_a_member_key(self) -> None:
+        """Totality as a property, over every axis a group member may vary on.
+
+        A shared key between two distinct members is the tie that hands ordering back
+        to input order — the failure this whole class exists to make visible.
+        """
+        members = [
+            claim(location=CharSpan(18, 22), artifact_hint=None, tolerance_hint=None),
+            claim(location=CharSpan(18, 22), artifact_hint="", tolerance_hint=None),
+            claim(location=CharSpan(18, 22), artifact_hint=None, tolerance_hint=""),
+            claim(location=CharSpan(18, 22), artifact_hint="a", tolerance_hint=None),
+            claim(location=CharSpan(18, 30), artifact_hint=None, tolerance_hint=None),
+            claim(location=CharSpan(404, 408), artifact_hint=None, tolerance_hint=None),
+        ]
+
+        keys = [_member_sort_key(member) for member in members]
+
+        assert len(keys) == len(set(keys))
+
+    def test_member_ordering_is_input_independent_for_none_versus_empty_hint(
+        self,
+    ) -> None:
+        """The behavioural half, with the backstop held equal so it cannot help."""
+        absent = claim(artifact_hint=None, tolerance_hint=None)
+        empty = claim(artifact_hint="", tolerance_hint=None)
+
+        assert group_claims([absent, empty]) == group_claims([empty, absent])
