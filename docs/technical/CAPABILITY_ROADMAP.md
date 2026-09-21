@@ -33,9 +33,16 @@ as a **non-claim with a named cause** rather than discarded silently: an invisib
 indistinguishable from a claim that was never there, and it flatters the coverage number the
 Phase 0 gate rests on (`ARCHITECTURE.md` "never a silent pass"; `ROADMAP.md` R3).
 
-**Status (2026-09-21):** the deterministic record layer has landed — `ClaimValue`, `Location`,
-`Claim`, `StudyParameter` under `src/plumb/extract/`. Selection (which numbers *are* claims) and
-serialization are not built. **PDF input is not built**, so the Phase 0 C1 minimum is not yet met.
+**Status (2026-09-21):** the deterministic spine of C1 has landed under `src/plumb/extract/` —
+the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a content hash over
+normalized paper text, byte-identical serialization pinned by cross-process tests, and
+value-identity dedup. Zero runtime dependencies; no network reachable from any test.
+
+**Not built:** *selection* — deciding which numbers in a paper **are** claims — which is the
+substance of this capability, and **PDF input**. The Phase 0 C1 minimum (`ROADMAP.md`) requires
+PDF, so **the gate is not met and C1 must not be read as complete.** Selection is blocked on
+hand-labelling a blind fixture set *before* the rule is written, so that the rule can be measured
+against labels it did not author.
 
 ## C2. Artifact intake & pinned environment
 
