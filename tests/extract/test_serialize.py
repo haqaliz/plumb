@@ -20,7 +20,6 @@ breaking the contract:
 
 from __future__ import annotations
 
-import ast
 from dataclasses import dataclass
 from decimal import Decimal
 import json
@@ -402,65 +401,24 @@ class TestTheEncoderRefusesRatherThanCoerces:
 
 
 class TestNoAmbientState:
-    """Determinism comes from not having sources of nondeterminism (D1)."""
+    """Determinism comes from not having sources of nondeterminism (D1).
 
-    # Read from the parsed module rather than by substring: prose about determinism
-    # naturally contains the words a grep would look for, and a test that fails on its
-    # own docstring gets deleted rather than fixed. Phase 4 owns the repo-wide guard.
-    FORBIDDEN_IMPORTS = {
-        "datetime",
-        "locale",
-        "os",
-        "pathlib",
-        "random",
-        "secrets",
-        "time",
-        "uuid",
-    }
-    FORBIDDEN_CALLS = {
-        "float",
-        "getcwd",
-        "getenv",
-        "hash",
-        "id",
-        "monotonic",
-        "now",
-        "resolve",
-        "shuffle",
-        "today",
-        "uuid4",
-    }
+    The AST guards that used to live here — one on imports, one on calls — have been
+    deleted rather than kept alongside the repo-wide scan in `test_determinism.py`.
+    That scan already reads every module under `src/plumb/extract/`, this one included,
+    with a strict superset of their checks: the same import denylist plus an
+    *allowlist*, and a name scan that matches a forbidden builtin **referenced as a
+    value**, not merely called. The difference is not academic — `json.dumps(
+    default=float)` contains no call node at all, so the Call-only version here could
+    never have seen it.
 
-    def _module_ast(self) -> ast.Module:
-        import plumb.extract.serialize as module
+    Two guards of unequal strength, with the weaker one sitting closer to the code it
+    guards, is worse than one: the next reader finds a local ambient-state test, trusts
+    it, and never learns that the coverage that actually holds lives elsewhere.
 
-        assert module.__file__ is not None
-        with open(module.__file__, encoding="utf-8") as handle:
-            return ast.parse(handle.read())
-
-    def test_it_imports_no_source_of_nondeterminism(self) -> None:
-        tree = self._module_ast()
-        imported: set[str] = set()
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                imported.update(alias.name.split(".")[0] for alias in node.names)
-            elif isinstance(node, ast.ImportFrom) and node.module:
-                imported.add(node.module.split(".")[0])
-        assert not (imported & self.FORBIDDEN_IMPORTS)
-
-    def test_it_calls_nothing_that_reads_ambient_state(self) -> None:
-        # `hash()` is in the list for its own reason: PYTHONHASHSEED varies per
-        # process, so an order derived from it differs between two runs of one input.
-        tree = self._module_ast()
-        called: set[str] = set()
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Call):
-                target = node.func
-                if isinstance(target, ast.Name):
-                    called.add(target.id)
-                elif isinstance(target, ast.Attribute):
-                    called.add(target.attr)
-        assert not (called & self.FORBIDDEN_CALLS)
+    What remains is the assertion on the serialized bytes, which is about output rather
+    than source and is duplicated nowhere.
+    """
 
     def test_no_timestamp_shaped_or_path_shaped_content_in_the_output(self) -> None:
         out = serialized(claim())
