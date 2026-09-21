@@ -48,6 +48,23 @@ the context (which duplicates the prose and can drift from it). The row also car
 the structural section hint and the source document, so a file merged from two papers
 stays attributable per row.
 
+**Table cells need two more columns, and they are derived here.** In prose the context
+is a whole sentence and carries its own meaning. Inside a table the context *is* the
+cell, so the row reads `0.840` and nothing else — the one place the sentence rule
+leaves a labeller with nothing to judge. So a cell's row also carries `column_header`
+(the row-0 cell of its column) and `row_label` (the column-0 cell of its row):
+`Ours | AUC | 0.840` is judgeable where `0.840` is not. Both are `null` for a candidate
+that is not in a table, and `null` for a cell in a column the author's header row never
+declared — distinct from `""`, which is a header cell the author left empty. That is
+the same `None`-is-not-`""` distinction `ordering.optional_sort_key` exists to keep.
+
+They are derived from `parse_tables` here rather than added to `Candidate`, for two
+reasons: `Candidate.context` is verbatim paper text and these are a lookup *about* it,
+and the record shape freezes as hard as the tokenizer once labels exist against it — so
+only what must be frozen is. The first labelling file will cover abstracts, where both
+columns are empty throughout; they are built now because adding a column after labels
+exist is exactly the change this ordering is meant to avoid.
+
 This module emits no verdicts and makes no claim judgements. It formats a question for
 a human and reads their answer back.
 """
@@ -60,9 +77,10 @@ import hashlib
 import json
 from typing import Any, Final
 
-from plumb.extract.candidates import Candidate
+from plumb.extract.candidates import SECTION_TABLE, Candidate
 from plumb.extract.location import normalize_text
 from plumb.extract.ordering import location_sort_key
+from plumb.extract.tables import parse_tables
 
 __all__ = [
     "LABELLING_FORMAT",
@@ -97,6 +115,8 @@ ROW_FIELDS: Final = (
     "id",
     "document",
     "section",
+    "column_header",
+    "row_label",
     "text",
     "span",
     "context_before",
@@ -292,6 +312,126 @@ def _context_start(candidate: Candidate, text: str, document: str) -> int:
     )
 
 
+#: One table cell's extent and the two labels that make it judgeable:
+#: `(start, end, column_header, row_label)`.
+_CellContext = tuple[int, int, str | None, str | None]
+
+
+def _cell_contexts(text: str) -> tuple[_CellContext, ...]:
+    """Every table cell in document order, with the header and label it sits under.
+
+    `TableCell` already carries `row` and `column` — row 0 is the header and the
+    delimiter row consumes no index — so the lookup is two dictionaries per table and
+    no guessing about what a column means.
+
+    `None` rather than `""` when the author's header row never declared this column: a
+    data row may have more cells than its header (`tables.py` records what is written
+    instead of padding), and "there is no header cell" is a different fact from "the
+    header cell is empty".
+
+    A row-0 cell is its own `column_header`, and a column-0 cell its own `row_label`.
+    That falls out of the rule rather than being special-cased, and special-casing it
+    would be this module deciding what a header *means*, which is the judgement the
+    whole labelling step exists to leave to a human.
+    """
+    contexts: list[_CellContext] = []
+    for table in parse_tables(text):
+        headers = {cell.column: cell.text for cell in table.cells if cell.row == 0}
+        labels = {cell.row: cell.text for cell in table.cells if cell.column == 0}
+        contexts.extend(
+            (
+                cell.span.start,
+                cell.span.end,
+                headers.get(cell.column),
+                labels.get(cell.row),
+            )
+            for cell in table.cells
+        )
+    return tuple(contexts)
+
+
+def _canonical_rows(
+    candidates: Iterable[Candidate], paper: str, document: str
+) -> tuple[tuple[str, Candidate, dict[str, Any]], ...]:
+    """The rows the emitter writes, as `(id, candidate, row)` in canonical order.
+
+    Built in one place because both directions need it: the emitter serializes these,
+    and the loader compares them field by field against what came back. That is what
+    makes "only the label column may be edited" cover *every* column, including one
+    added later — a loader with its own hand-written list of fields to check would
+    quietly stop covering the next one.
+    """
+    if not isinstance(paper, str):
+        raise TypeError(
+            "the paper's text is required, not a path or raw bytes; got "
+            f"{type(paper).__name__}: {paper!r}"
+        )
+    text = normalize_text(paper)
+    cells = _cell_contexts(text)
+
+    rows: list[tuple[str, Candidate, dict[str, Any]]] = []
+    seen: dict[str, Candidate] = {}
+    # Forward-only, like the scan in `candidates.py`: candidates and cells are both in
+    # document order, so no cell is searched for twice.
+    cursor = 0
+    for candidate in _ordered(candidates):
+        row_id = candidate_id(candidate, document=document)
+        if row_id in seen:
+            raise LabellingError(
+                f"two candidates share the id {row_id!r}: {seen[row_id]!r} and "
+                f"{candidate!r}. Ids are truncated digests; lengthen `_ID_LENGTH` "
+                "rather than letting two candidates share one label."
+            )
+        seen[row_id] = candidate
+
+        offset = candidate.span.start - _context_start(candidate, text, document)
+        while cursor < len(cells) and cells[cursor][1] <= candidate.span.start:
+            cursor += 1
+        cell = (
+            cells[cursor]
+            if cursor < len(cells) and cells[cursor][0] <= candidate.span.start
+            else None
+        )
+        in_table = candidate.section_hint == SECTION_TABLE
+        # The section hint and the cell lookup are two readings of the same structure.
+        # If they ever disagree, one of them is placing numbers in columns the author
+        # did not write, and a labeller would read a header belonging to another row.
+        if in_table and cell is None:
+            raise LabellingError(
+                f"candidate {candidate.text!r} at [{candidate.span.start}, "
+                f"{candidate.span.end}) is marked as a table cell but its span is "
+                "not in a table cell of this paper"
+            )
+        if cell is not None and not in_table:
+            raise LabellingError(
+                f"candidate {candidate.text!r} at [{candidate.span.start}, "
+                f"{candidate.span.end}) sits in a table cell but is not marked as "
+                f"one: its section hint is {candidate.section_hint!r}"
+            )
+
+        rows.append(
+            (
+                row_id,
+                candidate,
+                {
+                    "id": row_id,
+                    "document": document,
+                    "section": candidate.section_hint,
+                    "column_header": cell[2] if cell is not None else None,
+                    "row_label": cell[3] if cell is not None else None,
+                    "text": candidate.text,
+                    "span": [candidate.span.start, candidate.span.end],
+                    "context_before": candidate.context[:offset],
+                    "context_after": candidate.context[offset + len(candidate.text) :],
+                    # Empty, always. A value here is the circularity this module is
+                    # built to prevent — see the module docstring.
+                    "label": None,
+                },
+            )
+        )
+    return tuple(rows)
+
+
 def _header_line() -> str:
     """The first line: what this file is, and what the labeller may write in it.
 
@@ -313,10 +453,11 @@ def emit_labelling_file(
 ) -> bytes:
     """The labelling file for `candidates`, with every label column empty.
 
-    `paper` is the text the candidates were extracted from; it is needed to place each
-    number within its own context (see `_context_start`), and checking the candidates
-    against it means a mismatched pair fails here rather than producing a file that
-    quietly misquotes the paper.
+    `paper` is the text the candidates were extracted from. It is needed twice over: to
+    place each number within its own context (`_context_start`) and to read a table
+    cell's header and row label off the parsed table (`_cell_contexts`). Checking the
+    candidates against it means a mismatched pair fails here rather than producing a
+    file that quietly misquotes the paper.
 
     Returns `bytes` for the reason `serialize.py` does: "byte-identical" is only
     assertable on bytes, and a `str` leaves the encoding unpinned.
@@ -324,43 +465,12 @@ def emit_labelling_file(
     **Nothing in here writes a label.** See the module docstring; this is the rule the
     module exists to hold.
     """
-    if not isinstance(paper, str):
-        raise TypeError(
-            "emit_labelling_file takes the paper's text, not a path or raw bytes; got "
-            f"{type(paper).__name__}: {paper!r}"
-        )
     name = _require_document(document)
-    text = normalize_text(paper)
-
     lines = [_header_line()]
-    seen: dict[str, Candidate] = {}
-    for candidate in _ordered(candidates):
-        row_id = candidate_id(candidate, document=name)
-        if row_id in seen:
-            raise LabellingError(
-                f"two candidates share the id {row_id!r}: {seen[row_id]!r} and "
-                f"{candidate!r}. Ids are truncated digests; lengthen `_ID_LENGTH` "
-                "rather than letting two candidates share one label."
-            )
-        seen[row_id] = candidate
-        offset = candidate.span.start - _context_start(candidate, text, name)
-        lines.append(
-            json.dumps(
-                {
-                    "id": row_id,
-                    "document": name,
-                    "section": candidate.section_hint,
-                    "text": candidate.text,
-                    "span": [candidate.span.start, candidate.span.end],
-                    "context_before": candidate.context[:offset],
-                    "context_after": candidate.context[offset + len(candidate.text) :],
-                    # Empty, always. A value here is the circularity this module is
-                    # built to prevent — see the module docstring.
-                    "label": None,
-                },
-                **_JSON,
-            )
-        )
+    lines.extend(
+        json.dumps(row, **_JSON)
+        for _, _, row in _canonical_rows(candidates, paper, name)
+    )
     return ("\n".join(lines) + "\n").encode("utf-8")
 
 
@@ -426,33 +536,30 @@ def _read_label(row: dict[str, Any], number: int, row_id: object) -> str:
 
 
 def _check_unedited(
-    row: dict[str, Any], number: int, row_id: str, candidate: Candidate, document: str
+    row: dict[str, Any], number: int, row_id: str, canonical: dict[str, Any]
 ) -> None:
     """Every column but `label` must still say what the emitter wrote.
 
-    The labeller edits one field; anything else differing means the row no longer
-    describes the candidate it names — a reworded context is a label given to text the
-    paper does not contain, and it would enter the blind set looking exactly like a
-    good one.
+    Compared against the emitter's own row rather than a hand-written list of fields,
+    so a column added later is covered without anyone remembering to add it here. The
+    labeller edits one field; anything else differing means the row no longer describes
+    the candidate it names — a reworded context, or a header lifted from another
+    column, is a label given to something the paper does not say, and it would enter
+    the blind set looking exactly like a good one.
     """
-    context = row["context_before"] + row["text"] + row["context_after"]
-    for field, found, expected in (
-        ("document", row["document"], document),
-        ("section", row["section"], candidate.section_hint),
-        ("text", row["text"], candidate.text),
-        ("span", row["span"], [candidate.span.start, candidate.span.end]),
-        ("context", context, candidate.context),
-    ):
-        if found != expected:
+    for field in ROW_FIELDS:
+        if field == "label":
+            continue
+        if row[field] != canonical[field]:
             raise LabellingError(
                 f"line {number}: row {row_id!r} no longer matches the candidate it "
-                f"names — {field} is {found!r}, expected {expected!r}. Only the label "
-                "column may be edited."
+                f"names — {field} is {row[field]!r}, expected {canonical[field]!r}. "
+                "Only the label column may be edited."
             )
 
 
 def load_labels(
-    data: bytes, *, candidates: Iterable[Candidate], document: str
+    data: bytes, *, candidates: Iterable[Candidate], paper: str, document: str
 ) -> tuple[LabelledCandidate, ...]:
     """The filled file, read back as the blind label set for `candidates`.
 
@@ -460,6 +567,11 @@ def load_labels(
     ways, and a loader that shrugged — skipping the blank row, coercing the typo,
     ignoring the id it did not recognise — would hand back a smaller or wrong label set
     that still scores fine.
+
+    `paper` is the same text the candidates were extracted from. The loader re-derives
+    the rows the emitter would have written and compares, which is the only way the
+    "only the label column may be edited" check can cover the columns that are derived
+    from the paper's tables rather than carried on `Candidate`.
 
     The result is in the candidates' own canonical order, not the file's, so a file
     whose lines were reordered by an editor still loads identically.
@@ -471,8 +583,8 @@ def load_labels(
         )
     name = _require_document(document)
     expected = {
-        candidate_id(candidate, document=name): candidate
-        for candidate in _ordered(candidates)
+        row_id: (candidate, row)
+        for row_id, candidate, row in _canonical_rows(candidates, paper, name)
     }
 
     try:
@@ -510,7 +622,7 @@ def load_labels(
                 f"line {number}: duplicate row id {row_id!r}, first labelled on line "
                 f"{found[row_id][0]}"
             )
-        _check_unedited(row, number, row_id, expected[row_id], name)
+        _check_unedited(row, number, row_id, expected[row_id][1])
         found[row_id] = (number, _read_label(row, number, row_id))
 
     unlabelled = [row_id for row_id in expected if row_id not in found]
@@ -525,5 +637,5 @@ def load_labels(
         LabelledCandidate(
             row_id=row_id, candidate=candidate, label=found[row_id][1]
         )
-        for row_id, candidate in expected.items()
+        for row_id, (candidate, _) in expected.items()
     )

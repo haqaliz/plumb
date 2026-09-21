@@ -30,6 +30,7 @@ from plumb.extract.labelling import (
     LABELLING_FORMAT,
     LABELS,
     ROW_FIELDS,
+    LabelledCandidate,
     LabellingError,
     candidate_id,
     emit_labelling_file,
@@ -78,6 +79,37 @@ AMBIGUOUS = """\
 Rows 12, 12 and 12 of Table 12 were dropped.
 """
 
+#: The case a sentence-shaped context cannot carry: inside a table the context is the
+#: cell, so `0.840` arrives with nothing around it.
+TABLE = """\
+| Model    | AUC   | p     |
+|----------|-------|-------|
+| Baseline | 0.812 | 0.04  |
+| Ours     | 0.840 | 0.001 |
+"""
+
+#: A header cell the author left blank — "" (a cell that is empty) rather than `null`
+#: (no cell at all).
+BLANK_HEADER = """\
+| Model | |
+|-------|--|
+| Ours  | 0.840 |
+"""
+
+#: A data row with more cells than its header: the last number has no header above it.
+RAGGED = """\
+| Model | AUC |
+|-------|-----|
+| Ours  | 0.840 | 0.001 |
+"""
+
+#: Numbers in the header row itself, where the column header is the number.
+NUMERIC_HEADER = """\
+| 2019 | 2020 |
+|------|------|
+| 12   | 13   |
+"""
+
 
 def emit(paper: str, document: str = DOCUMENT) -> bytes:
     return emit_labelling_file(
@@ -112,9 +144,9 @@ def rewrite(data: bytes, edit) -> bytes:
 class TestTheLabelColumnIsNeverPrefilled:
     """The guardrail. A suggestion in this column is the circularity, back door in.
 
-    The whole ordering — label first, rule second — exists so precision and recall can
-    fail. An emitted "likely claim" would anchor the labeller onto the very rule being
-    measured, and the measurement would come back agreeing with itself no matter what
+    The whole ordering — label first, rule second — exists so precision and recall
+    can fail. An emitted "likely claim" would anchor the labeller onto the very rule being
+    measured, and the measurement would come back agreeing with itself whatever
     the rule said.
     """
 
@@ -208,6 +240,97 @@ class TestTheContextPutInFrontOfTheLabeller:
         for row in cells:
             assert row["context_before"] + row["text"] + row["context_after"]
 
+
+class TestATableCellIsJudgeableOnItsOwn:
+    """The one place the sentence-as-context rule leaves a labeller with nothing.
+
+    In prose the context is a whole sentence, so `12` arrives inside "across 12 sites"
+    and reads for itself. Inside a table the context *is* the cell, so the row says
+    `0.840` and nothing else — unjudgeable without opening the paper, which is the one
+    thing this file exists to avoid. `Model | AUC | 0.840` is judgeable; `0.840` is not.
+
+    The two columns are derived here rather than added to `Candidate`: its `context` is
+    verbatim paper text, and the record shape freezes the moment labels exist against
+    it, so only what must be frozen is.
+    """
+
+    def test_a_cell_carries_its_column_header_and_row_label(self) -> None:
+        by_text = {row["text"]: row for row in rows(emit(TABLE))}
+        assert by_text["0.840"]["column_header"] == "AUC"
+        assert by_text["0.840"]["row_label"] == "Ours"
+        assert by_text["0.812"]["row_label"] == "Baseline"
+        assert by_text["0.001"]["column_header"] == "p"
+
+    def test_a_prose_candidate_has_neither(self) -> None:
+        # `null`, not `""`: there is no header cell, which is a different fact from a
+        # header cell that is empty. The distinction is the one `optional_sort_key`
+        # makes a point of keeping elsewhere in this package.
+        for row in rows(emit(ADVERSARIAL)):
+            assert row["column_header"] is None
+            assert row["row_label"] is None
+
+    def test_an_empty_header_cell_stays_empty_rather_than_absent(self) -> None:
+        by_text = {row["text"]: row for row in rows(emit(BLANK_HEADER))}
+        assert by_text["0.840"]["column_header"] == ""
+        assert by_text["0.840"]["row_label"] == "Ours"
+
+    def test_a_cell_in_a_column_the_header_never_declared_has_none(self) -> None:
+        # A row with more cells than its header: the parser records what the author
+        # wrote, so there is genuinely no header cell above this number.
+        by_text = {row["text"]: row for row in rows(emit(RAGGED))}
+        assert by_text["0.001"]["column_header"] is None
+        assert by_text["0.001"]["row_label"] == "Ours"
+
+    def test_a_number_in_the_header_row_is_its_own_header(self) -> None:
+        # Deliberate, and pinned so it is not mistaken for a bug: the rule is "the
+        # row-0 cell of this column", and for a row-0 cell that is itself. Special
+        # casing it would be a judgement about what a header means.
+        by_text = {row["text"]: row for row in rows(emit(NUMERIC_HEADER))}
+        assert by_text["2019"]["column_header"] == "2019"
+        assert by_text["2019"]["row_label"] == "2019"
+        assert by_text["12"]["column_header"] == "2019"
+        assert by_text["12"]["row_label"] == "12"
+
+    def test_the_table_columns_do_not_disturb_the_context_halves(self) -> None:
+        for row in rows(emit(TABLE)):
+            assert row["context_before"] + row["text"] + row["context_after"]
+
+    def test_a_candidate_claiming_a_cell_it_is_not_in_is_refused(self) -> None:
+        # The section hint and the cell lookup must agree. If they ever disagree, the
+        # emitter is placing numbers in the wrong table columns, and a labeller would
+        # be reading a header from a row the number is not in.
+        prose = extract_candidates(ADVERSARIAL)[0]
+        mislabelled = Candidate(
+            text=prose.text,
+            span=prose.span,
+            context=prose.context,
+            section_hint="table",
+        )
+        with pytest.raises(LabellingError, match="not in a table cell"):
+            emit_labelling_file(
+                [mislabelled], paper=ADVERSARIAL, document=DOCUMENT
+            )
+
+    def test_a_candidate_inside_a_cell_that_is_not_marked_as_one_is_refused(
+        self,
+    ) -> None:
+        # The other direction of the same disagreement: a cell candidate that lost its
+        # hint would silently emit a row with no header, and the labeller would see
+        # the bare `0.840` this class exists to prevent.
+        cell = next(
+            candidate
+            for candidate in extract_candidates(TABLE)
+            if candidate.section_hint == "table"
+        )
+        demoted = Candidate(
+            text=cell.text,
+            span=cell.span,
+            context=cell.context,
+            section_hint="other",
+        )
+        with pytest.raises(LabellingError, match="is not marked as"):
+            emit_labelling_file([demoted], paper=TABLE, document=DOCUMENT)
+
     def test_the_row_carries_the_span_it_was_read_from(self) -> None:
         text = normalize_text(PAPER)
         for row in rows(emit(PAPER)):
@@ -297,6 +420,8 @@ class TestDeterminism:
             "id",
             "document",
             "section",
+            "column_header",
+            "row_label",
             "text",
             "span",
             "context_before",
@@ -346,6 +471,16 @@ class TestTheEmitterRefusesWhatItCannotDescribe:
         with pytest.raises(ValueError, match="repo-relative"):
             emit(PAPER, document="/Users/someone/papers/example.md")
 
+    def test_a_paper_that_is_not_text_is_refused(self) -> None:
+        # Both directions need the paper itself: bytes would be text nobody normalized,
+        # and a path would be a file read this package never does.
+        with pytest.raises(TypeError, match="paper"):
+            emit_labelling_file(
+                extract_candidates(PAPER),
+                paper=PAPER.encode("utf-8"),  # type: ignore[arg-type]
+                document=DOCUMENT,
+            )
+
     def test_an_empty_document_name_is_refused(self) -> None:
         with pytest.raises(ValueError, match="document"):
             emit(PAPER, document="")
@@ -355,13 +490,19 @@ class TestTheLoaderFailsLoudlyAndSpecifically:
     """Every rejection names the line, the row and the repair.
 
     A labelling file is filled in by hand, so every one of these is a thing that will
-    actually happen. A loader that shrugged — skipping the unlabelled row, coercing the
-    typo, ignoring the id it did not recognise — would silently shrink or corrupt the
-    blind set the rule is scored against, and the score would still look fine.
+    actually happen. A loader that shrugged — skipping the unlabelled row, fixing
+    the typo, ignoring the id it did not recognise — would silently shrink or corrupt
+    the blind set the rule is scored against, and the score would still look fine.
     """
 
     def _candidates(self) -> tuple[Candidate, ...]:
         return extract_candidates(PAPER)
+
+    def _load(self, data: bytes) -> tuple[LabelledCandidate, ...]:
+        """The one good call, so each test below differs only in what it breaks."""
+        return load_labels(
+            data, candidates=self._candidates(), paper=PAPER, document=DOCUMENT
+        )
 
     def test_an_unknown_id_is_rejected(self) -> None:
         data = rewrite(emit(PAPER), lambda row: {**row, "label": LABEL_CLAIM})
@@ -369,7 +510,7 @@ class TestTheLoaderFailsLoudlyAndSpecifically:
             rows(data)[0]["id"].encode("ascii"), b"0000000000000000"
         )
         with pytest.raises(LabellingError, match="unknown row id"):
-            load_labels(broken, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(broken)
 
     def test_an_unlabelled_row_is_rejected(self) -> None:
         data = emit(PAPER)
@@ -381,7 +522,7 @@ class TestTheLoaderFailsLoudlyAndSpecifically:
             },
         )
         with pytest.raises(LabellingError, match="has no label"):
-            load_labels(one_short, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(one_short)
 
     def test_a_row_with_no_label_field_at_all_is_rejected(self) -> None:
         stripped = rewrite(
@@ -389,40 +530,40 @@ class TestTheLoaderFailsLoudlyAndSpecifically:
             lambda row: {k: v for k, v in row.items() if k != "label"},
         )
         with pytest.raises(LabellingError, match="missing field"):
-            load_labels(stripped, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(stripped)
 
     def test_an_unparseable_label_value_is_rejected(self) -> None:
         data = rewrite(emit(PAPER), lambda row: {**row, "label": "probably"})
         with pytest.raises(LabellingError, match="unparseable label"):
-            load_labels(data, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(data)
 
     def test_a_label_of_the_wrong_type_is_rejected(self) -> None:
         data = rewrite(emit(PAPER), lambda row: {**row, "label": True})
         with pytest.raises(LabellingError, match="unparseable label"):
-            load_labels(data, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(data)
 
     def test_a_duplicated_row_is_rejected(self) -> None:
         data = fill(emit(PAPER))
         doubled = data + lines(data)[1].encode("utf-8") + b"\n"
         with pytest.raises(LabellingError, match="duplicate row id"):
-            load_labels(doubled, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(doubled)
 
     def test_a_file_missing_a_candidate_is_rejected(self) -> None:
         data = fill(emit(PAPER))
         kept = [lines(data)[0], *lines(data)[2:]]
         short = ("\n".join(kept) + "\n").encode("utf-8")
         with pytest.raises(LabellingError, match="does not label every candidate"):
-            load_labels(short, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(short)
 
     def test_a_file_emitted_from_another_paper_is_rejected(self) -> None:
         other = fill(emit(ADVERSARIAL))
         with pytest.raises(LabellingError, match="unknown row id"):
-            load_labels(other, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(other)
 
     def test_a_file_emitted_under_another_document_name_is_rejected(self) -> None:
         elsewhere = fill(emit(PAPER, document="fixtures/papers/other.md"))
         with pytest.raises(LabellingError, match="unknown row id"):
-            load_labels(elsewhere, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(elsewhere)
 
     def test_an_edited_context_is_rejected(self) -> None:
         # Only the label column may be edited. A context quietly reworded in the
@@ -433,13 +574,48 @@ class TestTheLoaderFailsLoudlyAndSpecifically:
             lambda row: {**row, "context_after": row["context_after"] + " (sic)"},
         )
         with pytest.raises(LabellingError, match="no longer matches"):
-            load_labels(tampered, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(tampered)
+
+    def test_an_edited_column_header_is_rejected(self) -> None:
+        # Derived rather than carried on the candidate, and checked all the same: a
+        # header quietly reworded means the labeller judged a number under a column
+        # the paper does not have.
+        data = fill(emit(TABLE))
+        tampered = rewrite(data, lambda row: {**row, "column_header": "AUROC"})
+        with pytest.raises(LabellingError, match="no longer matches"):
+            load_labels(
+                tampered,
+                candidates=extract_candidates(TABLE),
+                paper=TABLE,
+                document=DOCUMENT,
+            )
+
+    def test_an_edited_row_label_is_rejected(self) -> None:
+        data = fill(emit(TABLE))
+        tampered = rewrite(data, lambda row: {**row, "row_label": "Theirs"})
+        with pytest.raises(LabellingError, match="no longer matches"):
+            load_labels(
+                tampered,
+                candidates=extract_candidates(TABLE),
+                paper=TABLE,
+                document=DOCUMENT,
+            )
+
+    def test_a_table_file_round_trips(self) -> None:
+        candidates = extract_candidates(TABLE)
+        loaded = load_labels(
+            fill(emit(TABLE)),
+            candidates=candidates,
+            paper=TABLE,
+            document=DOCUMENT,
+        )
+        assert [entry.candidate for entry in loaded] == list(candidates)
 
     def test_an_edited_section_hint_is_rejected(self) -> None:
         data = fill(emit(PAPER))
         tampered = rewrite(data, lambda row: {**row, "section": "results"})
         with pytest.raises(LabellingError, match="no longer matches"):
-            load_labels(tampered, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(tampered)
 
     def test_an_unexpected_field_is_rejected(self) -> None:
         # Including the obvious one: a column of predictions helpfully added next to
@@ -448,25 +624,25 @@ class TestTheLoaderFailsLoudlyAndSpecifically:
             fill(emit(PAPER)), lambda row: {**row, "predicted": LABEL_CLAIM}
         )
         with pytest.raises(LabellingError, match="unexpected field"):
-            load_labels(data, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(data)
 
     def test_a_line_that_is_not_json_is_rejected_with_its_line_number(self) -> None:
         data = fill(emit(PAPER))
         broken = data + b"not json at all\n"
         with pytest.raises(LabellingError, match="line 9"):
-            load_labels(broken, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(broken)
 
     def test_a_line_that_is_not_an_object_is_rejected(self) -> None:
         data = fill(emit(PAPER))
         broken = data + b"[1, 2, 3]\n"
         with pytest.raises(LabellingError, match="JSON object"):
-            load_labels(broken, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(broken)
 
     def test_a_file_without_the_header_is_rejected(self) -> None:
         data = fill(emit(PAPER))
         headless = ("\n".join(lines(data)[1:]) + "\n").encode("utf-8")
         with pytest.raises(LabellingError, match="labelling file"):
-            load_labels(headless, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(headless)
 
     def test_a_header_from_a_future_format_is_rejected(self) -> None:
         data = fill(emit(PAPER))
@@ -474,11 +650,11 @@ class TestTheLoaderFailsLoudlyAndSpecifically:
             LABELLING_FORMAT.encode("ascii"), b"plumb.labelling.v99"
         )
         with pytest.raises(LabellingError, match="plumb.labelling.v1"):
-            load_labels(future, candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(future)
 
     def test_an_empty_file_is_rejected(self) -> None:
         with pytest.raises(LabellingError, match="labelling file"):
-            load_labels(b"", candidates=self._candidates(), paper=PAPER, document=DOCUMENT)
+            self._load(b"")
 
     def test_text_rather_than_bytes_is_refused(self) -> None:
         # Symmetric with the emitter, which returns bytes: an encoding decided at the
