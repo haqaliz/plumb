@@ -240,6 +240,17 @@ _NUMBER_BEFORE: Final = re.compile(r"\d[.,]?\Z")
 #: The same cut at the other end: `0.87` sliced to `0.8`, `412` sliced to `41`.
 _NUMBER_AFTER: Final = re.compile(r"[.,]?\d")
 
+#: The characters a span can start with and still be a slice *taken out of* a longer
+#: number, which is the only shape `_NUMBER_BEFORE` describes. A span beginning `<`,
+#: `≥` or `≈` cannot be one — no number contains those — so a digit in front of it is
+#: the end of a neighbouring name (`I²<50`, `ΔR2≈0.38`), not a truncated value.
+#:
+#: The sign stays in the set deliberately, and it is the case worth stating: a
+#: proposer slicing `12-15` at the hyphen yields `-15`, which grounds and reads a
+#: negative value out of a paper that wrote a range. Narrowing the guard past the sign
+#: would lose that.
+_SLICEABLE_START: Final = re.compile(r"[-+.,\d]")
+
 
 def _sample_size_name(text: str, span: CharSpan) -> str | None:
     """The name the paper gave this sample size (`"n"` / `"N"`), or `None`.
@@ -270,19 +281,28 @@ def _is_a_fragment(text: str, span: CharSpan) -> bool:
     range dash on either side, a ± after it, and a digit on either side — the last two
     being a span that cuts a single number in half.
 
+    The digit-*before* check is the one with a precondition, because it is the one that
+    describes a shape rather than a neighbour: it means "this span starts inside a
+    longer number", which can only be true of a span that starts like a number. See
+    `_SLICEABLE_START` — unconditioned, it refused five real bounds in the fixture
+    corpus for the crime of following a name that ends in a digit.
+
     What it does **not** catch is stated so the guard is not trusted for more than it
-    delivers: an interval endpoint (`95% CI [0.81, 0.89]`) is a fragment too, and
-    recognising one needs the bracket structure rather than one adjacent character, so
-    those still admit as points today. This refuses some fragments and misses others;
-    it invents none, and every fragment it refuses is one fewer claim the paper never
-    made.
+    delivers: an interval endpoint written without a marker is a fragment too, and
+    recognising one needs the surrounding structure rather than one adjacent character,
+    so those still admit as points today. This refuses some fragments and misses
+    others; it invents none, and every fragment it refuses is one fewer claim the paper
+    never made.
     """
     before = text[max(0, span.start - _WINDOW_BEFORE) : span.start]
     after = text[span.end : span.end + _WINDOW_AFTER]
+    starts_like_a_number = (
+        _SLICEABLE_START.match(text, span.start, span.start + 1) is not None
+    )
     return (
         _OPERATOR_BEFORE.search(before) is not None
         or _RANGE_BEFORE.search(before) is not None
-        or _NUMBER_BEFORE.search(before) is not None
+        or (starts_like_a_number and _NUMBER_BEFORE.search(before) is not None)
         or _MARGIN_AFTER.match(after) is not None
         or _RANGE_AFTER.match(after) is not None
         or _NUMBER_AFTER.match(after) is not None

@@ -113,11 +113,16 @@ class PlusMinus(ClaimValue):
 
 @dataclass(frozen=True, slots=True)
 class Interval(ClaimValue):
-    """An explicit interval: `95% CI [0.81, 0.89]`.
+    """An explicit interval: `95% CI [0.81, 0.89]`, `95% CI: 0.4%-1.7%`.
 
     Only the endpoints are components. In `95% CI [...]` the leading `95` is the
     *confidence level* — a property of the estimator, not a reported value — so it
     must never surface as an endpoint or as a `Point`. It is preserved in `text`.
+
+    An explicit `CI`/`CrI` marker is what identifies one. The bracket is not: measured
+    across five real papers, every bracketed numeric pair was a citation (`[30,31]`) or
+    a degrees-of-freedom pair (`(6,12)`), and not one of the 29 real intervals was
+    bracketed at all.
     """
 
     low: Decimal
@@ -238,6 +243,29 @@ _PATTERNS: tuple[tuple[re.Pattern[str], object], ...] = (
         re.compile(
             rf"(?:{_NUMBER}\s*%\s*)?(?:CI\s*)?"
             rf"[\[(]\s*({_NUMBER})\s*,\s*({_NUMBER})\s*[\])]",
+            re.IGNORECASE,
+        ),
+        _interval,
+    ),
+    # `95% CI: 0.4%-1.7%`, `95% CI: -5.432, -4.092`, `95% CI 1.66–2.54`,
+    # `95% CrI: 1.16-2.48`. The forms real papers write: measured across five, **none**
+    # of 29 confidence intervals was bracketed, so the pattern above — written from an
+    # assumption about notation — matched nothing and `Interval` was unreachable.
+    #
+    # **The marker is what makes this safe.** `CI` (confidence) or `CrI` (credible) is
+    # required, and that is the whole discrimination: without it this reads every
+    # `[30,31]` citation and every `(6,12)` degrees-of-freedom pair in a paper as an
+    # interval, and those are the only bracketed pairs the corpus contains. `PI` is
+    # deliberately absent — it occurs there only in legends and table headers.
+    #
+    # **This is the one place an ASCII hyphen separates a value**, and it is scoped to
+    # exactly this context on purpose. `12-15` stays unparseable because the hyphen
+    # could be a range, a minus or part of an identifier; after `CI:` no subtraction
+    # reading is available, because the notation has already said what it is.
+    (
+        re.compile(
+            rf"(?:{_NUMBER}\s*%\s*)?CR?I\s*:?\s*"
+            rf"({_NUMBER})\s*%?\s*[-–—,]\s*({_NUMBER})\s*%?",
             re.IGNORECASE,
         ),
         _interval,

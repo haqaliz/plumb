@@ -788,6 +788,78 @@ class TestPartialValues:
         assert isinstance(result, NonClaim)
         assert result.cause == CAUSE_PARTIAL_VALUE
 
+    @pytest.mark.parametrize(
+        ("paper", "text"),
+        [
+            # `I²`, `Rcal2` and `ΔR2` all end in a digit, and all are followed by a
+            # whole composite value. Every one of these occurs in `fixtures/papers`.
+            ("Heterogeneity I2<50% was assumed.\n", "<50"),
+            ("Heterogeneity I2>50% would follow.\n", ">50"),
+            ("Scores reach Rcal2≈0.22 only.\n", "≈0.22"),
+            ("A tax of ΔR2≥0.38 applies.\n", "≥0.38"),
+        ],
+    )
+    def test_a_composite_after_a_digit_is_not_a_slice_of_that_digit(
+        self, paper: str, text: str
+    ) -> None:
+        """The digit-before guard, narrowed to the spans it can actually describe.
+
+        `_NUMBER_BEFORE` exists for one shape: a span that starts *inside* a longer
+        number, where `"412"[1:3] == "12"` grounds perfectly. A span whose first
+        character is `<`, `>`, `≤`, `≥` or `≈` cannot be that — no number contains
+        one — so a digit before it is the end of a neighbouring name, not a truncated
+        value. Left unnarrowed the guard refused five real bounds in the corpus.
+        """
+        start = paper.index(text)
+        subject = Candidate(
+            text=text,
+            span=CharSpan(start, start + len(text)),
+            context=paper.strip(),
+            section_hint=SECTION_RESULTS,
+        )
+
+        result = admit(subject, normalized_text=paper, metric="heterogeneity")
+
+        assert isinstance(result, Claim), result
+        assert_location_reproduces_the_value(result, text=paper)
+
+    def test_a_signed_slice_of_a_hyphen_range_is_still_refused(self) -> None:
+        # The narrowing must not reach this: `"12-15"[2:5] == "-15"` is a span a
+        # proposer can compute, it grounds, and it reads a negative value out of a
+        # paper that wrote a range. A leading `-` keeps the guard.
+        paper = "Dropout ran 12-15 across sites.\n"
+        start = paper.index("-15")
+        subject = Candidate(
+            text="-15",
+            span=CharSpan(start, start + 3),
+            context=paper.strip(),
+            section_hint=SECTION_RESULTS,
+        )
+        assert paper[subject.span.start : subject.span.end] == "-15"
+
+        result = admit(subject, normalized_text=paper, metric="dropout")
+
+        assert isinstance(result, NonClaim)
+        assert result.cause == CAUSE_PARTIAL_VALUE
+
+    def test_a_bound_cutting_a_three_part_version_is_still_refused(self) -> None:
+        # `(>= 3.5.0)` in the corpus: widening over the operator gives `>= 3.5`, and
+        # the `.0` left behind means the span cuts a version string in half. The
+        # after-side guard is untouched by the narrowing and still catches it.
+        paper = "R package version (>= 3.5.0). Available from CRAN.\n"
+        start = paper.index(">= 3.5")
+        subject = Candidate(
+            text=">= 3.5",
+            span=CharSpan(start, start + 6),
+            context=paper.strip(),
+            section_hint=SECTION_RESULTS,
+        )
+
+        result = admit(subject, normalized_text=paper, metric="version")
+
+        assert isinstance(result, NonClaim)
+        assert result.cause == CAUSE_PARTIAL_VALUE
+
     def test_a_number_at_the_very_start_of_the_paper_is_not_a_fragment(self) -> None:
         # Boundary control for the look-behind: there is nothing before offset 0, and
         # a window that read past the start would either raise or wrap around.

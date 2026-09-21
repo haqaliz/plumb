@@ -29,13 +29,46 @@ they are judgements, however small:
 
 - A number never *starts* inside a run of digits, so `412` is one candidate rather than
   `412`, `12` and `2`. This is also what splits `v1.2.3` into `1.2` and `3`.
-- A leading `+`/`-` joins the number only when nothing word-like precedes it. `-0.5` in
-  prose keeps its sign; `AUC-0.87` and `12-15` do not gain one, which is what stops
-  `12-15` from being read as `12` and `-15`.
+- A leading `+`/`-` joins the number only when nothing word-like *or a percent sign*
+  precedes it. `-0.5` in prose keeps its sign; `AUC-0.87` and `12-15` do not gain one,
+  which is what stops `12-15` from being read as `12` and `-15`. The percent is there
+  because a minus cannot directly follow one in any notation: `%` is not word-like, so
+  without it `0.4%-1.7%` yielded `-1.7`, a negative number from a paper reporting a
+  positive one — and it grounded and parsed, so nothing downstream refused it.
 
 A trailing `%` or unit is deliberately *not* part of the candidate text: the unit
 belongs to `Claim.units`, and the surrounding context keeps it visible to whatever
 reads the candidate next.
+
+**A composite value is one candidate.** A paper does not only write bare numbers, and
+`p < 0.001`, `0.85 ± 0.03`, `12–15` and `95% CI [0.81, 0.93]` are each *one* value
+written with notation. Emitting their pieces separately is not neutral over-extraction:
+the `0.001` of `p < 0.001` admitted on its own asserts *p = 0.001*, a number the paper
+never wrote, and a re-derived `0.0009` would then read as a contradiction. So the scan
+emits the whole notation, and the pieces do not survive beside it — `0.001` next to
+`p < 0.001` would also be counted twice by any later metric.
+
+Three rules keep that widening from inventing values, and they are the whole of the
+policy:
+
+- **A composite is emitted only where `value.py` would parse it.** The patterns below
+  are `parse_value`'s patterns, so extraction can never hand the admission gate a span
+  the value parser then refuses. Where the two disagree, extraction stays narrow: a
+  hyphen is not a range separator here because it is not one there, and `95% CI:
+  0.4%-1.7%` — the form the real fixtures use — is left as its pieces rather than
+  emitted as a candidate nothing can read.
+- **The marker, not the bracket, makes an interval.** `[30,31]` is a citation and
+  `(6,12)` is a degrees-of-freedom pair; both parse as `Interval` if handed to
+  `parse_value` alone, and joining them would merge two numbers the paper kept apart.
+  An explicit `CI` is required.
+- **A composite never crosses a line break.** Only spaces and tabs may sit inside one,
+  so a wrapped line, a table row and a cell boundary all stay intact.
+
+The `%` is handled at both ends and the asymmetry is deliberate. A *trailing* `%` stays
+out, as it does for a bare number (`12–15%` yields `12–15`). The *leading* `95%` of
+`95% CI [...]` stays in: it is the confidence level rather than a unit, and `Interval`
+requires that it never surface as an endpoint or as a `Point` of its own — which is
+exactly what leaving it outside the candidate would do.
 """
 
 from __future__ import annotations
@@ -98,7 +131,7 @@ _HEADING_SECTIONS: Final = {
 #: they are the whole of the tokenization policy.
 _NUMBER: Final = re.compile(
     r"(?<!\d)"
-    r"(?:(?<!\w)[+-])?"
+    r"(?:(?<![\w%])[+-])?"
     r"(?:"
     r"\d{1,3}(?:,\d{3})+(?:\.\d+)?"  # 10,000   1,234.5
     r"|\d+\.\d+"  # 0.87
@@ -106,6 +139,108 @@ _NUMBER: Final = re.compile(
     r"|\d+"  # 412
     r")"
     r"(?:[eE][+-]?\d+)?"  # 1e-5
+)
+
+#: The bare-number pattern as a string, so every operand of every composite below is
+#: tokenized by the *same* rule as a standalone number. Re-spelling it per composite is
+#: how the two grammars drift apart, and a drift here is invisible: the composite would
+#: still ground, still parse, and quietly disagree with `study_parameters` about what a
+#: number is.
+_OPERAND: Final = _NUMBER.pattern
+
+#: Only spaces and tabs inside a composite, never a newline. A number ending one line
+#: and a dash opening the next is a coincidence of hard wrapping, not a range, and a
+#: span that crossed the break could also run out of one table cell into another.
+_GAP: Final = r"[ \t]*"
+
+#: `95% CI`, `CI`, `95% CrI` — a confidence or credible interval, with the confidence
+#: level inside the marker where it belongs. **Required**, and it is the whole of the
+#: discrimination: without it the patterns below read citation runs (`[30,31]`) and
+#: degrees-of-freedom pairs (`(6,12)`) as intervals, and in the fixture corpus those
+#: are the *only* bracketed pairs there are. The lookbehind keeps the `ci` of a longer
+#: word from opening one, and `[Rr]?` admits `CrI` without admitting `CASI`.
+_CI_MARKER: Final = rf"(?:{_OPERAND}{_GAP}%{_GAP})?(?<![A-Za-z])[Cc][Rr]?[Ii]"
+
+#: `95% CI [0.81, 0.93]`, `CI (0.81, 0.93)`.
+_INTERVAL_BRACKETED: Final = (
+    rf"{_CI_MARKER}{_GAP}[\[(]{_GAP}{_OPERAND}{_GAP},{_GAP}{_OPERAND}{_GAP}[\])]"
+)
+
+#: The separators an interval is written with *after a marker*. The ASCII hyphen is
+#: here and nowhere else in this module: it is the commonest real spelling
+#: (`95% CI: 0.4%-1.7%`, 16 of 29 in the corpus), and after `CI:` it cannot be read as
+#: a subtraction or a sign, because the notation has already said what it is. Outside
+#: this context `12-15` is still two numbers — see `_RANGE`.
+_INTERVAL_SEPARATOR: Final = r"[-–—,]"
+
+#: `95% CI: 0.4%-1.7%`, `95% CI: -5.432, -4.092`, `95% CI 1.66–2.54`.
+#:
+#: Two branches, and the asymmetry between them is the `%` rule applied honestly. A
+#: percent sign *between* the endpoints is interior notation: drop it and the text no
+#: longer reads as the paper wrote it. A percent sign only at the *end* is a trailing
+#: unit like any other and stays out, exactly as it does for `12–15%` and for a bare
+#: number. So both endpoints carry one or neither does; the mixed spelling
+#: (`0.4-1.7%`) takes the second branch and leaves the trailing unit behind.
+_INTERVAL_MARKED: Final = (
+    rf"{_CI_MARKER}{_GAP}:?{_GAP}"
+    rf"(?:{_OPERAND}{_GAP}%{_GAP}{_INTERVAL_SEPARATOR}{_GAP}{_OPERAND}{_GAP}%"
+    rf"|{_OPERAND}{_GAP}{_INTERVAL_SEPARATOR}{_GAP}{_OPERAND})"
+)
+
+#: `0.85 ± 0.03`, `0.85 +/- 0.03`.
+_PLUS_MINUS: Final = rf"{_OPERAND}{_GAP}(?:±|\+/-|\+-){_GAP}{_OPERAND}"
+
+#: `< 0.001`, `<0.001`, `≤0.05`, `>= 3.5`. Longest operator first, or `>= 3.5` would be
+#: read as `> = 3.5` and parse to nothing. The lookbehind rejects an arrow (`->`, `=>`)
+#: and a doubled angle bracket, neither of which is a comparison.
+#:
+#: The name in front of a bound (`p`, `FDR`, `I²`) is deliberately **not** absorbed,
+#: although `parse_value` would accept it. The name is the *metric*, a field `admit`
+#: takes separately; inside the value's verbatim text it could name one quantity while
+#: `Claim.metric` named another, with nothing to catch the disagreement. The cost is
+#: measured and small: three bounds in the fixture corpus sit directly against a digit
+#: (`I2<50`), where the gate's `_NUMBER_BEFORE` guard still reads the span as cutting a
+#: number in half and refuses them as `partial_value` — a named refusal, not a wrong
+#: claim.
+_BOUND: Final = rf"(?<![-=<>])(?:<=|>=|≤|≥|<|>){_GAP}{_OPERAND}"
+
+#: `12–15`, `220–223`. An en or em dash and no whitespace around it. `value.py` refuses
+#: an ASCII hyphen because `12-15` is ambiguous against a signed value, and this module
+#: keeps that decision rather than widening past what the parser can read. Tightness is
+#: the second half: every one of the 66 dash ranges in the fixture corpus is written
+#: tight, while a *spaced* em dash in a paper is prose punctuation (`in 2019 — 0.87`),
+#: so requiring it costs nothing measured and removes the whole false-positive class.
+#:
+#: Exactly two numbers. The corpus contains `Accessed: 2025–12–18`, an ISO date whose
+#: hyphens were typographically converted, and the first two of its three parts make a
+#: perfectly well-formed `Range(2025, 12)` read out of a date. The guard runs at both
+#: ends because rejecting only the leading pair leaves the scan to match the chain's
+#: *trailing* pair instead, which is the same invention one number along. The `\d` in
+#: the lookahead is load-bearing: without it the engine simply backtracks the high
+#: endpoint from `12` to `1`, and `2025–1` satisfies a guard that only forbids a dash.
+_RANGE: Final = rf"(?<![–—]){_OPERAND}[–—]{_OPERAND}(?![\d–—])"
+
+#: `~10,000`, `≈ 100`.
+_APPROXIMATE: Final = rf"[~∼≈≃]{_GAP}{_OPERAND}"
+
+#: **ORDER IS THE CONTRACT**, and it is `value.py`'s order, most specific first, for
+#: the same reason: tried the other way `12–15` is a `Point` that stopped reading after
+#: `12`. Python's alternation takes the leftmost start and then the first branch that
+#: matches there, so a composite always wins over the bare number inside it, and
+#: `re.search` from the end of the previous match is what guarantees no piece of a
+#: composite is ever emitted a second time on its own.
+_VALUE: Final = re.compile(
+    "|".join(
+        (
+            _INTERVAL_BRACKETED,
+            _INTERVAL_MARKED,
+            _PLUS_MINUS,
+            _BOUND,
+            _RANGE,
+            _APPROXIMATE,
+            _OPERAND,
+        )
+    )
 )
 
 #: An ATX heading, matched against one line. Up to three leading spaces is Markdown's
@@ -144,7 +279,10 @@ _TEXT_LINE: Final = "text"
 class Candidate:
     """One number found in a paper, with enough around it to be labelled or grounded.
 
-    - `text` — the number exactly as written, verbatim. `span` reproduces it.
+    - `text` — the value exactly as written, verbatim, and whole: a bare number where
+      the paper wrote one, and the entire notation where it wrote `p < 0.001` or
+      `0.85 ± 0.03`. `span` reproduces it. Everything this module emits is something
+      `parse_value` can read; nothing here decides what the value *means*.
     - `span` — character offsets into `normalize_text(paper)`, like every other
       offset in this package (`location.py`).
     - `context` — the sentence the number sits in, or the table cell if it is inside
@@ -269,6 +407,21 @@ def _line_kinds(
     return tuple(kinds)
 
 
+def _is_a_quote_marker(text: str, start: int) -> bool:
+    """Is the `>` at `start` a Markdown blockquote marker rather than a comparison?
+
+    `> 97 patients were enrolled.` opening a line is a quotation, and reading it as
+    `Bound(> 97)` would put a comparison in the record that the paper never made — the
+    one failure mode this widening must not have. Only the line prefix is inspected,
+    so the cost is a line rather than the document, and only for a `>`.
+    """
+    if text[start] != ">":
+        return False
+    line_start = text.rfind("\n", 0, start) + 1
+    prefix = text[line_start:start]
+    return prefix == "" or prefix.strip(" \t") == ""
+
+
 def _ends_a_sentence(text: str, terminator: re.Match[str]) -> bool:
     """Is this run of `.!?` a real sentence end, or punctuation that looks like one?
 
@@ -355,7 +508,12 @@ def _context_regions(
 
 
 def extract_candidates(raw: str) -> tuple[Candidate, ...]:
-    """Every number in `raw`, with context, in deterministic document order.
+    """Every value in `raw`, with context, in deterministic document order.
+
+    One candidate per value the paper wrote, so a composite (`p < 0.001`, `12–15`) is
+    one candidate and its pieces are not emitted beside it. The scan is
+    non-overlapping by construction — each search resumes at the end of the last match
+    — which is what makes that guarantee structural rather than a filtering pass.
 
     `raw` is normalized on the way in and every offset indexes that normalized text —
     the same rule `tables.py` and `hashing.py` follow, so a CRLF checkout of a paper
@@ -389,7 +547,14 @@ def extract_candidates(raw: str) -> tuple[Candidate, ...]:
     hint_cursor = -1
     region_cursor = 0
 
-    for match in _NUMBER.finditer(text):
+    position = 0
+    while (match := _VALUE.search(text, position)) is not None:
+        if _is_a_quote_marker(text, match.start()):
+            # Resume one character in, past the marker: the number it quotes is still
+            # a number, and must still be found.
+            position = match.start() + 1
+            continue
+
         offset = match.start()
         while cell_cursor < len(cells) and cells[cell_cursor].span.end <= offset:
             cell_cursor += 1
@@ -421,6 +586,7 @@ def extract_candidates(raw: str) -> tuple[Candidate, ...]:
                 section_hint=hint,
             )
         )
+        position = match.end()
 
     return tuple(
         sorted(

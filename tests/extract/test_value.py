@@ -145,6 +145,63 @@ def test_interval_without_a_confidence_prefix() -> None:
     assert (value.low, value.high) == (Decimal("0.81"), Decimal("0.89"))
 
 
+@pytest.mark.parametrize(
+    ("text", "low", "high"),
+    [
+        # Every one of these is a form counted in `fixtures/papers`: 16 written with
+        # a hyphen and percents, 7 with an en dash, 6 with a comma and negatives.
+        ("95% CI: 0.4%-1.7%", "0.4", "1.7"),
+        ("95% CI: 1.66–2.54", "1.66", "2.54"),
+        ("95% CI: -5.432, -4.092", "-5.432", "-4.092"),
+        ("95% CI 1.66–2.54", "1.66", "2.54"),
+        ("CI 0.962–0.998", "0.962", "0.998"),
+        # `CrI` is a Bayesian credible interval: the same kind of value under a
+        # different estimator, 12 mentions in the corpus. `PI` is deliberately absent
+        # — it appears only in legends and table headers there, never on a value.
+        ("95% CrI: 0.75%-4.1%", "0.75", "4.1"),
+        ("95% CrI: 1.16-2.48", "1.16", "2.48"),
+    ],
+)
+def test_the_confidence_interval_forms_real_papers_actually_write(
+    text: str, low: str, high: str
+) -> None:
+    """The bracketed grammar was written from an assumption about notation.
+
+    Measured against five real papers the assumption is wrong: of 29 confidence
+    intervals, **none** is bracketed. The forms below are what papers write, and
+    until they parsed, `Interval` was unreachable from real extraction — every one
+    of these decomposed into free-standing `Point`s instead, confidence level
+    included.
+    """
+    value = parse_value(text)
+
+    assert isinstance(value, Interval)
+    assert (value.low, value.high) == (Decimal(low), Decimal(high))
+    assert value.text == text
+
+
+def test_the_confidence_level_never_becomes_an_endpoint_in_the_marked_forms() -> None:
+    # The same guarantee the bracketed form already carries, restated for the forms
+    # that reach it by a different pattern.
+    for text in ("95% CI: 0.4%-1.7%", "95% CI: -5.432, -4.092"):
+        value = parse_value(text)
+        assert Decimal("95") not in (value.low, value.high)
+
+
+def test_a_hyphen_separates_an_interval_only_inside_a_ci_context() -> None:
+    """The one place an ASCII hyphen is unambiguous, and the reason it is scoped.
+
+    `12-15` stays `None`: outside a marker the hyphen could be a range, a minus, or
+    an identifier, and guessing is how a parser invents claims. After `CI:` there is
+    no subtraction reading available — the notation has already said what it is — so
+    the hyphen is admitted *there and nowhere else*.
+    """
+    assert parse_value("12-15") is None
+    assert parse_value("0.4%-1.7%") is None
+    assert parse_value("-5.432, -4.092") is None
+    assert isinstance(parse_value("95% CI: 0.4%-1.7%"), Interval)
+
+
 def test_range_uses_the_en_dash_not_a_hyphen() -> None:
     value = parse_value(RANGE_FIXTURE)
     assert value == Range(text=RANGE_FIXTURE, low=Decimal("12"), high=Decimal("15"))
