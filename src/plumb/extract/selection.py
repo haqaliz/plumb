@@ -227,7 +227,9 @@ _HYPERPARAM_CUES: Final = re.compile(
 )
 _AXIS_CUES: Final = re.compile(r"\b(x-?axis|y-?axis|tick|scale)\b", re.IGNORECASE)
 _CITATION_BRACKET: Final = re.compile(r"^[\[\(]")
-_CITATION_CONTENT: Final = re.compile(r"^[\d\s,;.–-]+$")
+#: Numerals-and-separators only: a decimal point makes it a value, not a citation
+#: run (`[30,31]` is a citation; `(0.226)` is a number in parentheses).
+_CITATION_CONTENT: Final = re.compile(r"^[\d\s,;–-]+$")
 _RELATED_WORK_CUES: Final = re.compile(
     r"\b(reported|found|showed|observed|estimated|previous|prior|"
     r"study by|according to|performed by)\b",
@@ -270,15 +272,23 @@ def _window(context: str, position: int, width: int) -> str:
     return context[max(0, position - width):position]
 
 
+_NUMBER_RUN: Final = re.compile(r"\d[\d.,%×]*")
+
+
 def _preceding_clauses(context: str, position: int) -> list[str]:
-    """Clauses before the candidate, cut at the boundaries, rightmost first.
+    """Clauses before the candidate, cut at boundaries, rightmost first.
 
     The metric phrase is the clause immediately before the value; when that is
     empty (a number opens a parenthetical, e.g. `prediction interval (0.03%`),
-    the chain falls back leftward to the previous boundary.
+    the chain falls back leftward to the previous boundary. A previous *number*
+    is a boundary too: a metric phrase never spans another value
+    (`The sensitivity was 0.87 and the specificity 0.92` — the phrase for `0.92`
+    is `and the specificity`, not the whole sentence).
     """
     head = context[:position]
     cuts = [i for i, char in enumerate(head) if char in _BOUNDARIES]
+    cuts.extend(match.end() for match in _NUMBER_RUN.finditer(head))
+    cuts = sorted(set(cuts))
     clauses: list[str] = []
     previous = 0
     for cut in cuts:
@@ -294,7 +304,8 @@ def _clean(phrase: str) -> str | None:
     text = phrase.strip()
     while True:
         before = text
-        text = re.sub(r"[=<>≤≥±≈~:\(\[\],;]+$", "", text).strip()
+        text = re.sub(r"^[=<>≤≥±≈~:\(\[\),%]+", "", text).strip()
+        text = re.sub(r"[=<>≤≥±≈~:\(\[\),;%\-]+$", "", text).strip()
         words = text.split()
         if words and words[-1].lower() in _TRAILING_WORDS:
             text = " ".join(words[:-1]).strip()
@@ -389,14 +400,14 @@ def metric_of(candidate: Candidate, *, normalized_text: str) -> str | None:
             continue
         after = _after_word(context, position + len(candidate.text))
         if _ends_with_n_token(named):
-            continue
+            return None
         last = named.split()[-1].lower()
         if last in _SUBJECT_VERBS:
-            continue
+            return None
         if after is not None and after in _N_TOKENS:
-            continue
+            return None
         if _directly_preceded_by_a_letter(candidate, normalized_text):
-            continue
+            return None
         return named
     return None
 
