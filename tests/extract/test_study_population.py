@@ -40,14 +40,19 @@ from plumb.extract.location import CharSpan, normalize_text
 from plumb.extract.study import StudyParameter
 from plumb.extract.value import Point, parse_value
 
-#: The four spellings the plan names, plus the two a paper adds for free: italicised
-#: `n`, and whitespace nobody is consistent about.
+#: The four spellings the plan names, plus the ones a paper adds for free: italicised
+#: `n` in both Markdown emphasis styles, bold, and whitespace nobody is consistent
+#: about. Statistical *n* is conventionally italicised, so the emphasised forms are the
+#: common case in a converted paper rather than an exotic one.
 RECOGNISED = (
     "We enrolled a cohort (n = 412) from three sites.\n",
     "We enrolled a cohort of N=412 patients.\n",
     "We enrolled n=412 patients.\n",
     "The cohort was n = 412 in total.\n",
     "The cohort was *n* = 412 in total.\n",
+    "The cohort was _n_ = 412 in total.\n",
+    "The cohort was __n__ = 412 in total.\n",
+    "The cohort was (_n_ = 412) in total.\n",
     "The cohort was n  =  412 in total.\n",
 )
 
@@ -112,6 +117,9 @@ class TestRecognisedForms:
         [
             ("A cohort of n = 412 patients.\n", "n"),
             ("A cohort of N = 412 patients.\n", "N"),
+            ("A cohort of *n* = 412 patients.\n", "n"),
+            ("A cohort of _n_ = 412 patients.\n", "n"),
+            ("A cohort of __N__ = 412 patients.\n", "N"),
         ],
     )
     def test_the_name_is_recorded_as_the_paper_wrote_it(
@@ -120,6 +128,11 @@ class TestRecognisedForms:
         """`StudyParameter.name` is documented as the parameter *as the paper named
         it*. Case-folding here would record this module's rendering rather than the
         paper's; C7 can fold case when it looks one up, and cannot un-fold it.
+
+        The emphasised rows pin that the name is the *letter*, not the markup around
+        it. The recogniser captures the delimiter in group 1 and the name in group 2,
+        and `StudyParameter.name` accepts any non-empty string — so reading the wrong
+        group would record a parameter named `"_"` and nothing would complain.
         """
         assert only(study_parameters(document)).name == name
 
@@ -152,11 +165,18 @@ class TestNotRecognised:
             ("The nn = 412 count was noted.\n", "the same, doubled"),
             ("The mean_n = 412 was noted.\n", "an underscore is word-like too"),
             (
-                "The cohort was _n_ = 412 in total.\n",
-                "underscore emphasis is unsupported on purpose: recognising it means "
-                "loosening the lookbehind that keeps `mean_n = 412` out, trading a "
-                "false negative for a false positive that would silently shrink the "
-                "claim denominator",
+                "The mean_n_ = 412 was noted.\n",
+                "emphasis markers are only emphasis when something non-word opens "
+                "them; here the `_n_` is the tail of an identifier",
+            ),
+            (
+                "The p_n_ = 412 threshold applied.\n",
+                "the same, with a one-letter stem — a subscripted variable, not a "
+                "reported cohort",
+            ),
+            (
+                "The _n_count = 412 field was set.\n",
+                "an opening underscore that is not closed before the `=`",
             ),
             ("We enrolled 412 patients.\n", "no `n =` at all"),
             ("The cohort had n > 412 members.\n", "an inequality is not an equality"),
@@ -254,6 +274,26 @@ class TestNIsNotInTheClaimOutput:
         assert len(refusals) == 1
         assert refusals[0].cause == CAUSE_STUDY_PARAMETER
         assert refusals[0].text == "412"
+
+    @pytest.mark.parametrize("document", RECOGNISED)
+    def test_no_recognised_form_ever_becomes_a_claim(self, document: str) -> None:
+        """The generalised invariant, and the one whose absence let `_n_` through.
+
+        The earlier version of this class checked only one fixture paper, so a
+        spelling the recogniser did not know about was tested for *non-recognition*
+        and never for what happened to it next. `_n_ = 412` went unrecognised and was
+        therefore admitted as a `Claim` — a permanently unbindable item in the very
+        denominator M11 exists to protect. An unrecognised N does not fall out of the
+        pipeline, it falls through it.
+
+        Asserting over every recognised form ties the two halves together: whatever
+        `study_parameters` takes, the claim output must not also contain.
+        """
+        parameter = only(study_parameters(document))
+        claims = claims_of(document, metric="cohort size")
+
+        assert parameter.value.text == "412"
+        assert not [c for c in claims if c.reported_value.text == "412"]
 
     def test_the_real_claim_in_the_same_sentence_still_admits(self) -> None:
         # The control that keeps the test above from passing by refusing everything.

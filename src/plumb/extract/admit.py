@@ -185,15 +185,28 @@ _WINDOW_AFTER: Final = 16
 #: cannot change the answer. Only spaces and tabs, never a newline: `n =` at the end of
 #: one line and a number at the start of the next is a coincidence, not a sample size.
 #:
-#: The asterisks are not decoration. Statistical *n* is conventionally italicised, so a
-#: Markdown conversion of a real paper writes `*n* = 412` far more often than `n = 412`
-#: — and the emphasis markers are markup, not part of the name, so group 1 stays `n`.
-#: Underscore emphasis (`_n_`) is deliberately **not** recognised: `_` is word-like,
-#: and admitting it means loosening the one lookbehind that keeps `median = 412` and
-#: `mean_n = 412` out. That trades a false negative for a false positive, and a false
-#: positive here silently removes a number from the claim denominator.
+#: The emphasis markers are not decoration. Statistical *n* is conventionally
+#: italicised, so a Markdown conversion of a real paper writes `*n* = 412` or
+#: `_n_ = 412` far more often than a bare `n = 412`. They are markup rather than part
+#: of the name, so the captured name stays `n`.
+#:
+#: **Underscore emphasis is why this pattern is shaped the way it is.** `_` is
+#: word-like, so the lookbehind that keeps `median = 412` and `mean_n = 412` out also
+#: rejects `_n_ = 412` if the delimiters are simply added to the character class. The
+#: structure that separates them is *where the emphasis opens*: in `_n_` the opening
+#: `_` is preceded by a non-word character or the start of the text, while in
+#: `mean_n_` it is preceded by `mean`. So the lookbehind moved outward, to the front of
+#: the whole group, rather than being loosened.
+#:
+#: `(?(1)\1)` is a conditional backreference: *if* an opening delimiter matched, the
+#: closing one must be the same string. That is what makes the emphasis balanced, and
+#: it rejects three shapes the "non-word before the opener" rule alone would admit —
+#: `_n = 412` and `N_ = 412` (unclosed: an identifier, not emphasis) and `__n_ = 412`
+#: (mismatched). Getting this wrong in either direction is costly and not symmetric:
+#: a missed N is admitted as a `Claim` and pollutes the coverage denominator with an
+#: item nothing can ever re-derive, while a false N removes a real claim from it.
 _SAMPLE_SIZE: Final = re.compile(
-    r"(?<![A-Za-z0-9_])\*{0,2}([nN])\*{0,2}[ \t]*=[ \t]*\Z"
+    r"(?<![A-Za-z0-9_])([*_]{1,2})?([nN])(?(1)\1)[ \t]*=[ \t]*\Z"
 )
 
 #: An operator immediately before the number, which makes the number the operator's
@@ -246,7 +259,8 @@ def _sample_size_name(text: str, span: CharSpan) -> str | None:
     match = _SAMPLE_SIZE.search(
         text, max(0, span.start - _WINDOW_BEFORE), span.start
     )
-    return None if match is None else match[1]
+    # Group 2, not group 1: group 1 is the emphasis delimiter, which is markup.
+    return None if match is None else match[2]
 
 
 def _is_a_fragment(text: str, span: CharSpan) -> bool:
