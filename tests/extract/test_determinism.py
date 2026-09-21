@@ -24,11 +24,17 @@ Four things this file is careful about, each of which has already bitten somethi
   passage explaining why floats are forbidden, and the serialization work hit the same
   class of bug when `"environ"` matched the word "environment" in a docstring about not
   reading the environment. A guard that fires spuriously gets disabled, and then it
-  never fires when it matters. So every guard below parses the module with `ast` and
-  inspects real `Call`, `Import` and `ImportFrom` nodes; docstrings, comments and
-  string literals are excluded structurally rather than by luck. Both directions are
-  self-tested against synthetic modules, so the guard is known to fire *and* known not
-  to misfire.
+  never fires when it matters. So every guard below parses the module with `ast`;
+  docstrings, comments and string literals are excluded structurally rather than by
+  luck, and so are the two shapes a *token* scan cannot tell from the real thing — a
+  type annotation (`int | str | float`) and an `isinstance(v, float)` check, which in
+  this layer is what *rejecting* a float looks like. The guard matches **references**,
+  not calls: `json.dumps(default=float)` contains no call to `float` and converts
+  every `Decimal` in the document, which makes it the float path that matters.
+  Its limits are stated where it is defined rather than implied — `getattr(builtins,
+  "float")` and a float arriving through a variable both get past it. Both directions
+  are self-tested against synthetic modules, so the guard is known to fire *and* known
+  not to misfire.
 - **Vacuity.** A guard that scans nothing, or an assertion that holds because the thing
   it forbids could never appear, passes forever. The scans assert they found the
   modules; the path assertion asserts the document does contain a legitimate slash.
@@ -564,22 +570,78 @@ def module_sources() -> dict[str, str]:
     }
 
 
-def called_names(tree: ast.Module) -> set[str]:
-    """The names of everything actually *called*, from `Call` nodes only.
+def _exempt_nodes(tree: ast.Module) -> set[ast.AST]:
+    """Subtrees where a forbidden name is not a hazard, excluded structurally.
 
-    `float` in an annotation, `float` named inside `isinstance(x, float)` — which is a
-    check that *rejects* floats — and `float(` inside a docstring are all excluded by
-    construction, because none of them is a `Call` whose target is `float`.
+    Two of them, and both are *code* rather than prose — a text scan cannot tell them
+    apart from the real thing, and an AST scan gets it for free:
+
+    - **Annotations.** `def f(x: int | str | float) -> float` names the type, it does
+      not convert anything. `arg.annotation`, `AnnAssign.annotation` and the return
+      annotation are skipped whole.
+    - **`isinstance(value, float)` and `issubclass`.** In this codebase that is the
+      shape of a check that *rejects* floats — the opposite of the hazard. Every
+      record in the layer type-checks this way, so flagging it would make the guard
+      fire on exactly the code that enforces the rule, and a guard that fires
+      spuriously gets disabled.
     """
-    names: set[str] = set()
+    exempt: set[ast.AST] = set()
+
+    def skip(node: ast.expr | None) -> None:
+        if node is not None:
+            exempt.update(ast.walk(node))
+
     for node in ast.walk(tree):
-        if isinstance(node, ast.Call):
-            target = node.func
-            if isinstance(target, ast.Name):
-                names.add(target.id)
-            elif isinstance(target, ast.Attribute):
-                names.add(target.attr)
-    return names
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            skip(node.returns)
+        elif isinstance(node, (ast.arg, ast.AnnAssign)):
+            skip(node.annotation)
+        elif (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id in {"isinstance", "issubclass"}
+        ):
+            for argument in node.args[1:]:
+                skip(argument)
+    return exempt
+
+
+def loaded_names(tree: ast.Module) -> set[str]:
+    """Every name *read* in the module — as a call, and as a bare value.
+
+    Walking `Call` nodes is too narrow, and misses the one float path that actually
+    threatens the serializer: `json.dumps(default=float)` passes the builtin as a
+    **value**, so there is no `Call` node named `float` anywhere in that expression.
+    That is precisely the "obvious repair" a `Decimal` invites, and it is what this
+    phase exists to prevent. Same reasoning for `hash`.
+
+    **What this does not catch**, stated so the guard is not trusted for more than it
+    delivers: `getattr(builtins, "float")`, a float arriving through a variable or a
+    parameter, `__import__("datetime")`, or anything reached by `eval`. It catches the
+    regression that matters — someone reaching for the obvious repair — not a
+    determined circumvention.
+    """
+    exempt = _exempt_nodes(tree)
+    return {
+        node.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Name)
+        and isinstance(node.ctx, ast.Load)
+        and node not in exempt
+    }
+
+
+def attribute_names(tree: ast.Module) -> set[str]:
+    """Every attribute *touched*, called or not.
+
+    `os.environ` is a read rather than a call, and `default=datetime.now` hands the
+    clock over without calling it — an `ast.Attribute` node covers both, where a
+    `Call`-node walk covers neither. Receiver-blind on purpose: matching `os.getcwd`
+    but not `getcwd` on some alias would be a guard with a one-line bypass.
+    """
+    return {
+        node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)
+    }
 
 
 def imported_roots(tree: ast.Module) -> set[str]:
@@ -591,11 +653,6 @@ def imported_roots(tree: ast.Module) -> set[str]:
         elif isinstance(node, ast.ImportFrom) and node.module:
             roots.add(node.module.split(".")[0])
     return roots
-
-
-def read_attributes(tree: ast.Module) -> set[str]:
-    """Attribute names read anywhere — `os.environ` is a read, not a call."""
-    return {node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)}
 
 
 def set_iterations(tree: ast.Module) -> list[str]:
@@ -650,7 +707,19 @@ def go(raw, claims):
     there = Path(raw).resolve()
     for claim in set(claims):
         print(float(raw), hash(claim), os.environ.get("HOME"))
+    shuffle(claims)
     return when, here, there
+'''
+
+    #: The case a `Call`-node walk misses entirely, and the one that matters most:
+    #: the builtin handed over as a *value*. Nothing here calls `float` or
+    #: `datetime.now` — the encoder will, on the first `Decimal` it meets.
+    PASSED_AS_A_VALUE = '''\
+import json
+
+
+def dump(document):
+    return json.dumps(document, default=float, cls=None)
 '''
 
     NEGATIVE = '''\
@@ -664,30 +733,59 @@ and datetime.now() are all out, and `import random` would be too.
 FORBIDDEN = ("float(", "hash(", "os.getcwd()", "datetime.now()", "import uuid")
 
 
-def check(value):
-    # A type check that *rejects* a float is not a call to float.
+def check(value: int | str | float) -> float | None:
+    # A type check that *rejects* a float is the opposite of a float hazard.
     if isinstance(value, float):
         raise TypeError("no floats: see " + FORBIDDEN[0])
-    return sorted({value})
+    return sorted({value})[0]
 '''
 
     def test_it_fires_on_a_module_that_does_the_forbidden_things(self) -> None:
         tree = ast.parse(self.POSITIVE)
-        assert {"float", "hash", "getcwd", "resolve", "now"} <= called_names(tree)
+        assert {"float", "hash", "shuffle"} <= loaded_names(tree)
+        assert {"getcwd", "resolve", "now", "environ"} <= attribute_names(tree)
         assert {"datetime", "random", "os", "pathlib"} <= imported_roots(tree)
-        assert "environ" in read_attributes(tree)
         assert set_iterations(tree)
 
+    def test_it_fires_on_a_builtin_passed_as_a_value(self) -> None:
+        # `json.dumps(default=float)` contains no Call node named `float`, so the
+        # Call-only guard this replaced would have let it through — while it is the
+        # one float path that actually reaches serialized output.
+        tree = ast.parse(self.PASSED_AS_A_VALUE)
+        assert "float" not in {
+            node.func.id
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+        assert "float" in loaded_names(tree)
+
     def test_it_stays_silent_on_prose_about_the_forbidden_things(self) -> None:
-        # This is the case the `grep` guard the plan specified gets wrong: every
-        # forbidden token appears in this module as text, and none of it is code.
+        # The case the `grep` guard the plan specified gets wrong: every forbidden
+        # token appears in this module as text, and none of it is code.
         assert 'float("0.1")' in self.NEGATIVE
         assert "import uuid" in self.NEGATIVE
         tree = ast.parse(self.NEGATIVE)
-        assert not (called_names(tree) & FORBIDDEN_CALLS)
+        assert not (loaded_names(tree) & FORBIDDEN_NAMES)
+        assert not (attribute_names(tree) & FORBIDDEN_ATTRIBUTES)
         assert not (imported_roots(tree) & FORBIDDEN_IMPORTS)
-        assert "environ" not in read_attributes(tree)
         assert set_iterations(tree) == []
+
+    def test_it_stays_silent_on_an_annotation(self) -> None:
+        # `x: int | str | float` names a type; it converts nothing. A token scan
+        # cannot tell this from a conversion, which is the second class of spurious
+        # fire — and the reason this is AST rather than tokens.
+        tree = ast.parse("def f(x: float) -> float | None:\n    return None\n")
+        assert "float" not in loaded_names(tree)
+
+    def test_it_stays_silent_on_a_type_check_that_rejects_floats(self) -> None:
+        # Every record in this layer rejects bad types exactly this way. A guard that
+        # fired here would fire on the code enforcing the rule, and be disabled.
+        tree = ast.parse(
+            "def f(v):\n"
+            "    if isinstance(v, float):\n"
+            '        raise TypeError("no floats")\n'
+        )
+        assert "float" not in loaded_names(tree)
 
     def test_sorted_around_a_set_is_not_flagged(self) -> None:
         # `sorted(set(...))` is deterministic; flagging it would be the spurious
@@ -714,16 +812,34 @@ FORBIDDEN_IMPORTS = frozenset(
     }
 )
 
-#: Calls that read ambient state, plus the two the record layer has already been
-#: bitten by: `float(` (risk R2, `docs/ROADMAP.md:57`) and bare `hash(`, whose result
-#: varies with `PYTHONHASHSEED` from one process to the next.
-FORBIDDEN_CALLS = frozenset(
+#: Bare names that may not be *referenced at all* — not called, not passed, not
+#: aliased. `float` is risk R2 (`docs/ROADMAP.md:57`) and `hash` varies with
+#: `PYTHONHASHSEED` from one process to the next. Referencing rather than calling is
+#: the dangerous form of both: `json.dumps(default=float)` never calls `float` in any
+#: line of our code, and converts every `Decimal` in the document.
+FORBIDDEN_NAMES = frozenset(
     {
         "choice",
         "float",
         "getcwd",
         "getenv",
         "hash",
+        "monotonic",
+        "perf_counter",
+        "sample",
+        "shuffle",
+        "uuid4",
+    }
+)
+
+#: Attributes that may not be touched, called or not: `os.environ` is a plain read,
+#: and `default=datetime.now` hands over the clock without calling it.
+FORBIDDEN_ATTRIBUTES = frozenset(
+    {
+        "choice",
+        "environ",
+        "getcwd",
+        "getenv",
         "monotonic",
         "now",
         "perf_counter",
@@ -780,9 +896,18 @@ class TestNoModuleInThePackageReadsAmbientState:
             "value.py",
         } <= names
 
-    def test_no_module_calls_anything_that_reads_ambient_state(self) -> None:
+    def test_no_module_references_float_or_hash_even_as_a_value(self) -> None:
+        # Referenced, not merely called: `json.dumps(default=float)` is the float path
+        # that reaches serialized output, and it contains no call to `float`.
         offenders = {
-            name: sorted(called_names(ast.parse(source)) & FORBIDDEN_CALLS)
+            name: sorted(loaded_names(ast.parse(source)) & FORBIDDEN_NAMES)
+            for name, source in module_sources().items()
+        }
+        assert not {k: v for k, v in offenders.items() if v}
+
+    def test_no_module_touches_an_attribute_that_reads_ambient_state(self) -> None:
+        offenders = {
+            name: sorted(attribute_names(ast.parse(source)) & FORBIDDEN_ATTRIBUTES)
             for name, source in module_sources().items()
         }
         assert not {k: v for k, v in offenders.items() if v}
@@ -804,17 +929,6 @@ class TestNoModuleInThePackageReadsAmbientState:
             "environment, no filesystem and no randomness, then add it to "
             "ALLOWED_IMPORTS in this file."
         )
-
-    def test_no_module_reads_the_environment(self) -> None:
-        # `os.environ` is an attribute read, not a call, so the call guard above would
-        # miss it. Matched as an attribute node — the word "environment" in a docstring
-        # cannot reach this, which is the bug the serialization work already hit.
-        offenders = [
-            name
-            for name, source in module_sources().items()
-            if "environ" in read_attributes(ast.parse(source))
-        ]
-        assert offenders == []
 
     def test_no_module_iterates_a_set_directly(self) -> None:
         offenders = {
