@@ -70,6 +70,69 @@ BYOK proposer — but M5 preserves the seam the proposer will later plug into.
 - Whether a "named metric" requires a controlled vocabulary or free text — decide in
   `tech-plan`.
 
+## 🔴 Unrecognised sample-size forms fall *through*, not out (part 2 must fix the class)
+
+A sample size the recogniser does not know does not get dropped — it admits as a
+**`Claim`**, landing a permanently unbindable number in the coverage denominator the
+Phase 0 gate turns on. `_n_ = 412` did exactly this and is now fixed, but **the fix
+closed one spelling, not the class.** These still fall through:
+
+`n of 412` · `sample size of 412` · `n₁ = 412` · a table cell `| n | 412 |`
+
+A per-spelling recogniser will always lag the ways papers write things. **The durable
+mitigation is M3's requirement that a claim carry a named metric** — `n` cannot supply
+one, so a correct selection rule rejects all of these structurally rather than by
+enumeration. Part 2 owns this. Until then, treat the coverage denominator as
+*optimistic*: it may contain sample sizes wearing the wrong type.
+
+Note the general lesson, which applies beyond N: *"the safe direction is a false
+negative"* holds only when something downstream catches the miss. With no selection
+rule built, nothing does.
+
+## Bounded values cannot yet become claims (measured 2026-09-21)
+
+`Candidate.text` is the bare number, so the `0.001` of `p < 0.001` would admit as a
+`Point` asserting *p = 0.001* — a value the paper never wrote, and one against which a
+re-derived `0.0009` would read as a contradiction. The gate refuses it as
+`partial_value` rather than inventing it.
+
+**Measured, not estimated.** Of the 79 abstract candidates: 76 admit (96.2%), 2 are
+genuine reported N, **1** is this case. Across all five full papers it is 538/4900, but
+that population differs — 305 are digit/comma-adjacent (superscript citation runs like
+`States.2,3`), 133 are range endpoints, 22 are `±` centres, and **78 are
+operator-preceded real bounds**.
+
+So the hole barely touches the labelling set, but 78 real bounds across five papers
+means widening is worth real effort. **Part 2 (M3) must pick it up: something has to
+extract the operator together with the number.** The gate's seam already accepts a
+correctly widened span — it is the extraction side that is missing. The plan assigns
+this to nobody; it is assigned here.
+
+## Known limits of candidate extraction (recorded 2026-09-21)
+
+Both are safe to defer **only because the first label set covers abstracts only**, and
+every one of the five fixture papers has a literal `## Abstract` heading. Neither
+affects the labels; both affect the selection rule's reach and must be revisited when
+labelling extends beyond abstracts.
+
+- 🟡 **`section_hint` mixes two axes.** `abstract` / `results` / `references` / `other`
+  say *where in the document*; `table` says *what container*. `table` wins the override,
+  so a number in a table inside `## References` reports `table` and its section is
+  unrecoverable. If both facts are ever needed, that is two fields (`section_hint` +
+  `container`) — cheaper to split before table candidates are labelled than after.
+- 🔴 **The heading map matches only 17 of 119 real headings** across the five fixtures.
+  Two papers yield **zero** `results` candidates: their sections read
+  `## 5. Per-Dataset Analysis Results` and `## Review`. Matching is exact by choice —
+  word containment would add 5 headings but mislabel 3 table captions
+  (`### Table 5. … test results …`) as `results`, and honest `other` beats a confident
+  guess.
+
+  **Consequence for M3's criterion (c)** ("appears in abstract, results, or a table"):
+  with this coverage, `results` is unreliable, so in practice the criterion reads
+  "abstract or table" on real papers. The rule must not lean on `results` until the
+  map is widened, and the widening needs evidence about real heading forms rather than
+  a guess.
+
 ## Inherited from aspect 1 (decided 2026-09-20)
 
 - **Hyphen ranges are unsupported.** `parse_value` accepts only en/em dashes as range

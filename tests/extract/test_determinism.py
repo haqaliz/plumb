@@ -1077,9 +1077,13 @@ class TestNoModuleInThePackageReadsAmbientState:
         names = set(module_sources())
         assert {
             "__init__.py",
+            "admit.py",
+            "candidates.py",
             "claim.py",
             "dedup.py",
             "hashing.py",
+            "labelling.py",
+            "tables.py",
             "location.py",
             "ordering.py",
             "serialize.py",
