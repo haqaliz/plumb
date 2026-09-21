@@ -38,11 +38,15 @@ the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a conten
 normalized paper text, byte-identical serialization pinned by cross-process tests, and
 value-identity dedup. Zero runtime dependencies; no network reachable from any test.
 
-**Not built:** *selection* — deciding which numbers in a paper **are** claims — which is the
-substance of this capability, and **PDF input**. The Phase 0 C1 minimum (`ROADMAP.md`) requires
-PDF, so **the gate is not met and C1 must not be read as complete.** Selection is blocked on
-hand-labelling a blind fixture set *before* the rule is written, so that the rule can be measured
-against labels it did not author.
+**Not built:** **PDF input** and the whole of C2–C8. **Selection — the substance of this
+capability — has landed** (aspect 2 part 2, 2026-09-21): the M3 rule under
+`src/plumb/extract/selection.py` with a closed selection-side cause vocabulary, a free-text
+metric namer, `extract_claims(raw)` as the end-to-end seam, and pooled precision/recall over
+the 73-row blind set — **1.0 / 1.0, floored at 0.90**. The score is a *conformance* score, not
+validation: the labels were criteria-drafted from M3/M11 (the owner delegated the pass), so a
+perfect score means the rule implements its criteria. Validation against third-party labels is
+C5's job. The Phase 0 C1 minimum (`ROADMAP.md`) requires PDF, so **the gate is not met and C1
+must not be read as complete.**
 
 ## C2. Artifact intake & pinned environment
 
