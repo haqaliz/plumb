@@ -8,7 +8,20 @@ surfacing the claims that do not hold.
 > A plumb line is the oldest tool for testing whether something stands true. Plumb asks of a
 > paper: *does the claim hold when you actually run it?*
 
-Status: **greenfield** — design docs only; the engine is not built yet.
+Status: **early.** The deterministic extraction spine exists and is tested; the verdict
+layer does not. Plumb cannot yet verify a paper end to end.
+
+```
+uv sync && uv run pytest        # 889 tests, no network, zero runtime dependencies
+```
+
+| | |
+|---|---|
+| **Built** | Typed claim records · paper hashing · byte-identical serialization · dedup · Markdown table parsing · candidate extraction · the admission gate |
+| **Not built** | Claim *selection* · PDF input · artifact intake · execution · **binding and verdicts** · corpus · bundle · hosted layer |
+
+No verdict has ever been emitted. The part that decides `REPRODUCED` or `DIVERGED` by
+re-execution is the point of the project and is not written yet.
 
 ## What it is (and is not)
 

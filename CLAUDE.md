@@ -16,9 +16,20 @@ The name: a *plumb line* is the oldest tool for testing whether something stands
 is also to investigate a thing to the bottom. Plumb asks of a paper: *does the claim hold when
 you actually run it?*
 
-Status: **greenfield.** Today only the design docs exist (`CLAUDE.md`, `VISION.md`, `docs/`).
-The engine, CLI, and hosted layer are not built yet. When in doubt, verify against the code and
-`git log` rather than the prose — but there is no code yet, so say so plainly.
+Status: **the deterministic spine of C1 is built; nothing downstream is.** `src/plumb/extract/`
+holds the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a paper hash,
+byte-identical serialization, value-identity dedup, Markdown table parsing, exhaustive candidate
+extraction, and the admission gate that is the sole constructor of a `Claim`. Zero runtime
+dependencies; no network reachable from any test.
+
+**Not built:** claim *selection* (which numbers in a paper **are** claims — the substance of C1),
+PDF input, and the whole of C2–C8. **No verdict has ever been emitted**, because nothing that
+emits one exists yet. The Phase 0 gate is not met.
+
+When in doubt, verify against the code and `git log` rather than this prose. Two assumptions in
+these docs have already been falsified by real papers — the interval grammar required brackets no
+paper writes, and a sign rule produced negative values no paper wrote — so treat the design
+documents as intent, not as a description of behaviour.
 
 Lineage: Plumb is a spin-out and generalization of a "reproduce & verify published work"
 capability, lifted out of genomics and pointed at the literature at large. There is real, proven
