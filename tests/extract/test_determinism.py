@@ -855,6 +855,21 @@ def dump(document):
     return json.dumps(document, default=float, cls=None)
 '''
 
+    #: `id()` is `hash()`'s twin: an address, stable inside one process and different
+    #: in the next. Both shapes are here, because the value form is the one a
+    #: `Call`-node walk misses — `sort(key=id)` names no call to `id` at all.
+    IDENTITY_AS_A_VALUE = '''\
+def fingerprint(claims):
+    return sorted(claims, key=id), [id(claim) for claim in claims]
+'''
+
+    #: The correct code the guard must leave alone: `id` as a *record field*, which is
+    #: what `dedup.py` and `serialize.py` read on every claim they touch.
+    IDENTITY_AS_A_FIELD = '''\
+def rows(claims):
+    return [(claim.id, claim.metric) for claim in claims]
+'''
+
     NEGATIVE = '''\
 """Why this module never calls float(0.1) or hash(x).
 
@@ -891,6 +906,35 @@ def check(value: int | str | float) -> float | None:
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
         }
         assert "float" in loaded_names(tree)
+
+    def test_it_fires_on_a_bare_id_load(self) -> None:
+        # `id()` returns a memory address: stable within one process, different in the
+        # next — the same hazard class as `hash()`, which is already forbidden. Asserted
+        # against FORBIDDEN_NAMES rather than against `loaded_names` alone, because the
+        # collector has always *seen* `id`; what is being pinned is that the guard now
+        # *rejects* it.
+        tree = ast.parse(self.IDENTITY_AS_A_VALUE)
+        assert "id" in loaded_names(tree) & FORBIDDEN_NAMES
+        # And the value form specifically, which a Call-only walk cannot see: `key=id`
+        # is the shape that would quietly order a whole document by address.
+        key_only = ast.parse("s = sorted(claims, key=id)\n")
+        assert "id" not in {
+            node.func.id
+            for node in ast.walk(key_only)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+        assert "id" in loaded_names(key_only) & FORBIDDEN_NAMES
+
+    def test_it_stays_silent_on_id_as_a_record_field(self) -> None:
+        # `claim.id` and `MergedClaim.id` are legitimate fields this package reads
+        # constantly. `id` is therefore forbidden as a *name* and deliberately absent
+        # from FORBIDDEN_ATTRIBUTES; adding it there would fire the guard on correct
+        # code, which is the spurious failure that gets guards disabled — after which
+        # they never fire when it matters. This test exists to stop that edit.
+        tree = ast.parse(self.IDENTITY_AS_A_FIELD)
+        assert "id" in attribute_names(tree)
+        assert not (attribute_names(tree) & FORBIDDEN_ATTRIBUTES)
+        assert not (loaded_names(tree) & FORBIDDEN_NAMES)
 
     def test_it_stays_silent_on_prose_about_the_forbidden_things(self) -> None:
         # The case the `grep` guard the plan specified gets wrong: every forbidden
@@ -950,6 +994,17 @@ FORBIDDEN_IMPORTS = frozenset(
 #: `PYTHONHASHSEED` from one process to the next. Referencing rather than calling is
 #: the dangerous form of both: `json.dumps(default=float)` never calls `float` in any
 #: line of our code, and converts every `Decimal` in the document.
+#:
+#: `id` is here and **deliberately not in FORBIDDEN_ATTRIBUTES**, and the distinction
+#: is the whole point. As a bare name it is the builtin, which returns a memory
+#: address: `hash`'s twin, stable within one process and different in the next, and
+#: `sorted(claims, key=id)` is the shape that would order a document by address while
+#: passing every single-process test in this file. As an *attribute* it is a record
+#: field — `claim.id`, `MergedClaim.id` — that `dedup.py` and `serialize.py` read on
+#: every claim. Forbidding the attribute would fire the guard on that correct code,
+#: which is the spurious failure this module's docstring warns gets guards disabled,
+#: after which they never fire when it matters. Both halves are pinned by
+#: `test_it_fires_on_a_bare_id_load` and `test_it_stays_silent_on_id_as_a_record_field`.
 FORBIDDEN_NAMES = frozenset(
     {
         "choice",
@@ -957,6 +1012,7 @@ FORBIDDEN_NAMES = frozenset(
         "getcwd",
         "getenv",
         "hash",
+        "id",
         "monotonic",
         "perf_counter",
         "sample",
