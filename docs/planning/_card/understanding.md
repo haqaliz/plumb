@@ -1,114 +1,89 @@
-# Phase 2 — Understanding: C1 claim-extraction core
+# Phase 2 — Understanding: C1 claim-selection (aspect 2, part 2)
 
-Synthesized from two parallel agent digs (contract map + adversarial scope critique)
-over `CLAUDE.md`, `VISION.md`, `docs/ROADMAP.md`,
-`docs/technical/CAPABILITY_ROADMAP.md`, `docs/technical/ARCHITECTURE.md`, and the
-card at `docs/planning/_card/issue.md`.
+Synthesized from two parallel agent digs over the planning docs, the code under
+`src/plumb/extract/`, and the fixtures (branch `feat/claim-selection/aliz`).
 
 ## Where this sits
 
-**C1** (`CAPABILITY_ROADMAP.md:17-30`), the head of the pipeline
-(`ARCHITECTURE.md:16-44`). No dependencies. Feeds **C4**, the moat. This slice does
-**not** touch verdicts — but it defines the record C4 assigns verdicts *to*, so its
-schema is load-bearing for the guardrail "execution decides"
-(`ARCHITECTURE.md:8-10`).
+**C1** (`CAPABILITY_ROADMAP.md:17-30`), the aspect-2 part-2 that the part-1 plan
+(`plan_20260921.md` §0) deferred: **M3 the selection rule** and **M15 scoring against
+the blind labels**. The parent PRD (`prd.md`), aspect spec (`spec.md`), and this
+worktree's card (`issue.md`) already define the requirements; this unit writes the
+rule and the scoring, in that order, after the owner's labels.
 
-## Headline finding
+## What exists today (the seams the rule plugs into)
 
-**The brief is materially under-specified in three ways that would bake in a
-breaking change to C4.** The brief was written by `plumb-next` as a handoff, not as
-a spec; the dig found it cuts more than it should.
+- **`extract_candidates(raw) -> tuple[Candidate, ...]`** (candidates.py:510) — the
+  exhaustive, judgement-free harness. `Candidate` = `text` (verbatim, composite
+  notation whole), `span`, `context` (sentence or cell), `section_hint` ∈
+  `{abstract, results, table, references, other}` (candidates.py:278-303).
+- **`admit(candidate, *, normalized_text, metric, units, ...) -> Claim | NonClaim`**
+  (admit.py:338) — the sole constructor of `Claim` (enforced by AST test).
+  `NonClaim` causes (closed): `ungrounded`, `partial_value`, `study_parameter`,
+  `unnamed_metric`, `unparsed_value` (admit.py:76-112). The gate reads
+  `section_hint` not at all; its docstring says "This is not selection" (admit.py:35-38).
+  The gate has no idea what "a metric" is beyond non-blank — **naming the metric is
+  this unit's job** (a claim must carry a named quantity so C4 can aim a locator at it).
+- **`emit_labelling_file` / `load_labels` -> `LabelledCandidate(row_id, candidate,
+  label)`** (labelling.py:451, 561) — label ∈ `{claim, not-claim}`, rows keyed by
+  `candidate_id`; loader refuses missing/unlabelled rows (a smaller denominator is
+  not a passing score, labelling.py:628-634).
+- **`study_parameters(raw)`** (admit.py:433) — recognised N spellings only; the
+  fall-through class (`n of 412`, `| n | 412 |`) is structurally closed by M3's
+  named-metric requirement, not enumerated (spec.md:73-90).
+- **No `selection.py`, no scoring module, no scoring code exists anywhere** — both
+  are new modules. `TestTheGateIsNotTheSelectionRule` (test_admit.py:913-952)
+  pins the gate admitting years/figure numbers/axis labels — the rule must reject
+  these *before* the gate ("reference numerals… from reaching the gate at all (M3)",
+  test_admit.py:992-994), not by changing the gate.
 
-### 🔴 U-1 — Nothing in the brief constrains *selection*
+## The ordering deliverable (M15)
 
-"Headline quantitative claim" appears 4× in `ROADMAP.md` (`:17-18`, `:21`, `:24`,
-`:56`) and is operationalized nowhere. The brief's acceptance tests (b), (d), (e)
-are all passed by an implementation that emits **every numeral in the document**.
-Yet `CAPABILITY_ROADMAP.md:23` says "the claim is the unit of work."
+Labels committed **before** the rule commit; verifiable in `git log` (spec.md:42-43,
+plan_20260921.md §0, prd.md M15, enforced in labelling.py:11-19). Current label
+state: **73 rows across 5 files, all `"label": null`, all `section: abstract`**
+(abstracts only, per fixtures/papers/README.md:42-48). The card's "~84" is stale —
+composite-candidate regeneration dropped 6 rows from PMC13134363; the real count is
+73. `load_labels` rejects the files as-is until filled.
 
-This is the single largest hole, and it is not cosmetic: the Phase 0 gate number is
-*fraction of headline claims bound* (`ROADMAP.md:17-18`). Under-extraction inflates
-that fraction; over-extraction buries real claims in `UNVERIFIED` (R1,
-`ROADMAP.md:56`). **The denominator is a product decision, not an implementation
-detail.**
+**Who fills the labels matters.** The circularity M15 exists to prevent is the rule
+author labelling their own fixture. The owner (the human) fills the 73 rows; an
+agent filling them and then writing the rule would re-open the same hole in a
+thinner disguise. The pipeline stops for that human pass.
 
-### 🔴 U-2 — The record is too narrow to bind, and the brief froze it in a test
+## Open questions the rule author must decide (from spec.md / prd.md)
 
-- **`tolerance_hint` is required by `ARCHITECTURE.md:56`** and absent from the
-  brief. The brief justifies this by citing the open tolerance question — but
-  `ARCHITECTURE.md:154` defers the *policy* ("per-claim explicit vs a typed default
-  per claim kind"), not the existence of a slot. `NO_TOLERANCE` is already a
-  committed `UNVERIFIED` cause (`ARCHITECTURE.md:95-96`), so the field has a known
-  consumer.
-- **No `metric` / `subject` field.** `(value, units, span)` is not bindable: C4
-  writes a locator (`ARCHITECTURE.md:83-85`) aimed at a *named quantity*. Without
-  it, C4 must re-interpret the span text at bind time — inference where the design
-  wants a contract.
-- **`reported_value` as a float is a false-`DIVERGED` generator** (R2,
-  `ROADMAP.md:57`): `p < 0.001` → `0.001`, `0.870` ≠ `0.87` on significant figures,
-  `0.85 ± 0.03`, `95% CI [..]`, `12–15%` all lose information. `REPRODUCED` requires
-  "matches exactly" (`ARCHITECTURE.md:90`), so precision must survive extraction
-  verbatim.
+1. **Named metric: controlled vocabulary vs free text** (spec.md:70-71). Criterion
+   (b) and the structural N-fix both turn on this. The metric also must be
+   *produced* by the rule (from `Candidate.context`), since `admit` requires it —
+   this unit writes the metric namer, not just a pass/reject filter.
+2. **Criterion (c) without `results`.** Heading map matches 17/119; two papers have
+   zero `results` candidates (spec.md:146-157). The rule must not lean on
+   `results`; in practice (c) reads "abstract or table".
+3. **Rejection taxonomy.** The seven rejection categories (year, figure number,
+   version string, DOI digits, reference-list numeral, hyperparameter, axis label)
+   need a shape — rule-side causes (new, extraction-side vocabulary) vs folding
+   into the gate's existing causes. Related-work attribution (R4) is a
+   context-level test, not a lexical one.
+4. **Scoring shape.** precision/recall over the 73 blind rows; join on
+   `candidate_id`; report-only, **no numeric bar** (prd.md:221-224); rule stays
+   provisional (five papers can show it wrong, not right).
+5. **Known recall gaps surface in scoring, by design**: ASCII-hyphen ranges
+   (spec.md:161-169) and units coupling (spec.md:170-173) are left to be measured,
+   not guessed.
 
-### 🔴 U-3 — "DROPPED" contradicts the design's own vocabulary
+## Contradictions surfaced (flag, don't paper over)
 
-The brief makes silent dropping an acceptance test (`issue.md:36-37`), and
-`CAPABILITY_ROADMAP.md:29-30` agrees ("dropped, not carried forward as
-`DIVERGED`"). But `ROADMAP.md:58` (R3 mitigation) says "**UNVERIFIED** when the
-claim can't be grounded", `ARCHITECTURE.md:95` defines `PROPOSER_UNGROUNDED` as a
-cause, and `ARCHITECTURE.md:97-98` insists "never a silent pass."
+- `issue.md` says "~84 label rows"; actual files hold **73**. Brief predates the
+  composite regeneration (`2be6d64`).
+- `ROADMAP.md:58` still phrases R3's mitigation as "`UNVERIFIED` when the claim
+  can't be grounded"; M4 resolved this to a **non-claim record with a named cause**
+  (prd.md:100-105). ROADMAP amendment is a follow-up, not this unit's job.
 
-**The docs contradict each other.** Both readings are defensible; the PRD must pick
-one and say so. Note the guardrail asymmetry: a silent drop is invisible to the
-coverage number, which is the number the whole Phase 0 gate rests on.
+## Guardrails this unit touches
 
-## Other decisions the PRD must make
-
-| # | Question | Why it matters |
-|---|---|---|
-| U-4 | **Citation location representation.** Char or byte offsets? Over raw or normalized text? | Only offsets round-trip (`issue.md:35-36`). If text is normalized (CRLF→LF, NFC, dehyphenation), offsets index the *normalized* text, which must then be what's content-addressed — else C6's paper hash (`ARCHITECTURE.md:113`) anchors different bytes. Make it a tagged union now or PDF (page+bbox) breaks the schema later. |
-| U-5 | **Serialization + paper hash in scope?** | "Byte-identical output" has no referent without a defined serialized form, and C6 has nothing to bundle. The dig's verdict: the slice is **not** a coherent contract without these. |
-| U-6 | **Is reported N a claim or metadata?** | C7 checks statistics against "the reported N" (`CAPABILITY_ROADMAP.md:93`) and depends on C1 (`:98`). If N is incidental here, C7 loses its input. |
-| U-7 | **Markdown tables in or out?** | `CAPABILITY_ROADMAP.md:25` puts table parsing in the deterministic core. Also: "Markdown" appears in no design doc — all three say text/PDF/DOI. |
-| U-8 | **Deduplication.** Same result in abstract + results + table: 1 claim or 3? | Directly distorts the gate denominator. |
-| U-9 | **Artifact hint — paper-internal or repo-pointing?** | `ARCHITECTURE.md:57` says "artifact/table/figure". C2 doesn't exist yet, so repo-pointing invites speculative guessing. |
-
-## Guardrail notes (`CLAUDE.md`)
-
-- **#1 execution decides** — no `confidence: float` on `Claim`. It becomes
-  `if confidence > 0.9` at verdict time, which is a model's opinion standing in for
-  a re-derived value. Excluded by construction.
-- **#4 gets better as models improve** — the **admission gate** (deterministic
-  re-grounding, `ARCHITECTURE.md:59-61`) should be the *sole constructor* of a
-  `Claim` even though the proposer is out of this slice. Otherwise the future
-  proposer gets a second path that bypasses grounding. The gate is the part that
-  improves with better models; the regexes are not.
-- **#3 do not over-claim** — a related-work number attributed to *this* paper
-  becomes a `DIVERGED` against the wrong authors (R4, `ROADMAP.md:59`).
-- **#2 no egress** — fixtures synthetic or public-domain; C1 runtime deps
-  stdlib/pure-parsing only (no `nltk`/`spacy`-class import-time model downloads);
-  no absolute input paths in output.
-- **Verdicts:** this slice emits none. Confirmed: C1 never assigns
-  `REPRODUCED`/`DIVERGED`; it produces the claims C4 later binds by execution.
-
-## Determinism (implementation-level, for the plan not the PRD)
-
-`.gitattributes eol=lf` (offsets shift on CRLF); no `set` iteration or `hash()`
-(`PYTHONHASHSEED` varies per process) — sort by explicit total key; `hashlib` only,
-algorithm named, and pin *what* is hashed; `json.dumps` with `sort_keys` /
-`ensure_ascii` / `separators` / indent / trailing newline all pinned; no
-`generated_at`, no absolute paths (`Path.resolve()` differs under symlinks,
-`/tmp`→`/private/tmp`); normalize Unicode once (NFC/NFD changes offsets); `re` is
-leftmost-first so alternation order silently changes winners — document an
-overlap-resolution rule; avoid `locale`; single-threaded as contract.
-
-## Scope confirmed correctly cut
-
-PDF→text, DOI resolution, the BYOK LLM proposer, tolerance *policy*, locator
-grammar.
-
-## ⚠️ Phase 0 accounting
-
-This slice does **not** satisfy the Phase 0 C1 minimum. `ROADMAP.md:21` sets that at
-"text/**PDF**". A second C1 slice (PDF→text) is required before the Phase 0 gate can
-be cleared. The PRD must state this so C1 is not ticked off prematurely.
+- **#1 / #3**: the rule is deterministic; it never emits a verdict, and a
+  related-work number must never become this paper's `Claim` (R4).
+- **#4**: the deterministic rule (not a model) is exactly the part that gets better
+  as models improve — the proposer seam (the gate) stays the sole constructor.
+- **#7**: test-first; acceptance criteria at spec.md:42-54 are the failing tests.
