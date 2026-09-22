@@ -1,9 +1,8 @@
 """The PDF-to-Markdown converter, specified by failing tests (aspect `pdf-input/frontend`).
 
-Phase P1 (RED): the contract for `src/plumb/pdf/` is written before the package
-exists, so every test here fails with `ModuleNotFoundError` — the right failure for
-a module that has not been built yet. The four things pinned here are the four the
-`seam` aspect will build on:
+Phase P1 (RED) pinned the contract for `src/plumb/pdf/` before the package existed;
+phase P2 (GREEN) extends it with the fallback path, the table shape, and the drop
+accounting. The four things pinned here are the four the `seam` aspect will build on:
 
 - **Fixture conversion** (a): `pdf_to_markdown(pdf_bytes)` on the real Cureus PDF
   returns Markdown-equivalent text carrying ATX `## ` headings — the abstract heading
@@ -32,11 +31,15 @@ from pathlib import Path
 import pytest
 
 from plumb.extract.pipeline import extract_claims
-from plumb.pdf import PdfInputError, pdf_to_markdown
-from plumb.pdf.convert import _join_wrapped_values, _split_glued_label
+from plumb.pdf import PdfInputError, pdf_to_markdown, pdf_to_markdown_with_stats
+from plumb.pdf.convert import (
+    _join_wrapped_values,
+    _shape_heading,
+    _split_glued_label,
+)
 
 _FIXTURE = Path("fixtures/papers/PMC13134363.pdf")
-_PDF_PACKAGE = Path(__file__).parents[1] / "src" / "plumb" / "pdf"
+_PDF_PACKAGE = Path(__file__).parents[2] / "src" / "plumb" / "pdf"
 
 
 class TestFixtureConversion:
@@ -137,6 +140,89 @@ class TestCorruptInput:
         # named exception (`PdfInputError`) with the cause").
         with pytest.raises(PdfInputError):
             pdf_to_markdown(b"this is not a pdf")
+
+
+class TestShapeFallbackHeading:
+    """The named fallback for PDFs without font-size signals (plan: line-shape rules).
+
+    Fires only when no run is clearly larger than the page body; the fixtures carry
+    font signals, so these rules are pinned by unit test rather than by fixture.
+    """
+
+    def test_a_title_case_short_line_is_a_heading(self) -> None:
+        assert _shape_heading("Materials and methods") == "## "
+
+    def test_a_single_word_section_label_is_a_heading(self) -> None:
+        assert _shape_heading("References") == "## "
+
+    def test_a_sidebar_info_line_is_not_a_heading(self) -> None:
+        assert _shape_heading("Review began 03/15/2026") is None
+
+    def test_a_page_number_line_is_not_a_heading(self) -> None:
+        assert _shape_heading("5 of 21") is None
+
+    def test_a_sentence_is_not_a_heading(self) -> None:
+        assert _shape_heading("This review aimed to estimate the global prevalence.") is None
+
+    def test_a_long_line_is_not_a_heading(self) -> None:
+        assert (
+            _shape_heading(
+                "The Quick Brown Fox Jumps Over The Lazy Dog And Keeps Running On "
+                "And On And On Across The Field"
+            )
+            is None
+        )
+
+
+class TestTableEmission:
+    """The fixture's tables must come out as well-formed GFM pipe tables."""
+
+    def test_each_pipe_table_is_well_formed(self) -> None:
+        markdown = pdf_to_markdown(_FIXTURE.read_bytes())
+        blocks: list[list[str]] = []
+        current: list[str] = []
+        for line in markdown.splitlines():
+            if line.startswith("|"):
+                current.append(line)
+            elif current:
+                blocks.append(current)
+                current = []
+        if current:
+            blocks.append(current)
+        assert blocks, "no GFM pipe rows in the converted text"
+        for block in blocks:
+            assert any(set(line) <= set("| -:") for line in block), (
+                "a pipe block has no GFM delimiter row (a table needs a header, "
+                "a delimiter, and rows)"
+            )
+            counts = {line.count("|") for line in block}
+            assert len(counts) == 1, (
+                f"pipe rows disagree on cell count inside one table: {counts}"
+            )
+
+    def test_a_table_value_survives_inside_a_cell(self) -> None:
+        markdown = pdf_to_markdown(_FIXTURE.read_bytes())
+        cells = [line for line in markdown.splitlines() if line.startswith("|")]
+        assert any("0.20" in line for line in cells), (
+            "a known table value did not survive cell reconstruction"
+        )
+
+
+class TestConversionStats:
+    """The drop accounting the seam tests report (spec: never a silent pass)."""
+
+    def test_stats_are_reported_for_the_fixture(self) -> None:
+        _markdown, stats = pdf_to_markdown_with_stats(_FIXTURE.read_bytes())
+        assert stats.pages == 21
+        assert stats.headings_emitted >= 8, (
+            "fewer `## ` headings than the Markdown fixture carries"
+        )
+
+    def test_unmappable_table_segments_are_counted_not_hidden(self) -> None:
+        # The `[10]`-style citations inside table cells map to no column and must
+        # be dropped *and counted* — the fixture exercises the drop path.
+        _markdown, stats = pdf_to_markdown_with_stats(_FIXTURE.read_bytes())
+        assert stats.dropped_table_segments > 0
 
 
 # --------------------------------------------------------------------------------
