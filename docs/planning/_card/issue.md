@@ -1,22 +1,21 @@
-# C2 Artifact intake & pinned environment — issue card
+# C3 Execution & result capture — issue card
 
-Source: inline brief from the repo's own capability roadmap and design docs (no GitHub issue —
-the id is a slug). Capability text: `docs/technical/CAPABILITY_ROADMAP.md` C2 (lines 51-60);
-design: `docs/technical/ARCHITECTURE.md` C2 (lines 75-82); phase: `docs/ROADMAP.md` Phase 0
-"C2 (minimum): resolve a local path or git URL to a pinned checkout on the user's compute."
+Source: inline brief from the repo's own roadmap and design docs (no GitHub issue — slug id).
+Capability text: `docs/technical/CAPABILITY_ROADMAP.md` C3 (lines 62-70); design:
+`docs/technical/ARCHITECTURE.md` C3 (lines 84-91); phase: `docs/ROADMAP.md` Phase 0 "C3
+(minimum): run the repo's own entry point and capture structured output, freshness-guarded."
 
 ## Brief
 
-**C2 — Artifact intake & pinned environment.** Resolve the code/data behind the paper — a
-local path, an `https` git URL with `--rev`, or an archive — into a **pinned checkout** (tree
-hash recorded) and build a reproducible environment on the **user's compute**. Why:
-reproducibility is impossible without a pinned, rebuildable environment. Depends on nothing
-(the first unshipped capability; C1 is complete on the `c1-pdf-input` branch). Guardrail:
-constraint #2 — everything stays local; nothing is fetched to a third party the user didn't
-authorize. Environment build policy (ARCHITECTURE.md:79-80): lockfile-first, then declared
-deps, then a best-effort resolve that is recorded as such. Isolation posture is documented and
-recorded in the bundle (ARCHITECTURE.md:82; open question at :164-166). Tests stay offline
-and deterministic: git resolution is exercised over local `file://` repos, archives are
-synthetic, env-descriptor logic is tested with fake manifests, and the real `uv sync` runs
-only in a dev-time demo — never in CI. The Phase 0 gate's C2 minimum is the acceptance bar:
-a local path or git URL resolves to a pinned checkout on the user's compute.
+**C3 — Execution & result capture.** Run the repo's own entry point(s) and capture structured
+outputs — JSON, CSV, stdout — **content-addressed** and **freshness-guarded** (an output file
+whose mtime/provenance predates this run is never read as a fresh result). Why: the
+re-derived value must come from an actual run, not a committed artifact (constraint #5).
+Depends on C2 (the checkout + env descriptor from `src/plumb/intake/`); C2 is complete on the
+`artifact-intake` branch. Guardrail: failure to build, run, or time out is captured with a
+named cause, never silently dropped. Tests stay offline: entry points are local scripts,
+outputs are produced in tmp run areas, and the freshness guard is exercised by back-dating
+an output file's mtime (subprocess is legal in tests; sockets are not). Notebook cell output
+capture is deferred to a later slice (needs nbconvert). The Phase 0 gate's C3 minimum is the
+acceptance bar: run the repo's own entry point and capture structured output,
+freshness-guarded.
