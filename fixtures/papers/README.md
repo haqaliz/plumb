@@ -68,6 +68,29 @@ Tests never touch the network (autouse blocker in `tests/conftest.py`); the PDFs
 committed fixtures, and `tests/extract/test_pdf_fixtures.py` pins the set (five files,
 ≥ 10 KiB each).
 
+## Signal survey (2026-09-22, `tools/pdf_signal_survey.py`)
+
+Reconstruction floor for the `frontend` aspect, measured on **PMC13134363** (Cureus,
+largest abstract label set) with `uv run --with pypdf python tools/pdf_signal_survey.py`:
+
+| Signal | Result |
+|---|---|
+| PDF pages | 21 |
+| PDF text chars (per-page, raw) | 71,572 |
+| `##` heading recovery (unique) | **8/8 (1.000)** |
+| Table cell recovery | **490/506 (0.968)** |
+| Table line recovery (≥ 1 cell) | **110/110 (1.000)** |
+| Table line recovery (majority of cells) | **110/110 (1.000)** |
+| Abstract prose | readable verbatim on page 1 |
+
+Heading recovery at 1.0 and table recovery well above 0.5 support the **≥ 90%
+whole-paper recovery floor** (PRD M3). Residual: 16 of 506 table cells did not
+recover verbatim (likely line-wrapped or styled cells); the frontend aspect must
+treat cell-level gaps as expected, not as missing tables. One conversion quirk
+already surfaced: the JATS→Markdown conversion glues the "Abstract" label to the
+prose ("AbstractThis review…") where the PDF has a line break — the frontend must
+normalize label gluing, not rely on verbatim matches.
+
 ## Egress posture
 
 These papers came **in**. Nothing went out: no paper text, no repository content, and no
