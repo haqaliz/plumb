@@ -169,11 +169,12 @@ def uv_sync_runner(
         timeout=timeout_seconds,
         check=False,
     )
+    out = result.stdout.decode("utf-8", "replace").strip()
+    err = result.stderr.decode("utf-8", "replace").strip()
     if result.returncode != 0:
-        detail = result.stderr.decode("utf-8", "replace").strip()
+        detail = err or out or "uv exited non-zero"
         return EnvBuild(ok=False, policy=descriptor.policy, detail=detail)
-    detail = result.stdout.decode("utf-8", "replace").strip()
-    return EnvBuild(ok=True, policy=descriptor.policy, detail=detail)
+    return EnvBuild(ok=True, policy=descriptor.policy, detail=out or err)
 
 
 # -----------------------------------------------------------------------------
