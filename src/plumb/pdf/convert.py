@@ -22,14 +22,20 @@ The pipeline, per document:
    line in the top or bottom 10% band of its page whose runs' text repeats in the
    same band on at least two pages, counted by character (a footer that carries
    the page number still repeats mostly). Drops are recorded in
-   `ConversionStats.dropped_furniture_lines`, never silent.
+   `ConversionStats.dropped_furniture_lines`, never silent. A band line that is
+   a bare page-number fragment (`| 243` — no letters, a leading bar) is dropped
+   the same way: it is the piece of a repeated running head that the page number
+   kept from repeating.
 5. **Columns** — a page is two-column when two dense line-start clusters sit on
    opposite sides of the page's x-center with a low-density band between them;
    table lines are excluded first (a table's columns are not a text layout) and
    a single-column page whose lines merely carry in-line citations does not fire.
    Column-bound lines are split at the gutter, full-width lines (title, abstract
    banner) stay whole, and the page is emitted as full-width + left column in
-   reading y order, then the right column.
+   reading y order, then the right column. A crossing line is *not* split when it
+   is part of a table region or when both of its sides map to several columns:
+   a table row spans the gutter by design, and splitting it leaks the right-half
+   cells into the right column as stray value prose between sentence halves.
 6. **Headings** — the body size is the most common segment size; heading sizes
    are ranked across the document, so each journal's own scale decides the level:
    the largest heading size is `# ` (the title), the next `## ` (sections), the
@@ -41,6 +47,13 @@ The pipeline, per document:
    A known section label glued to prose (`AbstractThis review...`) splits first.
 7. **Tables** — unchanged: column clusters, maximal runs, GFM pipe rows with the
    value line-join inside cells.
+8. **Final heal** — two text-level joins on the finished document, both
+   deterministic and token-scoped: a pure-digit citation run after a period
+   (`runs. 9` -> `runs.9`, the superscript pypdf separated) glues at the run
+   junction, and an all-caps word the publisher split across two operations
+   (`IQC ODE` -> `IQCODE`) is rejoined when the paper itself writes the word
+   whole elsewhere in the same text — a corpus-grounded rule that never fires
+   on a genuine two-word pair the paper never writes as one token.
 
 Determinism: every ordering below is a sort or an index, never set or dict
 iteration; the only arithmetic is on pypdf's own coordinates. Byte identity
@@ -169,6 +182,19 @@ _MIN_SIDE_LINES = 8
 #: A crossing line is split only when its right-hand runs sit within this far of
 #: the right column's start — Springer's right-edge `-` markers are not columns.
 _SPLIT_MARGIN = 40.0
+
+#: A crossing line whose sides both map to several distinct columns is a table
+#: structure (a row or a header row spanning the gutter), not merged prose: it
+#: stays whole. The right side needs at least this many columns — Springer's
+#: merged prose lines map the right column and a right-edge cluster at most, and
+#: must keep splitting.
+_MIN_CROSSING_COLUMNS_LEFT = 2
+_MIN_CROSSING_COLUMNS_RIGHT = 3
+
+#: An all-caps pair (`IQC ODE`) is rejoined only when the concatenation exists
+#: as a token elsewhere in the document (`IQCODE`); a pair the paper never
+#: writes as one token (`AUC AUPRC`, `CC BY`) is a genuine word boundary.
+_MIN_ACRONYM_LEN = 2
 
 #: The fallback per-char advance used to estimate run extents.
 _CHAR_ADVANCE_FALLBACK = 0.5
@@ -410,6 +436,17 @@ def _furniture_indices(
             total_chars = sum(len(run[3]) for run in members)
             if total_chars and repeat_chars * 2 >= total_chars:
                 page_dropped.add(idx)
+                continue
+            text = "".join(run[3] for run in members).strip()
+            if (
+                text
+                and text.startswith("|")
+                and not any(char.isalpha() for char in text)
+            ):
+                # The page-number fragment of a repeated running head: the rest
+                # of the head repeats and drops, the number (`| 243`) does not —
+                # yet it is the same furniture.
+                page_dropped.add(idx)
         dropped.append(page_dropped)
     return dropped
 
@@ -502,14 +539,25 @@ def _split_and_assign(
     lines: list[tuple[int, list]],
     gutter: tuple[float, float],
     advance: float,
+    direction: float = 1.0,
 ) -> tuple[list, list, list]:
     """Full-width, left-column and right-column lines after splitting at the gutter.
 
     A line crossing the gutter is split when its right-hand runs start within
     `_SPLIT_MARGIN` of the right column (a genuinely merged left+right line);
     otherwise it stays whole as a full-width line (a title or abstract banner
-    with a stray margin marker).
+    with a stray margin marker). A crossing line that is part of a table region
+    (computed on the y-ordered view the renderer will use) or whose two sides
+    both map to several distinct columns is a table structure spanning the
+    gutter and stays whole — splitting it leaks the right-half cells into the
+    right column as stray value prose between sentence halves.
     """
+    ordered = sorted(lines, key=lambda item: item[0], reverse=(direction > 0))
+    tables = _table_lines(ordered)
+    table_set = {id(ordered[i]) for i in tables}
+    columns = _column_clusters(
+        [tuple(_Segment(run[1], run[2], run[3]) for run in members) for _anchor, members in lines]
+    )
     g1, g2 = gutter
     full: list = []
     left: list = []
@@ -525,10 +573,21 @@ def _split_and_assign(
             continue
         right_runs = [run for run in members if run[1] >= g2 - 0.5]
         left_runs = [run for run in members if run[1] < g2 - 0.5]
+        segments = tuple(_Segment(run[1], run[2], run[3]) for run in members)
+        mapped = _mapped_segments(segments, columns)
+        left_columns = {column.center for segment, column in mapped if segment.x < g2 - 0.5}
+        right_columns = {column.center for segment, column in mapped if segment.x >= g2 - 0.5}
         if (
             left_runs
             and right_runs
             and (min(run[1] for run in right_runs) - g2) <= _SPLIT_MARGIN
+            and not (
+                id(segments) in table_set
+                or (
+                    len(left_columns) >= _MIN_CROSSING_COLUMNS_LEFT
+                    and len(right_columns) >= _MIN_CROSSING_COLUMNS_RIGHT
+                )
+            )
         ):
             left.append((anchor, left_runs))
             right.append((anchor, right_runs))
@@ -757,17 +816,28 @@ def _join_runs(segments) -> str:
     The CFF font gap on Oxford drops the inter-run space: `Table 3` plus
     `compares the performance...` would read `Table 3compares`. When a run ends
     with a digit, `%`, `)` or `,` and the next run opens with a letter, the
-    junction is a word boundary the font swallowed.
+    junction is a word boundary the font swallowed. The reverse gluing is the
+    citation numeral: pypdf separates a superscript `9` from the period it
+    belongs to (`runs. 9`), and a pure-digit run after a period is that
+    citation — the space is dropped, not a word boundary.
     """
     out = ""
     for segment in segments:
+        text = segment.text
+        if (
+            out
+            and out[-1] == "."
+            and text[:1] == " "
+            and text.strip().isdigit()
+        ):
+            text = text.lstrip()
         if (
             out
             and out[-1] in "0123456789%),"
-            and segment.text[0].isalpha()
+            and text[:1].isalpha()
         ):
             out += " "
-        out += segment.text
+        out += text
     return out
 
 
@@ -1063,6 +1133,41 @@ def _join_wrapped_values(text: str) -> str:
 
 
 # --------------------------------------------------------------------------------
+# The document-level heal
+# --------------------------------------------------------------------------------
+
+
+_ACRONYM_PAIR = re.compile(
+    r"(?<![A-Z])([A-Z]{%d,}) ([A-Z]{%d,})(?![A-Z])" % (_MIN_ACRONYM_LEN, _MIN_ACRONYM_LEN)
+)
+
+
+def _heal_split_acronyms(text: str) -> str:
+    """Rejoin an all-caps word the publisher split across two text operations.
+
+    Oxford splits `IQCODE` into `IQC` + `ODE` with a kerning move between the
+    halves, and pypdf reads the gap as a word boundary (`IQC ODE`) — which
+    breaks the claim metric. The heal is corpus-grounded: an all-caps pair is
+    rejoined only when the concatenation exists as a token elsewhere in the
+    document (`IQCODE` is written whole five times). A pair the paper never
+    writes as one token (`AUC AUPRC`, `CC BY`) is a genuine word boundary and
+    stays split. Iterated until stable, because a word can be split into more
+    than two fragments.
+    """
+    tokens = set(re.findall(r"[A-Z]{2,}", text))
+    previous = None
+    while previous != text:
+        previous = text
+
+        def _join(match: re.Match) -> str:
+            joined = match.group(1) + match.group(2)
+            return joined if joined in tokens else match.group(0)
+
+        text = _ACRONYM_PAIR.sub(_join, text)
+    return text
+
+
+# --------------------------------------------------------------------------------
 # Page rendering
 # --------------------------------------------------------------------------------
 
@@ -1194,7 +1299,7 @@ def _convert(pdf_bytes: bytes) -> tuple[str, _Stats, int]:
         kept_runs = [run for _a, members in kept for run in members]
         soft = _group_lines(kept_runs, tol=_Y_TOLERANCE, advance=advance)
         if gutter is not None:
-            full, left, right = _split_and_assign(soft, gutter, advance)
+            full, left, right = _split_and_assign(soft, gutter, advance, direction)
             rev = direction > 0
             ordered = sorted(full + left, key=lambda item: item[0], reverse=rev)
             ordered += sorted(right, key=lambda item: item[0], reverse=rev)
@@ -1229,6 +1334,7 @@ def pdf_to_markdown_with_stats(pdf_bytes: bytes) -> tuple[str, ConversionStats]:
             markdown, stats, page_count = _convert(pdf_bytes)
     except PdfReadError as error:
         raise PdfInputError(f"cannot read PDF bytes: {error}") from error
+    markdown = _heal_split_acronyms(markdown)
     return (
         markdown,
         ConversionStats(
