@@ -37,6 +37,7 @@ from plumb.extract.pipeline import extract_claims
 from plumb.pdf import PdfInputError, pdf_to_markdown, pdf_to_markdown_with_stats
 from plumb.pdf.convert import (
     _join_wrapped_values,
+    _label_heading,
     _shape_heading,
     _split_glued_label,
 )
@@ -145,6 +146,35 @@ class TestCorruptInput:
         # named exception (`PdfInputError`) with the cause").
         with pytest.raises(PdfInputError):
             pdf_to_markdown(b"this is not a pdf")
+
+
+class TestBodySizeAbstractRescue:
+    """An abstract heading set at body size must still survive (MDPI/Sensors/Springer).
+
+    Those journals render "Abstract" in the body font on the title's page, where a
+    real font signal exists — so the size rule cannot promote it and the broad
+    shape rules would over-promote the sidebar. The exact-label rescue is the
+    middle path, and it is pinned on the real fixtures.
+    """
+
+    @pytest.mark.parametrize(
+        "pmcid",
+        ("PMC13298092", "PMC13332965", "PMC13363872"),
+    )
+    def test_the_abstract_heading_is_recovered(self, pmcid: str) -> None:
+        markdown = pdf_to_markdown(
+            Path(f"fixtures/papers/{pmcid}.pdf").read_bytes()
+        )
+        headings = [line for line in markdown.splitlines() if line.startswith("## ")]
+        assert any("abstract" in heading.lower() for heading in headings), (
+            f"{pmcid}: no abstract heading in the converted text"
+        )
+
+    def test_only_an_exact_section_label_is_rescued(self) -> None:
+        assert _label_heading("Abstract") == "## "
+        assert _label_heading("References") == "## "
+        assert _label_heading("Setting") is None
+        assert _label_heading("Corresponding author: John K. Muthuka") is None
 
 
 class TestShapeFallbackHeading:

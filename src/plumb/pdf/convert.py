@@ -97,6 +97,12 @@ _MAX_CELL_CHARS = 60
 _HEADING_RATIO = 1.25
 _HEADING_CUSHION = 2.0
 
+#: A page "has font signals" only when some line is this much larger than the body
+#: — a micro-difference (MDPI sets body at 9.9626pt and part of it at 10.0pt) is
+#: no signal at all, and without this bar the size path would swallow the shape
+#: fallback that rescues the abstract heading on such pages.
+_FONT_SIGNAL_RATIO = 1.1
+
 #: A line of heading size is a title at twice the body size.
 _TITLE_RATIO = 2.0
 
@@ -290,6 +296,19 @@ def _shape_heading(text: str) -> str | None:
     if sum(1 for word in words if word[0].isupper()) >= 2:
         return "## "
     if stripped.isupper() and any(char.isalpha() for char in stripped):
+        return "## "
+    return None
+
+
+def _label_heading(text: str) -> str | None:
+    """`"## "` when the whole line is a known section label.
+
+    On a page that has real font signals, only an exact section label is rescued
+    at body size (MDPI sets its abstract heading at body size, on the title's
+    page). The broader shape rules would promote sidebar and author lines there,
+    which are not headings.
+    """
+    if text.strip().lower() in _SECTION_LABELS:
         return "## "
     return None
 
@@ -652,7 +671,9 @@ def _render_page(
     if body <= 0.0:
         body = _body_size(lines)
     font_signal = any(
-        segment.size > body for line in non_region for segment in line
+        segment.size > body * _FONT_SIGNAL_RATIO
+        for line in non_region
+        for segment in line
     )
     entries: list[tuple[str | None, str, float | None]] = []
 
@@ -687,6 +708,10 @@ def _render_page(
                 continue
             if font_signal:
                 level = _heading_level(line, body)
+                if level is None:
+                    # MDPI sets its abstract heading at body size on the title's
+                    # page: the exact-label rescue, and nothing broader.
+                    level = _label_heading(text)
             else:
                 level = _shape_heading(text)
             if level is not None and len(text) <= _MAX_HEADING_CHARS:
