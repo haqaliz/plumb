@@ -93,19 +93,20 @@ normalize label gluing, not rely on verbatim matches.
 
 ## Fixture exclusions (M4)
 
-Four of the five PDF fixtures cannot clear the ≥ 90% whole-paper claim-id recovery
-floor (PRD M4) after the frontend's honest reconstruction effort. They are **excluded
-from the equality bar and documented here with their measured rates** — never a
-silent drop, never a hard fail: the seam suite asserts this section mentions each
-excluded PMCID together with a measured rate (`tests/extract/test_pdf_seam.py`).
+One of the five PDF fixtures cannot clear the ≥ 90% whole-paper claim-id recovery
+floor (PRD M4) after the column-aware reconstruction. It is **excluded from the
+equality bar and documented here with its measured rate** — never a silent drop,
+never a hard fail: the seam suite asserts this section mentions the excluded
+PMCID together with a measured rate (`tests/extract/test_pdf_seam.py`).
 
-**Survey-vs-reality gap, stated honestly:** the signal survey measured heading and
-table recovery on **PMC13134363 only** (Cureus, single-column), and the ≥ 0.90 floor
-was set from that paper. The other four journals (Oxford, MDPI × 2, Springer) typeset
-in **two-column interleaved content streams** — the converter's single-column line
-model merges or reorders the columns' fragments, so prose (including the abstract)
-does not round-trip and claim ids diverge. That layout was outside the survey's
-measurement; the rates below are the honest numbers.
+**Survey-vs-reality gap, stated honestly:** the original signal survey measured
+heading and table recovery on **PMC13134363 only** (Cureus, single-column) and set
+the ≥ 0.90 floor from that paper. The other four journals (Oxford, MDPI × 2,
+Springer) typeset in **two-column interleaved content streams**, and the column
+reconstruction (2026-09-22, the `columns` aspect) closes that gap: **four of the
+five fixtures now clear both floors** — the two MDPI journals and Springer
+recover ≥ 90% of non-table claims by id. The layout dimension (column geometry,
+per-page y direction, running-head/footer bands) is now measured, not assumed.
 
 Measured 2026-09-22 with the seam suite's pinned arithmetic (denominator = distinct
 Markdown-path `Claim.id`s outside table cells; numerator = those ids recovered by the
@@ -114,15 +115,14 @@ criterion 2):
 
 | PMCID | Abstract recovery | Whole-paper recovery (non-table) | Reason |
 |---|---|---|---|
-| `PMC12780771` | 0/6 | 7/25 (0.280) | Oxford Academic: two-column interleaved stream; pypdf also drops the document tail (`Exceeded 5000 form XObject invocations`) |
-| `PMC13298092` | 0/2 | 2/54 (0.037) | MDPI Diagnostics: two-column interleaved stream; abstract prose interleaves with the footer/editorial block |
-| `PMC13332965` | 0/0 (vacuous) | 1/41 (0.024) | Springer Human Genetics: two-column interleaved stream; left/right column fragments merge into single lines |
-| `PMC13363872` | 0/9 | 0/9 (0.000) | MDPI Sensors: two-column interleaved stream; left/right column fragments merge into single lines |
+| `PMC12780771` | 6/6 (1.000) | 21/25 (0.840) | Oxford Academic: the two-column body prose now recovers, but four claims are lost to pypdf's CFF font gap (the `and IQCODE (0-5, higher` fragment is undecodable without fontTools, kept out of scope) and to a sentence broken across a page break and a table (`was detected more than 500 times out of 1000 runs`) |
 
-The converter's line model reconstructs the Cureus PDF completely — `PMC13134363`
-passes both floors: abstract **19/19 (1.000)**, whole-paper non-table **19/19
-(1.000)**. Multi-column journals are a follow-on reconstruction problem, recorded
-here rather than hidden; nothing in this section is a verdict about the papers.
+The converter now reconstructs all five fixtures' layouts — **PMC13134363** passes
+both floors (abstract **19/19 (1.000)**, whole-paper non-table **19/19 (1.000)**);
+**PMC13298092** abstract 2/2, non-table **52/54 (0.963)**; **PMC13363872**
+abstract 9/9, non-table **9/9 (1.000)**; **PMC13332965** abstract 0/0 (the
+Markdown fixture's abstract carries no quantitative claim — vacuous), non-table
+**38/41 (0.927)**. Nothing in this section is a verdict about the papers.
 
 ## Egress posture
 

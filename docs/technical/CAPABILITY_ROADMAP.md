@@ -41,11 +41,16 @@ value-identity dedup. One pinned runtime dependency — pypdf (pure-Python, no t
 powering the PDF→Markdown converter in `src/plumb/pdf/`; no network reachable from any test.
 The `pdf-input` slice landed test-first through the sealed `extract_claims(raw)` seam
 (`src/plumb/extract/pipeline.py:29-61`): claim-id recovery of the PDF path vs the Markdown
-path is measured per fixture (`tests/extract/test_pdf_seam.py`). **PMC13134363 clears both
-recovery floors** — abstract 19/19, whole-paper non-table 19/19 (≥ 0.90, the survey-set
-floor) — and the four two-column fixtures (**PMC12780771, PMC13298092, PMC13332965,
-PMC13363872**) are excluded per PRD M4 with their measured rates documented in
-`fixtures/papers/README.md`: recorded, labeled states, never a silent drop.
+path is measured per fixture (`tests/extract/test_pdf_seam.py`). **Four of the five
+fixtures clear both recovery floors** (abstract 100%, whole-paper non-table ≥ 0.90, the
+survey-set floor) — PMC13134363 19/19 · 19/19 (1.000), PMC13298092 2/2 · 52/54 (0.963),
+PMC13363872 9/9 · 9/9 (1.000), PMC13332965 (vacuous abstract) · 38/41 (0.927) — including
+the **two-column journals** (the `columns` aspect, 2026-09-22: text-matrix direction,
+gutter detection, column grouping, furniture drops). **PMC12780771 (Oxford) remains below
+the whole-paper floor** — abstract 6/6, non-table 21/25 (0.840) — and is excluded per PRD
+M4 with its measured rate and causes (a pypdf CFF font gap and a sentence broken across a
+page break and a table) documented in `fixtures/papers/README.md`: a recorded, labeled
+state, never a silent drop.
 
 **Not built:** the whole of C2–C8. **Selection — the substance of this
 capability — has landed** (aspect 2 part 2, 2026-09-21): the M3 rule under
@@ -54,10 +59,10 @@ metric namer, `extract_claims(raw)` as the end-to-end seam, and pooled precision
 the 73-row blind set — **1.0 / 1.0, floored at 0.90**. The score is a *conformance* score, not
 validation: the labels were criteria-drafted from M3/M11 (the owner delegated the pass), so a
 perfect score means the rule implements its criteria. Validation against third-party labels is
-C5's job. The Phase 0 gate's **C1 prerequisite ("text/PDF") is met for single-column journals
-only** — 1/5 fixtures clears the recovery floors; two-column layouts are an **open
-reconstruction gap (R3)** (the four excluded fixtures recover 0–28% of non-table claims), so
-the C1 prerequisite is **not yet met for the general corpus**; the
+C5's job. The Phase 0 gate's **C1 prerequisite ("text/PDF") is met for the fixtures as a
+whole** — 4/5 fixtures clear the recovery floors, including the two-column journals; the
+remaining fixture (PMC12780771, Oxford) is M4-documented with its measured rate (21/25
+non-table, 0.840) and named causes. The
 gate itself still needs C2–C4, which remain unbuilt, so **the gate is not met and C1 must not
 be read as complete.**
 
