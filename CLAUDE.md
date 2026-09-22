@@ -16,15 +16,22 @@ The name: a *plumb line* is the oldest tool for testing whether something stands
 is also to investigate a thing to the bottom. Plumb asks of a paper: *does the claim hold when
 you actually run it?*
 
-Status: **the deterministic spine of C1 and the C2 artifact-intake spine are built; nothing
-downstream is.** `src/plumb/extract/`
+Status: **the deterministic spine of C1, the C2 artifact-intake spine and the C3 run spine
+are built; nothing downstream is.** `src/plumb/extract/`
 holds the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a paper hash,
 byte-identical serialization, value-identity dedup, Markdown table parsing, exhaustive candidate
 extraction, and the admission gate that is the sole constructor of a `Claim`. One pinned
 runtime dependency — pypdf (pure-Python, no transitive deps), powering the PDF→Markdown
 converter in `src/plumb/pdf/`; no network reachable from any test.
 
-**Not built:** C3–C8. **C2 artifact intake is built** (2026-09-22): `src/plumb/intake/`
+**Not built:** C4–C8. **C3 execution & capture is built** (2026-09-23): `src/plumb/run/`
+resolves an entry point (explicit wins; else one `[project.scripts]` entry or a root
+`main.py`; ambiguity or absence is a named cause, never a guess), runs it in a working copy of
+the checkout under the run area (never the pinned checkout), and captures stdout/JSON/CSV into
+a per-run object store keyed by SHA-256, folded into a deterministic `RunTrace`. The
+**freshness guard** records any output older than the run start as `STALE_ARTIFACT` without
+reading its bytes; `WONT_RUN`, `TIMEOUT`, `NO_ARTIFACT`, `ENTRYPOINT_MISSING`/`_AMBIGUOUS` are
+the other named causes. Notebook capture is a named follow-on. **C2 artifact intake is built** (2026-09-22): `src/plumb/intake/`
 resolves a local path, a git URL with `--rev`, or a tar.gz/zip archive into a pinned
 `Checkout` with a recorded tree hash (`plumb` bytes framing over sorted `(relpath, bytes)`, or
 the repo's own `HEAD^{tree}` for git sources, reconciled by the `scheme` field), scans

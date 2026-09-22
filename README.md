@@ -8,17 +8,18 @@ surfacing the claims that do not hold.
 > A plumb line is the oldest tool for testing whether something stands true. Plumb asks of a
 > paper: *does the claim hold when you actually run it?*
 
-Status: **early.** The deterministic extraction spine and the C2 artifact-intake spine exist and
-are tested (offline); the verdict layer does not. Plumb cannot yet verify a paper end to end.
+Status: **early.** The deterministic extraction spine, the C2 artifact-intake spine and the C3
+run spine exist and are tested (offline); the verdict layer does not. Plumb cannot yet verify
+a paper end to end.
 
 ```
-uv sync && uv run pytest        # 1071 tests, no network, one pinned runtime dependency (pypdf)
+uv sync && uv run pytest        # 1130 tests, no network, one pinned runtime dependency (pypdf)
 ```
 
 | | |
 |---|---|
-| **Built** | Typed claim records · paper hashing · byte-identical serialization · dedup · Markdown table parsing · candidate extraction · the admission gate · claim selection (M3 rule) · PDF→Markdown conversion (single- and two-column layouts; all five fixtures at the recovery floor — see `fixtures/papers/README.md`) · **artifact intake** (tree hash via plumb bytes framing or the repo's `HEAD^{tree}`; local/git/archive resolution; environment descriptor; offline-tested, real `uv sync` dev-time only) |
-| **Not built** | execution · **binding and verdicts** · corpus · bundle · hosted layer |
+| **Built** | Typed claim records · paper hashing · byte-identical serialization · dedup · Markdown table parsing · candidate extraction · the admission gate · claim selection (M3 rule) · PDF→Markdown conversion (single- and two-column layouts; all five fixtures at the recovery floor — see `fixtures/papers/README.md`) · **artifact intake** (tree hash via plumb bytes framing or the repo's `HEAD^{tree}`; local/git/archive resolution; environment descriptor; offline-tested, real `uv sync` dev-time only) · **execution & capture** (entry-point resolution; runs in a working copy under the run area; content-addressed stdout/JSON/CSV; freshness guard — stale outputs are never read) |
+| **Not built** | notebook capture · **binding and verdicts** · corpus · bundle · hosted layer |
 
 No verdict has ever been emitted. The part that decides `REPRODUCED` or `DIVERGED` by
 re-execution is the point of the project and is not written yet.
