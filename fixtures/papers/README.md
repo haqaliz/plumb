@@ -91,6 +91,39 @@ already surfaced: the JATS→Markdown conversion glues the "Abstract" label to t
 prose ("AbstractThis review…") where the PDF has a line break — the frontend must
 normalize label gluing, not rely on verbatim matches.
 
+## Fixture exclusions (M4)
+
+Four of the five PDF fixtures cannot clear the ≥ 90% whole-paper claim-id recovery
+floor (PRD M4) after the frontend's honest reconstruction effort. They are **excluded
+from the equality bar and documented here with their measured rates** — never a
+silent drop, never a hard fail: the seam suite asserts this section mentions each
+excluded PMCID together with a measured rate (`tests/extract/test_pdf_seam.py`).
+
+**Survey-vs-reality gap, stated honestly:** the signal survey measured heading and
+table recovery on **PMC13134363 only** (Cureus, single-column), and the ≥ 0.90 floor
+was set from that paper. The other four journals (Oxford, MDPI × 2, Springer) typeset
+in **two-column interleaved content streams** — the converter's single-column line
+model merges or reorders the columns' fragments, so prose (including the abstract)
+does not round-trip and claim ids diverge. That layout was outside the survey's
+measurement; the rates below are the honest numbers.
+
+Measured 2026-09-22 with the seam suite's pinned arithmetic (denominator = distinct
+Markdown-path `Claim.id`s outside table cells; numerator = those ids recovered by the
+PDF path by id; table cells excluded from the bar and counted separately, PRD
+criterion 2):
+
+| PMCID | Abstract recovery | Whole-paper recovery (non-table) | Reason |
+|---|---|---|---|
+| `PMC12780771` | 0/6 | 7/25 (0.280) | Oxford Academic: two-column interleaved stream; pypdf also drops the document tail (`Exceeded 5000 form XObject invocations`) |
+| `PMC13298092` | 0/2 | 2/54 (0.037) | MDPI Diagnostics: two-column interleaved stream; abstract prose interleaves with the footer/editorial block |
+| `PMC13332965` | 0/0 (vacuous) | 1/41 (0.024) | Springer Human Genetics: two-column interleaved stream; left/right column fragments merge into single lines |
+| `PMC13363872` | 0/9 | 0/9 (0.000) | MDPI Sensors: two-column interleaved stream; left/right column fragments merge into single lines |
+
+The converter's line model reconstructs the Cureus PDF completely — `PMC13134363`
+passes both floors: abstract **19/19 (1.000)**, whole-paper non-table **19/19
+(1.000)**. Multi-column journals are a follow-on reconstruction problem, recorded
+here rather than hidden; nothing in this section is a verdict about the papers.
+
 ## Egress posture
 
 These papers came **in**. Nothing went out: no paper text, no repository content, and no
