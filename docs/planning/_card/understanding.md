@@ -1,89 +1,85 @@
-# Phase 2 — Understanding: C1 claim-selection (aspect 2, part 2)
+# C1 PDF input — understanding (deep dig, 2026-09-22)
 
-Synthesized from two parallel agent digs over the planning docs, the code under
-`src/plumb/extract/`, and the fixtures (branch `feat/claim-selection/aliz`).
+Places the unit in the codebase. Sources: agent dig of `src/plumb/extract/`, `tests/extract/`,
+planning docs, and fixture provenance.
 
-## Where this sits
+## What the work is really asking
 
-**C1** (`CAPABILITY_ROADMAP.md:17-30`), the aspect-2 part-2 that the part-1 plan
-(`plan_20260921.md` §0) deferred: **M3 the selection rule** and **M15 scoring against
-the blind labels**. The parent PRD (`prd.md`), aspect spec (`spec.md`), and this
-worktree's card (`issue.md`) already define the requirements; this unit writes the
-rule and the scoring, in that order, after the owner's labels.
+Convert a paper PDF to plain text deterministically and offline, feed it through the existing
+`extract_claims(raw)` seam (`src/plumb/extract/pipeline.py:29-61`) unchanged, so a PDF and the
+equivalent Markdown yield the same claims. Completes C1 (the Phase 0 gate's C1 minimum is
+"text/PDF" — `docs/ROADMAP.md:21`; `CAPABILITY_ROADMAP.md:47-49` says the gate is not met
+because PDF is missing).
 
-## What exists today (the seams the rule plugs into)
+## The seam and its contract (verified in code)
 
-- **`extract_candidates(raw) -> tuple[Candidate, ...]`** (candidates.py:510) — the
-  exhaustive, judgement-free harness. `Candidate` = `text` (verbatim, composite
-  notation whole), `span`, `context` (sentence or cell), `section_hint` ∈
-  `{abstract, results, table, references, other}` (candidates.py:278-303).
-- **`admit(candidate, *, normalized_text, metric, units, ...) -> Claim | NonClaim`**
-  (admit.py:338) — the sole constructor of `Claim` (enforced by AST test).
-  `NonClaim` causes (closed): `ungrounded`, `partial_value`, `study_parameter`,
-  `unnamed_metric`, `unparsed_value` (admit.py:76-112). The gate reads
-  `section_hint` not at all; its docstring says "This is not selection" (admit.py:35-38).
-  The gate has no idea what "a metric" is beyond non-blank — **naming the metric is
-  this unit's job** (a claim must carry a named quantity so C4 can aim a locator at it).
-- **`emit_labelling_file` / `load_labels` -> `LabelledCandidate(row_id, candidate,
-  label)`** (labelling.py:451, 561) — label ∈ `{claim, not-claim}`, rows keyed by
-  `candidate_id`; loader refuses missing/unlabelled rows (a smaller denominator is
-  not a passing score, labelling.py:628-634).
-- **`study_parameters(raw)`** (admit.py:433) — recognised N spellings only; the
-  fall-through class (`n of 412`, `| n | 412 |`) is structurally closed by M3's
-  named-metric requirement, not enumerated (spec.md:73-90).
-- **No `selection.py`, no scoring module, no scoring code exists anywhere** — both
-  are new modules. `TestTheGateIsNotTheSelectionRule` (test_admit.py:913-952)
-  pins the gate admitting years/figure numbers/axis labels — the rule must reject
-  these *before* the gate ("reference numerals… from reaching the gate at all (M3)",
-  test_admit.py:992-994), not by changing the gate.
+- `extract_claims(raw: str) -> (tuple[Claim,...], tuple[Rejection,...])` — `raw` is a `str`,
+  normalized once via `normalize_text` (CRLF→LF + NFC only, `location.py:26-47`); every
+  `CharSpan` indexes the normalized bytes; `hash_paper` rejects `bytes` (`hashing.py:116-120`).
+  So the converter must produce `str`; there is no bytes or document-object seam.
+- **The "equivalent Markdown" bar is structural, not cosmetic.** Section hints come from ATX
+  headings (`candidates.py:341-359`); cells come from GFM pipe tables (`tables.py:26-36`).
+  Without headings, every candidate lands in `other` and `select` rejects all
+  (`selection.py:446-447`). A naive PDF text dump would collapse the claim set to zero.
+- Claim equality across PDF/Markdown must be by claim `id` (value text + metric + units —
+  `claim.py:61-70`), not full dataclass equality: `Location` is part of the record and will
+  legitimately differ between the two inputs.
+- **`Location` is a single-variant union today** (`CharSpan`, `location.py:50-104`). A
+  `PageBox` variant (PDF page + bbox) was deliberately pre-shaped for in the design docs
+  (`claim-schema/spec.md:27`; `determinism-serialization/plan_20260921.md:71-84`) but touching
+  it hits five pinned contracts: `location.py` union, `serialize.py:218-237`,
+  `ordering.py:77-84`, `SERIALIZED_SCHEMA` (`test_determinism.py:592-690`), and the
+  hash-anchoring invariant (`hashing.py:5-10`, where CharSpan round-trips against the hash but
+  a page/bbox coordinate is not derivable from the text). This is the riskiest part of the
+  brief's acceptance criterion 3 and the natural candidate for a follow-on slice.
 
-## The ordering deliverable (M15)
+## Test-convention constraints (verified in code)
 
-Labels committed **before** the rule commit; verifiable in `git log` (spec.md:42-43,
-plan_20260921.md §0, prd.md M15, enforced in labelling.py:11-19). Current label
-state: **73 rows across 5 files, all `"label": null`, all `section: abstract`**
-(abstracts only, per fixtures/papers/README.md:42-48). The card's "~84" is stale —
-composite-candidate regeneration dropped 6 rows from PMC13134363; the real count is
-73. `load_labels` rejects the files as-is until filled.
+- Autouse `_block_network` fixture in `tests/conftest.py:56-60` replaces socket primitives for
+  every test; `test_no_network.py` proves it fires. The PDF dependency must not resolve
+  hostnames or open sockets (at import or use).
+- AST source guards in `test_determinism.py:975-1062` scan **only `src/plumb/extract/`**
+  (import allowlist: `__future__, abc, collections, dataclasses, decimal, hashlib, json, plumb,
+  re, typing, unicodedata`). A converter placed in a new package `src/plumb/pdf/` sidesteps the
+  allowlist but inherits the network blocker and all record contracts.
+- Cross-process byte-identity determinism is pinned by `test_determinism.py` (fresh
+  interpreters under varying `PYTHONHASHSEED`, raw stdout bytes compared).
+- A committed binary PDF fixture needs a `.gitattributes` binary/`-text` rule — the current
+  `* text=auto eol=lf` (pinned by `test_determinism.py:1135-1160`) would mangle it.
 
-**Who fills the labels matters.** The circularity M15 exists to prevent is the rule
-author labelling their own fixture. The owner (the human) fills the 73 rows; an
-agent filling them and then writing the rule would re-open the same hole in a
-thinner disguise. The pipeline stops for that human pass.
+## Fixture situation (the slice's first blocker)
 
-## Open questions the rule author must decide (from spec.md / prd.md)
+- The five CC BY fixtures are JATS-XML-derived Markdown (`fixtures/papers/README.md:15-21`),
+  sourced from Europe PMC. **No PDF of any of them exists anywhere locally** (repo, ~/dev,
+  ~/Downloads, git history, Spotlight) — verified by search.
+- So acceptance criterion 1 ("a PDF fixture of a CC BY paper") has no on-disk input today.
+  Options: fetch the real journal PDFs from Europe PMC (authorized-fetch precedent in
+  `fixtures/papers/README.md:15-17`) or generate deterministic PDFs from the Markdown
+  (offline, but synthetic — they won't exercise real-world PDF layout and would weaken the
+  "real PDF" value of the fixture). Sourcing the real PDFs is preferred if authorized.
+- Known provenance wobble to resolve when sourcing: `<!-- source -->` DOIs disagree with the
+  `fixtures/papers/README.md` table for two papers (PMC12780771, PMC13363872).
 
-1. **Named metric: controlled vocabulary vs free text** (spec.md:70-71). Criterion
-   (b) and the structural N-fix both turn on this. The metric also must be
-   *produced* by the rule (from `Candidate.context`), since `admit` requires it —
-   this unit writes the metric namer, not just a pass/reject filter.
-2. **Criterion (c) without `results`.** Heading map matches 17/119; two papers have
-   zero `results` candidates (spec.md:146-157). The rule must not lean on
-   `results`; in practice (c) reads "abstract or table".
-3. **Rejection taxonomy.** The seven rejection categories (year, figure number,
-   version string, DOI digits, reference-list numeral, hyperparameter, axis label)
-   need a shape — rule-side causes (new, extraction-side vocabulary) vs folding
-   into the gate's existing causes. Related-work attribution (R4) is a
-   context-level test, not a lexical one.
-4. **Scoring shape.** precision/recall over the 73 blind rows; join on
-   `candidate_id`; report-only, **no numeric bar** (prd.md:221-224); rule stays
-   provisional (five papers can show it wrong, not right).
-5. **Known recall gaps surface in scoring, by design**: ASCII-hyphen ranges
-   (spec.md:161-169) and units coupling (spec.md:170-173) are left to be measured,
-   not guessed.
+## Dependency stance
 
-## Contradictions surfaced (flag, don't paper over)
+- `pyproject.toml:7` is `dependencies = []`; the "zero runtime dependencies" claim appears in
+  `CLAUDE.md:25`, `CAPABILITY_ROADMAP.md:39`, `README.md:9`. Adding the smallest pure-Python,
+  pinned, offline PDF dep (brief's wording) amends all three. Candidate: pypdf (pure-Python,
+  BSD, no deps, no network) — but it does **no table extraction**, so heading/table
+  reconstruction for the Markdown-equivalent bar would be our own heuristics (the R3 risk).
+  Heavier options (pdfplumber/PyMuPDF) add deps, and PyMuPDF is AGPL — likely out.
 
-- `issue.md` says "~84 label rows"; actual files hold **73**. Brief predates the
-  composite regeneration (`2be6d64`).
-- `ROADMAP.md:58` still phrases R3's mitigation as "`UNVERIFIED` when the claim
-  can't be grounded"; M4 resolved this to a **non-claim record with a named cause**
-  (prd.md:100-105). ROADMAP amendment is a follow-up, not this unit's job.
+## Open questions for the PRD interview
 
-## Guardrails this unit touches
-
-- **#1 / #3**: the rule is deterministic; it never emits a verdict, and a
-  related-work number must never become this paper's `Claim` (R4).
-- **#4**: the deterministic rule (not a model) is exactly the part that gets better
-  as models improve — the proposer seam (the gate) stays the sole constructor.
-- **#7**: test-first; acceptance criteria at spec.md:42-54 are the failing tests.
+1. **Criterion 3 scope**: must `Location` gain a `PageBox` variant in this slice (five pinned
+   contracts, hash-anchoring implications), or is criterion 3 a follow-on slice — with this
+   slice keeping `CharSpan` over the converted text? The Phase 0 gate does not require
+   PageBox; it requires PDF text to flow through the seam.
+2. **The equality bar (criterion 2)**: compare by claim `id` (text+metric+units), not full
+   records — Location fields will differ. Confirm.
+3. **Fixture sourcing**: fetch real PDFs from Europe PMC (authorized, matches "real PDF" bar)
+   vs generate from Markdown (offline, synthetic).
+4. **Library**: pypdf (minimal, no tables → our own reconstruction) vs a table-capable dep
+   (heavier). The brief's "smallest pure-Python" wording points at pypdf.
+5. **Where the converter lives**: new `src/plumb/pdf/` package (outside the AST-guard scope)
+   vs inside `src/plumb/extract/` (must amend the import allowlist deliberately).
