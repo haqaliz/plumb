@@ -20,16 +20,53 @@ Converted from JATS XML to Markdown (headings preserved so section hints can be 
 structurally rather than guessed). The original XML is not retained; the `<!-- source -->`
 comment at the top of each file records its PMCID, DOI and license.
 
-| File | DOI | Title |
-|---|---|---|
-| `PMC12780771.md` | 10.1177/08919887251355507 | Improving accuracy in the estimation of probable dementia in racially and ethnically diverse populations |
-| `PMC13134363.md` | 10.1186/s12888-025-07354-6 | Global Autism Spectrum Disorder Prevalence Estimates and Associated Covariates |
-| `PMC13298092.md` | 10.3390/diagnostics15182386 | Diagnostic Accuracy of Auricular Morphometry in Sex Estimation: A Logistic Regression approach |
-| `PMC13332965.md` | 10.1186/s13059-025-03797-y | Within-sibling attenuation of polygenic risk score accuracy |
-| `PMC13363872.md` | 10.3390/jimaging11090318 | Understanding the Performance of Deep Computer Vision Models: A Symbolic Regression approach |
+The `<!-- source -->` comment is the authoritative provenance record for each file.
+The table below was corrected against it on 2026-09-22: **all five previously listed
+DOIs were wrong** (not just the two flagged during intake — the wobble was total).
+Each DOI was re-verified against the Europe PMC REST record (`PMCID:` query) and the
+PMC OA dataset metadata JSON; both agree with the `<!-- source -->` comments.
 
-DOIs are recorded from the source metadata; verify against the `<!-- source -->` comment
-in each file before citing one.
+| File | DOI (verified 2026-09-22) | Title |
+|---|---|---|
+| `PMC12780771.md` | 10.1093/aje/kwaf001 | Improving accuracy in the estimation of probable dementia in racially and ethnically diverse groups with penalized regression and transfer learning |
+| `PMC13134363.md` | 10.7759/cureus.106260 | Global Autism Spectrum Disorder Prevalence Estimates and Associated Covariates: A Systematic Review and Meta-Regression Analysis |
+| `PMC13298092.md` | 10.3390/diagnostics16121820 | Diagnostic Accuracy of Auricular Morphometry in Sex Estimation: A Logistic Regression Model with ROC-Based Validation |
+| `PMC13332965.md` | 10.1007/s00439-026-02852-3 | Within-sibling attenuation of polygenic risk score accuracy: investigating the effects of principal component analysis, LD score regression, and mixed model association in the UK Biobank |
+| `PMC13363872.md` | 10.3390/s26134093 | Understanding the Performance of Deep Computer Vision Models: A Symbolic Regression Approach to Accuracy and Latency Prediction |
+
+The wrong DOIs previously in this table (10.1177/08919887251355507,
+10.1186/s12888-025-07354-6, 10.3390/diagnostics15182386, 10.1186/s13059-025-03797-y,
+10.3390/jimaging11090318) belong to other, unrelated papers and must not be cited
+against these files.
+
+## PDF fixtures
+
+Each paper also ships as its **real journal PDF**: `fixtures/papers/PMC<id>.pdf`,
+one per paper, committed as binary (`.gitattributes` has `*.pdf binary`; verified via
+`git check-attr text` reporting unset). These are the publisher PDFs — Cureus
+(PMC13134363), MDPI Diagnostics (PMC13298092), MDPI Sensors (PMC13363872), Springer
+Human Genetics (PMC13332965), Oxford Academic Am J Epidemiol (PMC12780771) — all CC BY.
+
+Fetched **2026-09-22**, dev-time, one-time, read-only:
+
+- **Canonical source URLs (per Europe PMC records):**
+  `https://europepmc.org/articles/PMC<id>?pdf=render` for each of the five PMCIDs.
+  On the fetch date these were Cloudflare-challenged from the dev machine (HTTP 403
+  "Just a moment..." on every path, with and without a browser User-Agent), and
+  `pmc.ncbi.nlm.nih.gov` served a JavaScript proof-of-work gate on its `/pdf/` route —
+  so the bytes were taken from the **PMC Open Access cloud dataset** (`s3://
+  pmc-oa-opendata`, https://pmc.ncbi.nlm.nih.gov/tools/pmcaws/), the same OA corpus
+  Europe PMC serves, as plain HTTPS objects:
+  `https://pmc-oa-opendata.s3.amazonaws.com/PMC<id>.1/PMC<id>.1.pdf`.
+- **Tool:** `uv run tools/fetch_pdf_fixtures.py` — dev-time only, never imported by
+  tests; prints a manifest (object URL, byte size, sha256) and exits non-zero if any
+  paper fails. Re-run it any time to re-fetch; the recorded URLs allow manual fetch.
+- **License check:** the OA-dataset metadata JSON for each `PMC<id>.1` version reports
+  `license_code: CC BY`, matching the `<!-- source -->` comments.
+
+Tests never touch the network (autouse blocker in `tests/conftest.py`); the PDFs are
+committed fixtures, and `tests/extract/test_pdf_fixtures.py` pins the set (five files,
+≥ 10 KiB each).
 
 ## Egress posture
 
