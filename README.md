@@ -12,12 +12,12 @@ Status: **early.** The deterministic extraction spine exists and is tested; the 
 layer does not. Plumb cannot yet verify a paper end to end.
 
 ```
-uv sync && uv run pytest        # 994 tests, no network, one pinned runtime dependency (pypdf)
+uv sync && uv run pytest        # 1003 tests, no network, one pinned runtime dependency (pypdf)
 ```
 
 | | |
 |---|---|
-| **Built** | Typed claim records · paper hashing · byte-identical serialization · dedup · Markdown table parsing · candidate extraction · the admission gate · claim selection (M3 rule) · PDF→Markdown conversion (single- and two-column layouts; one fixture residual M4-documented — see `fixtures/papers/README.md`) |
+| **Built** | Typed claim records · paper hashing · byte-identical serialization · dedup · Markdown table parsing · candidate extraction · the admission gate · claim selection (M3 rule) · PDF→Markdown conversion (single- and two-column layouts; all five fixtures at the recovery floor — see `fixtures/papers/README.md`) |
 | **Not built** | artifact intake · execution · **binding and verdicts** · corpus · bundle · hosted layer |
 
 No verdict has ever been emitted. The part that decides `REPRODUCED` or `DIVERGED` by

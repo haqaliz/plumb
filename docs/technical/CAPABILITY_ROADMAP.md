@@ -33,7 +33,7 @@ as a **non-claim with a named cause** rather than discarded silently: an invisib
 indistinguishable from a claim that was never there, and it flatters the coverage number the
 Phase 0 gate rests on (`ARCHITECTURE.md` "never a silent pass"; `ROADMAP.md` R3).
 
-**Status (2026-09-21, seam 2026-09-22):** the deterministic spine of C1 has landed under
+**Status (2026-09-21, seam 2026-09-22, last-mile 2026-09-22):** the deterministic spine of C1 has landed under
 `src/plumb/extract/` —
 the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a content hash over
 normalized paper text, byte-identical serialization pinned by cross-process tests, and
@@ -41,16 +41,20 @@ value-identity dedup. One pinned runtime dependency — pypdf (pure-Python, no t
 powering the PDF→Markdown converter in `src/plumb/pdf/`; no network reachable from any test.
 The `pdf-input` slice landed test-first through the sealed `extract_claims(raw)` seam
 (`src/plumb/extract/pipeline.py:29-61`): claim-id recovery of the PDF path vs the Markdown
-path is measured per fixture (`tests/extract/test_pdf_seam.py`). **Four of the five
+path is measured per fixture (`tests/extract/test_pdf_seam.py`). **All five
 fixtures clear both recovery floors** (abstract 100%, whole-paper non-table ≥ 0.90, the
 survey-set floor) — PMC13134363 19/19 · 19/19 (1.000), PMC13298092 2/2 · 52/54 (0.963),
-PMC13363872 9/9 · 9/9 (1.000), PMC13332965 (vacuous abstract) · 38/41 (0.927) — including
-the **two-column journals** (the `columns` aspect, 2026-09-22: text-matrix direction,
-gutter detection, column grouping, furniture drops). **PMC12780771 (Oxford) remains below
-the whole-paper floor** — abstract 6/6, non-table 21/25 (0.840) — and is excluded per PRD
-M4 with its measured rate and causes (a pypdf CFF font gap and a sentence broken across a
-page break and a table) documented in `fixtures/papers/README.md`: a recorded, labeled
-state, never a silent drop.
+PMC13363872 9/9 · 9/9 (1.000), PMC13332965 (vacuous abstract) · 38/41 (0.927),
+**PMC12780771 (Oxford) 6/6 · 25/25 (1.000)** — including the
+**two-column journals** (the `columns` aspect, 2026-09-22: text-matrix direction,
+gutter detection, column grouping, furniture drops) and the last-mile fixes
+(2026-09-22): table-structure lines stay whole at the gutter, the running-head
+page-number fragment drops as furniture, the citation numeral glues, and a
+publisher-split all-caps word is rejoined when the paper writes it whole
+elsewhere. Oxford's former M4 exclusion (21/25, 0.840) is cleared; its M4 note's
+pypdf-CFF-font-gap hypothesis was tested and **falsified** — fontTools changes
+nothing but pypdf's warning line, so it was not added and pypdf remains the one
+pinned dependency; the full account is in `fixtures/papers/README.md`.
 
 **Not built:** the whole of C2–C8. **Selection — the substance of this
 capability — has landed** (aspect 2 part 2, 2026-09-21): the M3 rule under
@@ -60,9 +64,9 @@ the 73-row blind set — **1.0 / 1.0, floored at 0.90**. The score is a *conform
 validation: the labels were criteria-drafted from M3/M11 (the owner delegated the pass), so a
 perfect score means the rule implements its criteria. Validation against third-party labels is
 C5's job. The Phase 0 gate's **C1 prerequisite ("text/PDF") is met for the fixtures as a
-whole** — 4/5 fixtures clear the recovery floors, including the two-column journals; the
-remaining fixture (PMC12780771, Oxford) is M4-documented with its measured rate (21/25
-non-table, 0.840) and named causes. The
+whole** — all 5/5 fixtures clear the recovery floors, including the two-column journals
+(Oxford cleared its M4 exclusion at 25/25 non-table, 1.000, on 2026-09-22; the full
+mechanism account is in `fixtures/papers/README.md`). The
 gate itself still needs C2–C4, which remain unbuilt, so **the gate is not met and C1 must not
 be read as complete.**
 

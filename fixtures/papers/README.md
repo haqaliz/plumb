@@ -93,20 +93,48 @@ normalize label gluing, not rely on verbatim matches.
 
 ## Fixture exclusions (M4)
 
-One of the five PDF fixtures cannot clear the ≥ 90% whole-paper claim-id recovery
-floor (PRD M4) after the column-aware reconstruction. It is **excluded from the
-equality bar and documented here with its measured rate** — never a silent drop,
-never a hard fail: the seam suite asserts this section mentions the excluded
-PMCID together with a measured rate (`tests/extract/test_pdf_seam.py`).
+**No fixture is currently excluded.** The one fixture that could not clear the
+≥ 90% whole-paper claim-id recovery floor (PRD M4) after the column-aware
+reconstruction — **PMC12780771 (Oxford)** — cleared it on 2026-09-22 with the
+last-mile fixes, at **abstract 6/6 (1.000), whole-paper non-table 25/25
+(1.000)**. The section stays because the seam suite asserts it documents any
+excluded PMCID with a measured rate (`tests/extract/test_pdf_seam.py`) — with
+an empty exclusion set that assertion is vacuous but the section remains the
+place this state is recorded, never silent.
 
-**Survey-vs-reality gap, stated honestly:** the original signal survey measured
-heading and table recovery on **PMC13134363 only** (Cureus, single-column) and set
-the ≥ 0.90 floor from that paper. The other four journals (Oxford, MDPI × 2,
-Springer) typeset in **two-column interleaved content streams**, and the column
-reconstruction (2026-09-22, the `columns` aspect) closes that gap: **four of the
-five fixtures now clear both floors** — the two MDPI journals and Springer
-recover ≥ 90% of non-table claims by id. The layout dimension (column geometry,
-per-page y direction, running-head/footer bands) is now measured, not assumed.
+**What was wrong, and what the fixes actually were.** The M4 note named two
+causes for Oxford's four missing claims: a pypdf CFF font gap ("the `and
+IQCODE (0-5, higher` fragment is undecodable without fontTools") and a
+sentence broken across a page break and a table ("was detected more than 500
+times out of 1000 runs"). Investigation falsified the first hypothesis and
+refined the second:
+
+- **The CFF attribution was wrong.** pypdf does emit its `fontTools is
+  required` warning on this file (a CFF Type1 math-symbol font inside a form
+  XObject), but converting with fontTools installed produces **byte-identical
+  output** — only the warning line disappears. The fontTools dependency was
+  therefore **not** added: it fixes nothing, and `pypdf` remains the one
+  pinned runtime dependency. The actual mechanisms were three pypdf/publisher
+  artifacts, all fixed deterministically in the converter (no new deps):
+  1. The publisher splits `IQCODE` into `IQC` + `ODE` (and `I` + `QCODE,`)
+     with a kerning move between the halves; pypdf reads the gap as a word
+     boundary. The converter rejoins an all-caps pair when the paper itself
+     writes the concatenation as a token elsewhere in the document
+     (`IQCODE` is written whole five times) — a corpus-grounded rule that
+     never fires on a genuine two-word pair (`AUC AUPRC`, `CC BY`).
+  2. The table rows and header lines span the gutter; splitting them at the
+     column boundary leaked the right-half cells into the right column as
+     stray value prose between the sentence halves. Table-structure lines
+     (a table region, or a crossing line whose two sides map to several
+     distinct columns) now stay whole.
+  3. The running-head page-number fragment (`| 243`) survived the furniture
+     drop (it does not repeat — the number changes); it is now dropped as
+     furniture, and the superscript citation numeral (`runs. 9`) glues to the
+     period it belongs to (`runs.9`).
+- **The "page break" was actually a table plus a column split on one page**:
+  the sentence ends the left column of page 7 (`...more than 500 times`) and
+  continues at the top of the right column (`out of 1000 runs. 9 ...`), with
+  Table 3 between them in the emission.
 
 Measured 2026-09-22 with the seam suite's pinned arithmetic (denominator = distinct
 Markdown-path `Claim.id`s outside table cells; numerator = those ids recovered by the
@@ -115,14 +143,21 @@ criterion 2):
 
 | PMCID | Abstract recovery | Whole-paper recovery (non-table) | Reason |
 |---|---|---|---|
-| `PMC12780771` | 6/6 (1.000) | 21/25 (0.840) | Oxford Academic: the two-column body prose now recovers, but four claims are lost to pypdf's CFF font gap (the `and IQCODE (0-5, higher` fragment is undecodable without fontTools, kept out of scope) and to a sentence broken across a page break and a table (`was detected more than 500 times out of 1000 runs`) |
+| `PMC12780771` | 6/6 (1.000) | 25/25 (1.000) | formerly M4-documented at 21/25 (0.840) |
 
-The converter now reconstructs all five fixtures' layouts — **PMC13134363** passes
-both floors (abstract **19/19 (1.000)**, whole-paper non-table **19/19 (1.000)**);
-**PMC13298092** abstract 2/2, non-table **52/54 (0.963)**; **PMC13363872**
-abstract 9/9, non-table **9/9 (1.000)**; **PMC13332965** abstract 0/0 (the
-Markdown fixture's abstract carries no quantitative claim — vacuous), non-table
-**38/41 (0.927)**. Nothing in this section is a verdict about the papers.
+**Survey-vs-reality gap, stated honestly:** the original signal survey measured
+heading and table recovery on **PMC13134363 only** (Cureus, single-column) and set
+the ≥ 0.90 floor from that paper. The other four journals (Oxford, MDPI × 2,
+Springer) typeset in **two-column interleaved content streams**, and the column
+reconstruction (2026-09-22, the `columns` aspect) plus the last-mile fixes
+(2026-09-22) close that gap: **all five fixtures now clear both floors** —
+**PMC13134363** abstract **19/19 (1.000)**, whole-paper non-table **19/19
+(1.000)**; **PMC13298092** abstract 2/2, non-table **52/54 (0.963)**;
+**PMC13363872** abstract 9/9, non-table **9/9 (1.000)**; **PMC13332965**
+abstract 0/0 (the Markdown fixture's abstract carries no quantitative claim —
+vacuous), non-table **38/41 (0.927)**. The layout dimension (column geometry,
+per-page y direction, running-head/footer bands, publisher word-splits) is now
+measured, not assumed. Nothing in this section is a verdict about the papers.
 
 ## Egress posture
 
