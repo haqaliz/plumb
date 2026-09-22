@@ -343,6 +343,44 @@ class TestColumnReconstruction:
         assert "American Journal of Epidemiology" not in _markdown.splitlines()[0]
 
 
+class TestPmc12780771LastMile:
+    """The last M4 exclusion (Oxford): the two named residual gaps, closed.
+
+    The `columns` aspect left PMC12780771 below the whole-paper floor with two
+    named causes (`fixtures/papers/README.md`, M4 section): a fragment around
+    "and IQCODE (0-5, higher" that the M4 note attributed to a pypdf CFF font
+    gap, and a sentence ("was detected more than 500 times out of 1000 runs")
+    broken across a table. The CFF attribution was falsified by experiment
+    (fontTools changes nothing but pypdf's warning line); the real mechanisms
+    are pypdf inserting a space inside a publisher-split word and the table's
+    gutter-split leaking cell values between the sentence halves. These tests
+    pin the recovered text on the real fixture: the claim-carrying token
+    sequence `IQCODE (0-5` (the fragment's value tokens are `0-5` -> claims
+    `0`/`5` with metric `IQCODE` per `fixtures/papers/PMC12780771.md:103`) and
+    the sentence join with the value token `1000` surviving in context
+    (`fixtures/papers/PMC12780771.md:121`).
+    """
+
+    def test_the_oxford_iqcode_fragment_decodes_with_its_claim_carrying_token(
+        self,
+    ) -> None:
+        markdown = pdf_to_markdown(_OXFORD.read_bytes())
+        assert "IQCODE (0-5" in markdown, (
+            "the Table 2 caption fragment 'and IQCODE (0-5, higher' does not "
+            "carry its metric token next to the value in the converted text"
+        )
+
+    def test_the_sentence_split_across_the_table_is_joined_with_its_value(
+        self,
+    ) -> None:
+        markdown = pdf_to_markdown(_OXFORD.read_bytes())
+        assert "500 times\nout of 1000 runs.9" in markdown, (
+            "the sentence 'was detected more than 500 times out of 1000 runs' "
+            "is still broken by the table between 'times' and 'out of 1000', "
+            "so the value token 1000 loses its context"
+        )
+
+
 class TestConversionStats:
     """The drop accounting the seam tests report (spec: never a silent pass)."""
 

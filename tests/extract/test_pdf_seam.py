@@ -63,6 +63,7 @@ FLOOR = 0.90
 
 #: Fixtures that clear both floors (abstract floor and whole-paper ≥ 0.90).
 PASSING = (
+    "PMC12780771",
     "PMC13134363",
     "PMC13298092",
     "PMC13332965",
@@ -72,12 +73,14 @@ PASSING = (
 #: Fixtures that cannot clear the floors after honest converter effort; per PRD M4
 #: they are excluded from the bar and documented in `fixtures/papers/README.md`
 #: with their measured rates — asserted by `TestM4Exclusions`, never silently.
-#: PMC12780771 (Oxford) clears the abstract floor but not the whole-paper floor:
-#: the two-column body prose recovers, yet four claims are lost to pypdf's CFF
-#: font gap (the `and IQCODE (0-5, higher` fragment is undecodable without
-#: fontTools, which the columns aspect keeps out of scope) and to a sentence
-#: broken across a page break and a table (`500 times out of 1000 runs`).
-EXCLUDED = ("PMC12780771",)
+#: PMC12780771 (Oxford) cleared both floors on 2026-09-22 (abstract 6/6,
+#: whole-paper non-table 25/25, 1.000) once the last-mile fixes landed: the
+#: table rows stay whole at the gutter (no cell values leaking between the
+#: sentence halves), the running-head page-number fragment is dropped as
+#: furniture, the citation numeral glues to the sentence, and a publisher-split
+#: all-caps word is rejoined when the paper itself writes the word whole
+#: elsewhere. No fixture is currently excluded.
+EXCLUDED: tuple[str, ...] = ()
 
 ALL_FIXTURES = PASSING + EXCLUDED
 
