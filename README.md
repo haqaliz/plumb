@@ -17,7 +17,7 @@ uv sync && uv run pytest        # 994 tests, no network, one pinned runtime depe
 
 | | |
 |---|---|
-| **Built** | Typed claim records · paper hashing · byte-identical serialization · dedup · Markdown table parsing · candidate extraction · the admission gate · claim selection (M3 rule) · PDF→Markdown conversion |
+| **Built** | Typed claim records · paper hashing · byte-identical serialization · dedup · Markdown table parsing · candidate extraction · the admission gate · claim selection (M3 rule) · PDF→Markdown conversion (single-column layouts; two-column open — see `fixtures/papers/README.md`) |
 | **Not built** | artifact intake · execution · **binding and verdicts** · corpus · bundle · hosted layer |
 
 No verdict has ever been emitted. The part that decides `REPRODUCED` or `DIVERGED` by

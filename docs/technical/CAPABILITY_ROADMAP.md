@@ -54,7 +54,10 @@ metric namer, `extract_claims(raw)` as the end-to-end seam, and pooled precision
 the 73-row blind set — **1.0 / 1.0, floored at 0.90**. The score is a *conformance* score, not
 validation: the labels were criteria-drafted from M3/M11 (the owner delegated the pass), so a
 perfect score means the rule implements its criteria. Validation against third-party labels is
-C5's job. The Phase 0 gate's **C1 prerequisite ("text/PDF") is now met on the record**; the
+C5's job. The Phase 0 gate's **C1 prerequisite ("text/PDF") is met for single-column journals
+only** — 1/5 fixtures clears the recovery floors; two-column layouts are an **open
+reconstruction gap (R3)** (the four excluded fixtures recover 0–28% of non-table claims), so
+the C1 prerequisite is **not yet met for the general corpus**; the
 gate itself still needs C2–C4, which remain unbuilt, so **the gate is not met and C1 must not
 be read as complete.**
 

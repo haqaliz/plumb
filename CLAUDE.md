@@ -23,12 +23,14 @@ extraction, and the admission gate that is the sole constructor of a `Claim`. On
 runtime dependency — pypdf (pure-Python, no transitive deps), powering the PDF→Markdown
 converter in `src/plumb/pdf/`; no network reachable from any test.
 
-**Not built:** the whole of C2–C8. **PDF input is built** (the `seam` aspect, 2026-09-22):
-`extract_claims(pdf_to_markdown(pdf))` equals the Markdown path by `Claim.id` at the recovery
-floor — PMC13134363 clears both floors (abstract 19/19; whole-paper non-table 19/19 ≥ 0.90);
-the four two-column fixtures (PMC12780771, PMC13298092, PMC13332965, PMC13363872) are
-excluded per PRD M4 with their measured rates documented in `fixtures/papers/README.md`
-(recorded, never silent). **Claim *selection* — the substance of C1 — has
+**Not built:** the whole of C2–C8. **PDF input is built for single-column layouts only** (the
+`seam` aspect, 2026-09-22): `extract_claims(pdf_to_markdown(pdf))` equals the Markdown path by
+`Claim.id` at the recovery floor — PMC13134363 clears both floors (abstract 19/19;
+whole-paper non-table 19/19 ≥ 0.90); **two-column journal layouts are an open reconstruction
+gap (R3)** — the four two-column fixtures (PMC12780771, PMC13298092, PMC13332965,
+PMC13363872) recover 0–28% of non-table claims and are excluded per PRD M4 with their measured
+rates documented in `fixtures/papers/README.md` (recorded, never silent). **Claim
+*selection* — the substance of C1 — has
 landed**: the M3 rule (`src/plumb/extract/selection.py`) scored pooled precision 1.0 / recall 1.0
 on the 73-row blind set, floored at 0.90. Read that score honestly: it is *conformance*, not
 validation — the labels were criteria-drafted from M3/M11 (owner-delegated pass), so a perfect
