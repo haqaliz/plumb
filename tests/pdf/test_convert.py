@@ -26,7 +26,10 @@ test here.
 from __future__ import annotations
 
 import ast
+import os
 from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 
@@ -40,6 +43,8 @@ from plumb.pdf.convert import (
 
 _FIXTURE = Path("fixtures/papers/PMC13134363.pdf")
 _PDF_PACKAGE = Path(__file__).parents[2] / "src" / "plumb" / "pdf"
+_SRC = Path(__file__).parents[2] / "src"
+_THIS_DIR = Path(__file__).parent
 
 
 class TestFixtureConversion:
@@ -226,8 +231,118 @@ class TestConversionStats:
 
 
 # --------------------------------------------------------------------------------
-# The source-level no-network guard, applied to src/plumb/pdf/
+# Cross-process byte identity (acceptance criterion 2 of the PRD)
 # --------------------------------------------------------------------------------
+#
+# In-process determinism cannot see hash-order dependence: inside one interpreter,
+# dict and set iteration order are stable, so a test that calls the converter twice
+# passes while the contract is broken. The load-bearing bar is the same PDF bytes
+# converted in *fresh interpreters* under different `PYTHONHASHSEED` values, written
+# raw to stdout and compared as bytes — the `test_determinism.py` pattern applied to
+# this package. `subprocess` is deliberately outside `conftest.py`'s network
+# blocker; nothing here reaches outward.
+
+SEEDS = ("0", "1", "12345", "random")
+FIXED_SEEDS = ("0", "1", "12345")
+
+
+def child_render(payload: str, pdf_path: str) -> None:
+    """Entry point for the spawned interpreter: raw bytes to stdout, nothing else.
+
+    `probe` is the control payload: it reports what this interpreter's `hash()`
+    does, the one thing that *must* differ between children under different seeds
+    — without it, a cross-seed byte-identity pass could mean the seed never
+    reached the child.
+    """
+    if payload == "probe":
+        seen = tuple(hash(word) for word in ("plumb", "AUC", "0.87", "µg/mL"))
+        sys.stdout.buffer.write(repr(seen).encode("utf-8"))
+        return
+    from plumb.pdf import pdf_to_markdown
+
+    markdown = pdf_to_markdown(Path(pdf_path).read_bytes())
+    sys.stdout.buffer.write(markdown.encode("utf-8"))
+    sys.stdout.buffer.flush()
+
+
+_CHILD_PROGRAM = """\
+import sys
+
+# argv[1] is tests/pdf: the child imports the same module that will compare its
+# output, so the two cannot drift apart.
+sys.path.insert(0, sys.argv[1])
+
+from test_convert import child_render
+
+child_render(sys.argv[2], sys.argv[3])
+"""
+
+
+def run_child(payload: str, *, hash_seed: str) -> bytes:
+    """Run one fresh interpreter under `hash_seed` and return its stdout bytes."""
+    env = {
+        **os.environ,
+        "PYTHONHASHSEED": hash_seed,
+        "PYTHONPATH": str(_SRC),
+        "PYTHONDONTWRITEBYTECODE": "1",
+    }
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            _CHILD_PROGRAM,
+            str(_THIS_DIR),
+            payload,
+            str(_FIXTURE.resolve()),
+        ],
+        env=env,
+        capture_output=True,
+        timeout=300,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        f"child failed (payload={payload!r}, seed={hash_seed!r}):\n"
+        f"{result.stderr.decode('utf-8', 'replace')}"
+    )
+    assert isinstance(result.stdout, bytes)
+    return result.stdout
+
+
+class TestCrossProcessByteIdentity:
+    """The same PDF bytes, in fresh interpreters, produce the same bytes."""
+
+    def test_the_hash_seed_really_varies_in_the_child(self) -> None:
+        probes = {seed: run_child("probe", hash_seed=seed) for seed in FIXED_SEEDS}
+        assert len(set(probes.values())) == len(FIXED_SEEDS), (
+            "the children agree about hash() under different PYTHONHASHSEED values, "
+            "so the seed is not reaching them and the byte-identity tests below "
+            f"prove nothing: {probes}"
+        )
+
+    def test_the_bytes_are_identical_across_hash_seeds(self) -> None:
+        outputs = {seed: run_child("render", hash_seed=seed) for seed in SEEDS}
+        distinct = set(outputs.values())
+        assert len(distinct) == 1, (
+            "pdf_to_markdown produced different bytes under different "
+            f"PYTHONHASHSEED values: { {s: len(o) for s, o in outputs.items()} }"
+        )
+
+    def test_the_child_bytes_match_this_process(self) -> None:
+        expected = pdf_to_markdown(_FIXTURE.read_bytes()).encode("utf-8")
+        assert run_child("render", hash_seed="12345") == expected
+
+    def test_the_output_is_non_empty_and_carries_the_document(self) -> None:
+        # Vacuity control: two empty documents are also byte-identical.
+        out = run_child("render", hash_seed="1")
+        assert len(out) > 10_000
+        assert b"## Abstract" in out
+        assert out.endswith(b"\n")
+
+    def test_the_output_is_bytes_not_text(self) -> None:
+        out = run_child("render", hash_seed="1")
+        assert isinstance(out, bytes)
+        # Decodable, but the comparison above is made on the bytes.
+        assert "©" in out.decode("utf-8")
 #
 # `src/plumb/extract/` has its own AST allowlist (`test_determinism.py:1048-1062`),
 # and this package is deliberately outside that scan. So it carries its own guard:
@@ -249,6 +364,17 @@ _FORBIDDEN_NAMES = frozenset(
 #: "environment", and a guard that fires on prose gets disabled.
 _FORBIDDEN_TOKENS = ("socket", "urllib", "http", "requests", "subprocess", "os.environ")
 
+
+# --------------------------------------------------------------------------------
+# The source-level no-network guard, applied to src/plumb/pdf/
+# --------------------------------------------------------------------------------
+#
+# `src/plumb/extract/` has its own AST allowlist (`test_determinism.py:1048-1062`),
+# and this package is deliberately outside that scan. So it carries its own guard:
+# no module under `src/plumb/pdf/` may import, reference, or even mention a
+# network-capable name. The check is structural where it can be (AST import roots
+# and name references) and textual where the task names exact tokens — and both
+# halves are self-tested, because a guard that cannot fire proves nothing.
 
 def pdf_sources() -> dict[str, str]:
     """Every module of the package, by file name, read as text."""
