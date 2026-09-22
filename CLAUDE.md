@@ -19,8 +19,9 @@ you actually run it?*
 Status: **the deterministic spine of C1 is built; nothing downstream is.** `src/plumb/extract/`
 holds the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a paper hash,
 byte-identical serialization, value-identity dedup, Markdown table parsing, exhaustive candidate
-extraction, and the admission gate that is the sole constructor of a `Claim`. Zero runtime
-dependencies; no network reachable from any test.
+extraction, and the admission gate that is the sole constructor of a `Claim`. One pinned
+runtime dependency — pypdf (pure-Python, no transitive deps), powering the PDF→Markdown
+converter in `src/plumb/pdf/`; no network reachable from any test.
 
 **Not built:** PDF input and the whole of C2–C8. **Claim *selection* — the substance of C1 — has
 landed**: the M3 rule (`src/plumb/extract/selection.py`) scored pooled precision 1.0 / recall 1.0

@@ -12,7 +12,7 @@ Status: **early.** The deterministic extraction spine exists and is tested; the 
 layer does not. Plumb cannot yet verify a paper end to end.
 
 ```
-uv sync && uv run pytest        # 889 tests, no network, zero runtime dependencies
+uv sync && uv run pytest        # 889 tests, no network, one pinned runtime dependency (pypdf)
 ```
 
 | | |

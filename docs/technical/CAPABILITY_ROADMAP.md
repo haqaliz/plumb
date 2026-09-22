@@ -36,7 +36,8 @@ Phase 0 gate rests on (`ARCHITECTURE.md` "never a silent pass"; `ROADMAP.md` R3)
 **Status (2026-09-21):** the deterministic spine of C1 has landed under `src/plumb/extract/` —
 the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a content hash over
 normalized paper text, byte-identical serialization pinned by cross-process tests, and
-value-identity dedup. Zero runtime dependencies; no network reachable from any test.
+value-identity dedup. One pinned runtime dependency — pypdf (pure-Python, no transitive deps),
+powering the PDF→Markdown converter in `src/plumb/pdf/`; no network reachable from any test.
 
 **Not built:** **PDF input** and the whole of C2–C8. **Selection — the substance of this
 capability — has landed** (aspect 2 part 2, 2026-09-21): the M3 rule under
