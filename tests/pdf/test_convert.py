@@ -43,6 +43,9 @@ from plumb.pdf.convert import (
 )
 
 _FIXTURE = Path("fixtures/papers/PMC13134363.pdf")
+_OXFORD = Path("fixtures/papers/PMC12780771.pdf")
+_SPRINGER = Path("fixtures/papers/PMC13332965.pdf")
+_SENSORS = Path("fixtures/papers/PMC13363872.pdf")
 _PDF_PACKAGE = Path(__file__).parents[2] / "src" / "plumb" / "pdf"
 _SRC = Path(__file__).parents[2] / "src"
 _THIS_DIR = Path(__file__).parent
@@ -241,6 +244,103 @@ class TestTableEmission:
         assert any("0.20" in line for line in cells), (
             "a known table value did not survive cell reconstruction"
         )
+
+
+class TestColumnReconstruction:
+    """The two-column seams (aspect `pdf-input/columns`): gutter detection on the
+    text matrix, left-before-right emission, full-width interleaving, and the
+    header/footer drops that `ConversionStats` must count.
+    """
+
+    def test_the_oxford_body_page_gutter_is_detected(self) -> None:
+        # Page 2 of the Oxford PDF is a classic two-column body page: the left
+        # column starts at x≈48, the right at x≈303, and a low-density band
+        # separates them. The detector must find that band, not a table's or a
+        # sidebar's gap.
+        import io
+
+        from pypdf import PdfReader
+
+        from plumb.pdf.convert import (
+            _detect_gutter,
+            _extract_runs,
+            _group_lines,
+            _page_advance,
+        )
+
+        reader = PdfReader(io.BytesIO(_OXFORD.read_bytes()))
+        lines = _group_lines(_extract_runs(reader.pages[2]))
+        gutter = _detect_gutter(lines, _page_advance(lines))
+        assert gutter is not None, "Oxford body page 2 has no detected gutter"
+        _g1, g2 = gutter
+        assert 295 < g2 < 315, f"right column start {g2} is not the expected ~303"
+
+    def test_the_single_column_control_has_no_gutter(self) -> None:
+        # Cureus page 0 has a sidebar strip (dates, DOI) beside the title block,
+        # but it is not a text column: the detector must not fire on it.
+        import io
+
+        from pypdf import PdfReader
+
+        from plumb.pdf.convert import (
+            _detect_gutter,
+            _extract_runs,
+            _group_lines,
+            _page_advance,
+        )
+
+        reader = PdfReader(io.BytesIO(_FIXTURE.read_bytes()))
+        lines = _group_lines(_extract_runs(reader.pages[0]))
+        assert _detect_gutter(lines, _page_advance(lines)) is None
+
+    def test_the_reading_direction_is_top_down_for_cureus(self) -> None:
+        import io
+
+        from pypdf import PdfReader
+
+        from plumb.pdf.convert import _document_direction, _extract_runs
+
+        reader = PdfReader(io.BytesIO(_FIXTURE.read_bytes()))
+        runs = [_extract_runs(page) for page in reader.pages]
+        assert _document_direction(runs) == -1.0
+
+    def test_the_reading_direction_is_bottom_up_for_oxford(self) -> None:
+        import io
+
+        from pypdf import PdfReader
+
+        from plumb.pdf.convert import _document_direction, _extract_runs
+
+        reader = PdfReader(io.BytesIO(_OXFORD.read_bytes()))
+        runs = [_extract_runs(page) for page in reader.pages]
+        assert _document_direction(runs) == 1.0
+
+    def test_left_column_reads_before_right_column(self) -> None:
+        # On Oxford page 2 the left column's prose must be emitted before the
+        # right column's, never interleaved line by line.
+        markdown = pdf_to_markdown(_OXFORD.read_bytes())
+        left = markdown.find("The HCAP sample received an in-depth cognitive function")
+        right = markdown.find("1835 identified as non-Hispanic White")
+        assert left != -1, "left column prose is missing from the conversion"
+        assert right != -1, "right column prose is missing from the conversion"
+        assert left < right, "the right column was emitted before the left"
+
+    def test_full_width_blocks_interleave_before_the_columns(self) -> None:
+        # The Springer title page typesets the title/abstract full-width above a
+        # two-column body: the title must precede the columns, not follow them.
+        markdown = pdf_to_markdown(_SPRINGER.read_bytes())
+        title = markdown.find("Within-sibling attenuation of polygenic risk score accuracy")
+        intro = markdown.find("Genome-wide association studies")
+        assert title != -1 and intro != -1
+        assert title < intro, "the title was emitted after the body columns"
+
+    def test_header_and_footer_drops_are_counted_in_stats(self) -> None:
+        # Oxford repeats its running head and page footers on every page; the
+        # converter must drop them deterministically and count the drops — never
+        # silently delete prose.
+        _markdown, stats = pdf_to_markdown_with_stats(_OXFORD.read_bytes())
+        assert stats.dropped_furniture_lines > 0
+        assert "American Journal of Epidemiology" not in _markdown.splitlines()[0]
 
 
 class TestConversionStats:
