@@ -19,10 +19,25 @@ you actually run it?*
 Status: **the deterministic spine of C1 is built; nothing downstream is.** `src/plumb/extract/`
 holds the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a paper hash,
 byte-identical serialization, value-identity dedup, Markdown table parsing, exhaustive candidate
-extraction, and the admission gate that is the sole constructor of a `Claim`. Zero runtime
-dependencies; no network reachable from any test.
+extraction, and the admission gate that is the sole constructor of a `Claim`. One pinned
+runtime dependency — pypdf (pure-Python, no transitive deps), powering the PDF→Markdown
+converter in `src/plumb/pdf/`; no network reachable from any test.
 
-**Not built:** PDF input and the whole of C2–C8. **Claim *selection* — the substance of C1 — has
+**Not built:** the whole of C2–C8. **PDF input is built** (the `seam`, `columns`
+and last-mile aspects, 2026-09-22): `extract_claims(pdf_to_markdown(pdf))` equals the
+Markdown path by `Claim.id` at the recovery floor for **all five fixtures,
+including the two-column journals** — PMC13134363 abstract 19/19 / whole-paper
+non-table 19/19, PMC13298092 2/2 / 52/54 (0.963), PMC13363872 9/9 / 9/9
+(1.000), PMC13332965 (vacuous abstract) / 38/41 (0.927), **PMC12780771
+(Oxford) 6/6 / 25/25 (1.000)** — Oxford's former M4 exclusion (21/25, 0.840)
+cleared on 2026-09-22: the M4 note's pypdf-CFF-font-gap hypothesis was tested
+and **falsified** (fontTools changes nothing but pypdf's warning line, so it
+was not added), and the real mechanisms — a publisher-split all-caps word,
+table rows split at the column gutter, a surviving running-head page-number
+fragment, and a separated citation numeral — were fixed deterministically in
+the converter; rates, reasons and the falsification in
+`fixtures/papers/README.md`. **Claim
+*selection* — the substance of C1 — has
 landed**: the M3 rule (`src/plumb/extract/selection.py`) scored pooled precision 1.0 / recall 1.0
 on the 73-row blind set, floored at 0.90. Read that score honestly: it is *conformance*, not
 validation — the labels were criteria-drafted from M3/M11 (owner-delegated pass), so a perfect

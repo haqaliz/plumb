@@ -4,7 +4,9 @@ version = "0.0.0"
 description = "Execution-grounded research-integrity verifier"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pypdf==6.19.0",
+]
 
 [dependency-groups]
 dev = ["pytest"]
