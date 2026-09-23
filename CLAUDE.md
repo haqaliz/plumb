@@ -16,14 +16,25 @@ The name: a *plumb line* is the oldest tool for testing whether something stands
 is also to investigate a thing to the bottom. Plumb asks of a paper: *does the claim hold when
 you actually run it?*
 
-Status: **the deterministic spine of C1 is built; nothing downstream is.** `src/plumb/extract/`
+Status: **the deterministic spine of C1 and the C2 artifact-intake spine are built; nothing
+downstream is.** `src/plumb/extract/`
 holds the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a paper hash,
 byte-identical serialization, value-identity dedup, Markdown table parsing, exhaustive candidate
 extraction, and the admission gate that is the sole constructor of a `Claim`. One pinned
 runtime dependency — pypdf (pure-Python, no transitive deps), powering the PDF→Markdown
 converter in `src/plumb/pdf/`; no network reachable from any test.
 
-**Not built:** the whole of C2–C8. **PDF input is built** (the `seam`, `columns`
+**Not built:** C3–C8. **C2 artifact intake is built** (2026-09-22): `src/plumb/intake/`
+resolves a local path, a git URL with `--rev`, or a tar.gz/zip archive into a pinned
+`Checkout` with a recorded tree hash (`plumb` bytes framing over sorted `(relpath, bytes)`, or
+the repo's own `HEAD^{tree}` for git sources, reconciled by the `scheme` field), scans
+manifests, and describes the environment — lockfile-first → declared → best-effort dependency
+policy, python pin (`.python-version` → `pyproject.toml` → default), isolation posture, and
+`git`/`uv` tool versions. Resolution and description are offline-tested (`file://` repos,
+synthetic archives, a stubbed env runner); the **one real `uv sync`** runs only via
+`tools/demo_env_build.py` at dev time, never in tests or CI. Failures are named causes
+(`SourceNotFound`, `RevNotFound`, `UnsupportedArchive`, `EnvBuildFailed`) — the future
+`UNVERIFIED` input. **PDF input is built** (the `seam`, `columns`
 and last-mile aspects, 2026-09-22): `extract_claims(pdf_to_markdown(pdf))` equals the
 Markdown path by `Claim.id` at the recovery floor for **all five fixtures,
 including the two-column journals** — PMC13134363 abstract 19/19 / whole-paper

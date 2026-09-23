@@ -80,6 +80,16 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   lockfile-first, then declared deps, then a best-effort resolve that is recorded as such).
 - Nothing is uploaded. An LLM assist, if enabled, is BYOK. Untrusted repo code runs under the
   user's chosen isolation (documented; the isolation posture is recorded in the bundle).
+- **Status (2026-09-22):** the deterministic intake spine is built — tree hashing (plumb bytes
+  framing over sorted `(relpath, bytes)`, and the repo's own `HEAD^{tree}` for git sources,
+  reconciled by the `scheme` field), source resolution (`resolve_local` / `resolve_git` /
+  `resolve_archive` → `Checkout`), manifest scan, and the environment descriptor
+  (`describe_environment`: lockfile-first → declared → best-effort policy, python pin, isolation
+  posture, tool versions). Resolution is offline-tested (`file://` repos, synthetic archives);
+  the **one** real `uv sync` runs only via `tools/demo_env_build.py` at dev time, never in
+  tests or CI. The named causes (`SourceNotFound`, `RevNotFound`, `UnsupportedArchive`,
+  `EnvBuildFailed`) are the future `UNVERIFIED` input. The env builder (real pinned environment
+  on untrusted code) beyond that dev-time sync is not yet built.
 
 ### C3 — Execution & result capture (`src/plumb/run/`)
 
@@ -161,8 +171,12 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
 ## Open questions (resolve as code lands)
 
 - Signing scheme for the C6 bundle (sigstore-style vs a simpler detached signature).
-- Isolation default for running untrusted repo code (container vs lighter sandbox) — record the
-  posture in the bundle regardless.
+- Isolation default for running untrusted repo code (container vs lighter sandbox). **First
+  slice (decided 2026-09-22):** a subprocess on the user's compute with a scrubbed env (secret-
+  bearing variables removed), cwd = checkout, a timeout, and no network beyond the recorded env
+  build itself (pull-only) — recorded verbatim in the env descriptor (`src/plumb/intake/env.py`).
+  Container isolation is a named follow-on; whatever lands, the posture is recorded in the
+  bundle regardless.
 - Tolerance policy: per-claim explicit vs a typed default per claim kind; how to represent "no
   defensible tolerance" (→ `UNVERIFIED: NO_TOLERANCE`).
 - Locator grammar: how much a model may propose vs a fixed deterministic set.

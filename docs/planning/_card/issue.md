@@ -1,18 +1,22 @@
-# C1 PDF input — issue card
+# C2 Artifact intake & pinned environment — issue card
 
-Source: inline brief (from the `plumb-next` handoff, 2026-09-22). No GitHub issue — the id is a slug.
+Source: inline brief from the repo's own capability roadmap and design docs (no GitHub issue —
+the id is a slug). Capability text: `docs/technical/CAPABILITY_ROADMAP.md` C2 (lines 51-60);
+design: `docs/technical/ARCHITECTURE.md` C2 (lines 75-82); phase: `docs/ROADMAP.md` Phase 0
+"C2 (minimum): resolve a local path or git URL to a pinned checkout on the user's compute."
 
 ## Brief
 
-**C1 PDF input — the missing slice that completes C1 and is named by the Phase 0 gate
-(`docs/ROADMAP.md:21`, `docs/technical/CAPABILITY_ROADMAP.md:47-49`).** Convert a paper PDF
-to plain text deterministically and offline, then feed it through the existing
-`extract_claims(raw)` seam (`src/plumb/extract/pipeline.py`) unchanged, so a PDF and the
-equivalent Markdown yield the same claims with correct `Location` records. Caveat: PDF table
-extraction fidelity is the known hard part and lands on R3 — keep the front-end deterministic,
-add the smallest pure-Python, pinned, offline PDF dependency (the repo is zero-dep today), and
-keep `test_no_network.py` green. Acceptance tests, written first: (1) a PDF fixture of a CC BY
-paper parses to text byte-identically across processes; (2) claims extracted from the PDF equal
-claims extracted from the paper's Markdown, via the existing seam; (3) `Location` records point
-at real PDF page/table positions; (4) no network is reachable from any test; (5) the slice ships
-with a failing-then-passing test per test-first convention.
+**C2 — Artifact intake & pinned environment.** Resolve the code/data behind the paper — a
+local path, an `https` git URL with `--rev`, or an archive — into a **pinned checkout** (tree
+hash recorded) and build a reproducible environment on the **user's compute**. Why:
+reproducibility is impossible without a pinned, rebuildable environment. Depends on nothing
+(the first unshipped capability; C1 is complete on the `c1-pdf-input` branch). Guardrail:
+constraint #2 — everything stays local; nothing is fetched to a third party the user didn't
+authorize. Environment build policy (ARCHITECTURE.md:79-80): lockfile-first, then declared
+deps, then a best-effort resolve that is recorded as such. Isolation posture is documented and
+recorded in the bundle (ARCHITECTURE.md:82; open question at :164-166). Tests stay offline
+and deterministic: git resolution is exercised over local `file://` repos, archives are
+synthetic, env-descriptor logic is tested with fake manifests, and the real `uv sync` runs
+only in a dev-time demo — never in CI. The Phase 0 gate's C2 minimum is the acceptance bar:
+a local path or git URL resolves to a pinned checkout on the user's compute.

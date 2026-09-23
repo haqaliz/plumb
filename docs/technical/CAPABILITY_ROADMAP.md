@@ -56,7 +56,7 @@ pypdf-CFF-font-gap hypothesis was tested and **falsified** — fontTools changes
 nothing but pypdf's warning line, so it was not added and pypdf remains the one
 pinned dependency; the full account is in `fixtures/papers/README.md`.
 
-**Not built:** the whole of C2–C8. **Selection — the substance of this
+**Not built:** C3–C8 (C2's intake spine has landed — see C2 below). **Selection — the substance of this
 capability — has landed** (aspect 2 part 2, 2026-09-21): the M3 rule under
 `src/plumb/extract/selection.py` with a closed selection-side cause vocabulary, a free-text
 metric namer, `extract_claims(raw)` as the end-to-end seam, and pooled precision/recall over
@@ -67,8 +67,9 @@ C5's job. The Phase 0 gate's **C1 prerequisite ("text/PDF") is met for the fixtu
 whole** — all 5/5 fixtures clear the recovery floors, including the two-column journals
 (Oxford cleared its M4 exclusion at 25/25 non-table, 1.000, on 2026-09-22; the full
 mechanism account is in `fixtures/papers/README.md`). The
-gate itself still needs C2–C4, which remain unbuilt, so **the gate is not met and C1 must not
-be read as complete.**
+gate itself still needs C3–C4 (C2's minimum — resolve a local path or git URL to a pinned
+checkout — is met as of 2026-09-22; C3 and C4 remain unbuilt), so **the gate is not met and C1
+must not be read as complete.**
 
 ## C2. Artifact intake & pinned environment
 
@@ -80,6 +81,20 @@ environment on the **user's compute**.
 
 **Depends on:** nothing. **Guardrail:** constraint #2 — everything stays local; nothing is
 fetched to a third party the user didn't authorize.
+
+**Status (2026-09-22):** the deterministic intake spine is built under `src/plumb/intake/` —
+tree hashing (a `plumb` bytes framing over sorted `(relpath, bytes)`, and the repo's own
+`HEAD^{tree}` for git sources, one `TreeHash(scheme, digest)` record), source resolution
+(`resolve_local` / `resolve_git` with `--rev` / `resolve_archive` → `Checkout(checkout_dir,
+tree_hash, source_record)`), manifest scan, and the environment descriptor (`describe_environment`
+with a lockfile-first → declared → best-effort policy, python pin from `.python-version` →
+`pyproject.toml` → default, isolation posture, and `git`/`uv` tool versions). Named causes
+(`SourceNotFound`, `RevNotFound`, `UnsupportedArchive`, `EnvBuildFailed`) map to the future
+`UNVERIFIED` causes. The boundary is honest: resolution and the descriptor are **offline-tested**
+(`file://` repos, synthetic tar/zip archives, stub env runner), while the **one real `uv sync`**
+runs only via `tools/demo_env_build.py` at dev time (its output is recorded as evidence in the
+PR, not in CI). C3 consumes this checkout + descriptor; **C3 and C4 remain unbuilt, so the
+Phase 0 gate is not met.**
 
 ## C3. Execution & result capture
 
