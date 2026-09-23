@@ -56,7 +56,7 @@ pypdf-CFF-font-gap hypothesis was tested and **falsified** — fontTools changes
 nothing but pypdf's warning line, so it was not added and pypdf remains the one
 pinned dependency; the full account is in `fixtures/papers/README.md`.
 
-**Not built:** C3–C8 (C2's intake spine has landed — see C2 below). **Selection — the substance of this
+**Not built:** C4–C8 (C2's intake spine and C3's run spine have landed — see C2 and C3 below). **Selection — the substance of this
 capability — has landed** (aspect 2 part 2, 2026-09-21): the M3 rule under
 `src/plumb/extract/selection.py` with a closed selection-side cause vocabulary, a free-text
 metric namer, `extract_claims(raw)` as the end-to-end seam, and pooled precision/recall over
@@ -67,9 +67,10 @@ C5's job. The Phase 0 gate's **C1 prerequisite ("text/PDF") is met for the fixtu
 whole** — all 5/5 fixtures clear the recovery floors, including the two-column journals
 (Oxford cleared its M4 exclusion at 25/25 non-table, 1.000, on 2026-09-22; the full
 mechanism account is in `fixtures/papers/README.md`). The
-gate itself still needs C3–C4 (C2's minimum — resolve a local path or git URL to a pinned
-checkout — is met as of 2026-09-22; C3 and C4 remain unbuilt), so **the gate is not met and C1
-must not be read as complete.**
+gate itself still needs C4 (C2's minimum — resolve a local path or git URL to a pinned
+checkout — is met as of 2026-09-22; C3's — run the repo's own entry point and capture
+structured output, freshness-guarded — as of 2026-09-23; C4 remains unbuilt), so **the gate is
+not met and C1 must not be read as complete.**
 
 ## C2. Artifact intake & pinned environment
 
@@ -93,8 +94,8 @@ with a lockfile-first → declared → best-effort policy, python pin from `.pyt
 `UNVERIFIED` causes. The boundary is honest: resolution and the descriptor are **offline-tested**
 (`file://` repos, synthetic tar/zip archives, stub env runner), while the **one real `uv sync`**
 runs only via `tools/demo_env_build.py` at dev time (its output is recorded as evidence in the
-PR, not in CI). C3 consumes this checkout + descriptor; **C3 and C4 remain unbuilt, so the
-Phase 0 gate is not met.**
+PR, not in CI). C3 consumes this checkout + descriptor (built 2026-09-23, see below); **C4
+remains unbuilt, so the Phase 0 gate is not met.**
 
 ## C3. Execution & result capture
 
@@ -105,6 +106,26 @@ mtime/provenance predates this run is never read as a fresh result).
 **Why:** the re-derived value must come from an actual run, not a committed artifact.
 
 **Depends on:** C2. **Guardrail:** constraint #5 — reproduce what ran, not what was committed.
+
+**Status (2026-09-23):** the run spine is built under `src/plumb/run/` — entry-point
+resolution (explicit argv wins; else exactly one of a single `[project.scripts]` entry → `uv
+run <name>` or a root `main.py` → `python main.py`; more is `ENTRYPOINT_AMBIGUOUS`, none is
+`ENTRYPOINT_MISSING` — never a guess), the runner (`run_entrypoint`: a subprocess in a
+**working copy of the checkout** under the run area — mtimes preserved, `.git`/`.venv` not
+copied, the pinned checkout never touched — with C2's scrubbed env, `UV_OFFLINE=1`, a built
+`.venv` used in place, and a timeout that kills the whole process group; `WONT_RUN` and
+`TIMEOUT` recorded), capture (`capture_outputs`: stdout, stderr and every `.json`/`.csv`
+hashed into a per-run object store, read back only by hash; stderr diagnostic-only), and the
+deterministic `RunTrace` (`run_id` = SHA-256 over argv + tree hash + sorted locatable artifact
+hashes; canonical JSON, no run-side absolute paths, byte-identical across processes). **The
+freshness guard is load-bearing:** an output whose mtime is strictly before the run start is a
+`STALE_ARTIFACT` record whose bytes are never read — an untouched committed output, a
+back-dated file and a `cp -p` of a committed result are all caught, and a mutation check
+(guard removed, or loosened to `<=`) fails the suite. A successful run with no fresh output and
+empty stdout is `NO_ARTIFACT`. All offline-tested with local programs. **Not built:** notebook
+cell capture (needs nbconvert — named follow-on), resource caps beyond the timeout, and
+container isolation. C4 is unbuilt, so **the Phase 0 gate is not met** and no verdict has
+been emitted.
 
 ## C4. Claim↔artifact binding & re-derivation verdict — **the moat**
 

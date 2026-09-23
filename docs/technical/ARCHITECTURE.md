@@ -99,6 +99,14 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   fresh result — it yields `UNVERIFIED` with cause `STALE_ARTIFACT`, never a parsed value.
 - Failures (won't build, won't run, times out) are captured with a named cause, never silently
   dropped.
+- **Status (2026-09-23):** the run spine is built — `resolve_entrypoint` → `run_entrypoint` →
+  `capture_outputs` → `build_trace` (`run_and_capture` chains the last three). The run works
+  in a copy of the checkout under its run area (mtimes preserved, so a committed output stays
+  older than the run start), never in the pinned checkout. Fresh outputs go into a per-run
+  object store keyed by SHA-256 and are read back only by hash; a stale output is recorded
+  without its bytes ever being read. Causes: `ENTRYPOINT_MISSING`, `ENTRYPOINT_AMBIGUOUS`,
+  `ENV_BUILD_FAILED` (C2), `WONT_RUN`, `TIMEOUT`, `STALE_ARTIFACT`, `NO_ARTIFACT` — mapping
+  table in `src/plumb/run/__init__.py`. Notebook cell capture is a named follow-on.
 
 ### C4 — Binding & verdict (`src/plumb/verify/`) — the moat
 
@@ -175,6 +183,9 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   slice (decided 2026-09-22):** a subprocess on the user's compute with a scrubbed env (secret-
   bearing variables removed), cwd = checkout, a timeout, and no network beyond the recorded env
   build itself (pull-only) — recorded verbatim in the env descriptor (`src/plumb/intake/env.py`).
+  C3 (2026-09-23) refines "cwd = checkout" to cwd = a working copy of the checkout under the
+  run area, so a run can never write into the pinned tree (or, for a local source, the user's
+  own directory); it also sets `UV_OFFLINE=1` and kills the whole process group on timeout.
   Container isolation is a named follow-on; whatever lands, the posture is recorded in the
   bundle regardless.
 - Tolerance policy: per-claim explicit vs a typed default per claim kind; how to represent "no
