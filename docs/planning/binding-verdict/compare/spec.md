@@ -50,13 +50,13 @@ Locating values, run causes, record construction and serialization, per-kind def
 8. `p < 0.001` vs `0.0004` → `REPRODUCED`; vs `0.0012` → `DIVERGED`; vs `0.001` →
    `ARTIFACT_PRECISION_COARSER` (the run's rounding straddles the threshold); vs `0.0012` with
    `abs 0.0005` → `WITHIN-TOLERANCE`; each `op` covered.
-12. (Added at the C2 checkpoint, 2026-09-25.) The coarse-artifact check precedes the band: a
-    paper's `0.90` against a run's `0.9` is `ARTIFACT_PRECISION_COARSER`, never `REPRODUCED` —
-    the order first implemented made it a false pass.
 9. Each unsupported kind → `UNSUPPORTED_VALUE_KIND`.
 10. A `float` passed anywhere raises `TypeError` (no silent coercion).
 11. Results are identical under a hostile ambient `decimal` context (precision 3, rounding
     `ROUND_FLOOR`) — the pinned local context is load-bearing.
+12. (Added at the C2 checkpoint, 2026-09-25.) The coarse-artifact check precedes the band: a
+    paper's `0.90` against a run's `0.9` is `ARTIFACT_PRECISION_COARSER`, never `REPRODUCED` —
+    the order first implemented made it a false pass.
 
 ## Dependencies & sequencing
 
