@@ -5,6 +5,13 @@ Source: `docs/planning/_card/issue.md` (inline brief from `plumb-next`) and
 as recommendations and accepted as a set on 2026-09-25 ("sure"); D4 takes the safer of the two
 offered variants. D7–D8 came out of the self-critique and were approved at the review gate.
 
+**Status (2026-09-25): landed** on `feat/binding-verdict/aliz` — all three aspects
+(`locators`, `compare`, `verdict-seam`), 1395 tests passing offline. One amendment during the
+build: D7's coarse-artifact check was first implemented *after* the band check, which made a
+run's `0.9` against a paper's `0.90` a false `REPRODUCED`; it now runs first, as D7 states
+(`compare/spec.md` criterion 12). Verdicts exist on synthetic repos only; the Phase 0 gate is
+not met.
+
 ## Problem Statement
 
 Plumb has never emitted a verdict. C1 turns a paper into `Claim` records, C3 turns a repo into
