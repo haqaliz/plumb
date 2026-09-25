@@ -206,3 +206,78 @@ class TestCoarseArtifact:
 
     def test_an_equally_precise_artifact_is_not_coarse(self) -> None:
         assert run("0.87", "0.89").verdict == DIVERGED
+
+    def test_a_coarse_artifact_inside_the_band_is_never_reproduced(self) -> None:
+        # The run printed 0.9: its true value is anywhere in [0.85, 0.95]. That it
+        # happens to sit inside the paper's band for 0.90 proves nothing (D7).
+        decision = run("0.90", "0.9")
+        assert decision.verdict == UNVERIFIED
+        assert decision.cause == causes.ARTIFACT_PRECISION_COARSER
+
+
+class TestBound:
+    @pytest.mark.parametrize(
+        ("reported", "located", "expected"),
+        [
+            ("p < 0.001", "0.0004", REPRODUCED),
+            ("p < 0.001", "0.0012", DIVERGED),
+            ("p <= 0.05", "0.049", REPRODUCED),
+            ("p > 0.5", "0.61", REPRODUCED),
+            ("p > 0.5", "0.42", DIVERGED),
+            ("p ≥ 0.8", "0.81", REPRODUCED),
+            ("p ≥ 0.8", "0.79", DIVERGED),
+        ],
+    )
+    def test_the_operator_decides(self, reported: str, located: str, expected: str) -> None:
+        decision = run(reported, located)
+        assert decision.verdict == expected
+        assert decision.threshold is not None
+        assert decision.band is None
+
+    def test_a_run_precise_enough_to_clear_the_threshold_is_reproduced(self) -> None:
+        # 0.04995 stands for [0.049945, 0.049955]: all of it is <= 0.05.
+        assert run("p <= 0.05", "0.04995").verdict == REPRODUCED
+
+    @pytest.mark.parametrize(
+        ("reported", "located"),
+        [("p < 0.001", "0.001"), ("p < 0.001", "0.00100"), ("p <= 0.05", "0.05"),
+         ("p < 0.001", "0")],
+    )
+    def test_a_run_whose_rounding_straddles_the_threshold_is_undecidable(
+        self, reported: str, located: str
+    ) -> None:
+        assert verdict(run(reported, located)) == causes.ARTIFACT_PRECISION_COARSER
+
+    def test_a_tolerance_widens_the_threshold_permissively(self) -> None:
+        decision = run("p < 0.001", "0.0012", tolerance=("abs", "0.0005"))
+        assert decision.verdict == WITHIN_TOLERANCE
+        assert decision.tolerance_threshold == D("0.0015")
+        assert run("p > 0.5", "0.42", tolerance=("rel", "0.2")).verdict == WITHIN_TOLERANCE
+
+    def test_outside_the_widened_threshold_is_diverged(self) -> None:
+        assert run("p < 0.001", "0.0021", tolerance=("abs", "0.0005")).verdict == DIVERGED
+
+    def test_a_relative_tolerance_of_a_zero_threshold_is_no_tolerance(self) -> None:
+        assert verdict(run("x > 0", "-0.5", tolerance=("rel", "0.1"))) == causes.NO_TOLERANCE
+
+    def test_delta_is_measured_from_the_threshold(self) -> None:
+        assert run("p < 0.001", "0.0004").delta == D("-0.0006")
+
+
+class TestPinnedContext:
+    CASES = [
+        ("0.87", "0.8712", None, None),
+        ("0.87", "0.89", ("rel", "0.01"), None),
+        ("1.5e3", "1520", None, None),
+        ("87.12%", "0.87", None, "100"),
+        ("-40.0", "-41.5", ("rel", "0.05"), None),
+        ("p < 0.001", "0.0012", ("abs", "0.0005"), None),
+    ]
+
+    def test_decisions_ignore_a_hostile_ambient_context(self) -> None:
+        from decimal import ROUND_FLOOR, Context, localcontext
+
+        expected = [run(r, l, tolerance=t, scale=s) for r, l, t, s in self.CASES]
+        with localcontext(Context(prec=3, rounding=ROUND_FLOOR)):
+            hostile = [run(r, l, tolerance=t, scale=s) for r, l, t, s in self.CASES]
+        assert hostile == expected

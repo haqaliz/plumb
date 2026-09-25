@@ -21,21 +21,25 @@ elsewhere.
 
    a. *Round integers (D1a).* `10,000` may be exact or rounded to the thousand;
       without a tolerance it is `PRECISION_AMBIGUOUS`.
-   b. *Written precision (D1).* The reported value stands for the closed band
+   b. *Coarse artifact (D7).* If the run wrote fewer digits than the paper and
+      the paper's value lies within the run's own rounding, the run cannot decide
+      the claim → `ARTIFACT_PRECISION_COARSER`. This comes **first**: a run that
+      printed `0.9` against a paper's `0.90` lands inside the paper's band, but its
+      true value is anywhere in [0.85, 0.95] — reading that as `REPRODUCED` would
+      be a false pass. It also precedes tolerance, deliberately.
+   c. *Written precision (D1).* The reported value stands for the closed band
       ± half a unit in its last written digit. Inside it → `REPRODUCED`. Closed,
       because at an exact half-unit the paper's rounding convention is unknown,
       and the boundary errs away from `DIVERGED`.
-   c. *Coarse artifact (D7).* If the run wrote fewer digits than the paper and
-      the paper's value lies within the run's own rounding, the run cannot decide
-      the claim → `ARTIFACT_PRECISION_COARSER`. Before tolerance, deliberately.
    d. *Explicit tolerance (D2).* Inside `v ± t` (or `v ± r·|v|`) →
       `WITHIN-TOLERANCE`. A relative tolerance of a reported zero is
       `NO_TOLERANCE`.
    e. Otherwise `DIVERGED`: the paper's own written precision was a defensible
       tolerance, and the run's value falls outside it.
 
-4. For a `Bound`, the same shape: the operator holds → `REPRODUCED`; the run's
-   rounding straddles the threshold → `ARTIFACT_PRECISION_COARSER`; the operator
+4. For a `Bound`, the same shape: the run's rounding straddles the threshold →
+   `ARTIFACT_PRECISION_COARSER` (first, for the same reason: `0.05` printed for
+   `p <= 0.05` may have been `0.0504`); the operator holds → `REPRODUCED`; the operator
    holds against a threshold widened by the tolerance → `WITHIN-TOLERANCE`;
    otherwise `DIVERGED`.
 """
@@ -132,10 +136,10 @@ def _point(v: Decimal, re: Decimal, a: Decimal, tolerance: Tolerance | None) -> 
 
     h = half_unit(v)
     band = _around(v, h)
-    if _inside(re, band):
-        return result(REPRODUCED, band=band)
     if a > h and _inside(v, _around(re, a)):
         return result(UNVERIFIED, ARTIFACT_PRECISION_COARSER, band=band)
+    if _inside(re, band):
+        return result(REPRODUCED, band=band)
     if tolerance is not None:
         width = _width(tolerance, v)
         if width is None:
@@ -155,11 +159,11 @@ def _bound(reported: Bound, re: Decimal, a: Decimal, tolerance: Tolerance | None
     def result(verdict: str, cause: str | None = None, widened: Decimal | None = None):
         return Decision(verdict, cause, re, None, None, m, widened, delta)
 
-    if holds(re, m):
-        return result(REPRODUCED)
     low, high = CONTEXT.subtract(re, a), CONTEXT.add(re, a)
     if holds(low, m) != holds(high, m):
         return result(UNVERIFIED, ARTIFACT_PRECISION_COARSER)
+    if holds(re, m):
+        return result(REPRODUCED)
     if tolerance is not None:
         width = _width(tolerance, m)
         if width is None:

@@ -47,8 +47,12 @@ Locating values, run causes, record construction and serialization, per-kind def
 7. D7: paper `0.8712`, located text `0.87` → `ARTIFACT_PRECISION_COARSER`; paper `0.8712`,
    located `0.89` → `DIVERGED`; paper `87.12%`, located `0.87`, scale 100 → coarser (the
    `87.00` exponent trap is pinned).
-8. `p < 0.001` vs `0.0004` → `REPRODUCED`; vs `0.001` → `DIVERGED`; vs `0.0012` with
-   `abs 0.0005` → `WITHIN-TOLERANCE`; `<=` vs equality → `REPRODUCED`; each `op` covered.
+8. `p < 0.001` vs `0.0004` → `REPRODUCED`; vs `0.0012` → `DIVERGED`; vs `0.001` →
+   `ARTIFACT_PRECISION_COARSER` (the run's rounding straddles the threshold); vs `0.0012` with
+   `abs 0.0005` → `WITHIN-TOLERANCE`; each `op` covered.
+12. (Added at the C2 checkpoint, 2026-09-25.) The coarse-artifact check precedes the band: a
+    paper's `0.90` against a run's `0.9` is `ARTIFACT_PRECISION_COARSER`, never `REPRODUCED` —
+    the order first implemented made it a false pass.
 9. Each unsupported kind → `UNSUPPORTED_VALUE_KIND`.
 10. A `float` passed anywhere raises `TypeError` (no silent coercion).
 11. Results are identical under a hostile ambient `decimal` context (precision 3, rounding
