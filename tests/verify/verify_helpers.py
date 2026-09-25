@@ -66,3 +66,44 @@ def prints(data: str | bytes) -> str:
     """A program that writes `data` verbatim to stdout."""
     payload = data.encode() if isinstance(data, str) else data
     return f"import sys\nsys.stdout.buffer.write({payload!r})\n"
+
+
+def run_full(
+    tmp_path: Path, program: str, *, files: dict[str, bytes] | None = None,
+    timeout_seconds: float = 60,
+):
+    """Run `program` and return (checkout, result, capture, trace) — a completed C3 run."""
+    from plumb.run.trace import build_trace
+
+    checkout = make_checkout(tmp_path / "proj", files)
+    result = run_entrypoint(
+        checkout, OK_BUILD, entry(program), run_dir=tmp_path / "run",
+        timeout_seconds=timeout_seconds,
+    )
+    capture = capture_outputs(result)
+    return checkout, result, capture, build_trace(checkout, result, capture)
+
+
+def claim(reported: str, metric: str = "AUC", units: str | None = None):
+    """A `Claim` as C1 would admit one, from a paper-shaped value string."""
+    from plumb.extract.claim import Claim
+    from plumb.extract.location import CharSpan
+    from plumb.extract.value import parse_value
+
+    value = parse_value(reported)
+    assert value is not None, reported
+    return Claim(
+        reported_value=value, units=units, metric=metric, location=CharSpan(0, len(reported)),
+        artifact_hint=None, tolerance_hint=None,
+    )
+
+
+def bindings_json(*entries: tuple) -> bytes:
+    """Bindings from (claim, artifact, locator dict[, extra fields]) tuples."""
+    import json
+
+    items = []
+    for c, artifact, locator, *extra in entries:
+        items.append({"claim_id": c.id, "artifact": artifact, "locator": locator,
+                      **(extra[0] if extra else {})})
+    return json.dumps({"bindings": items}).encode()
