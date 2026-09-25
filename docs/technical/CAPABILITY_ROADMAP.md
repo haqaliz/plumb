@@ -56,7 +56,7 @@ pypdf-CFF-font-gap hypothesis was tested and **falsified** — fontTools changes
 nothing but pypdf's warning line, so it was not added and pypdf remains the one
 pinned dependency; the full account is in `fixtures/papers/README.md`.
 
-**Not built:** C4–C8 (C2's intake spine and C3's run spine have landed — see C2 and C3 below). **Selection — the substance of this
+**Not built:** C5–C8 (C2's intake spine, C3's run spine and C4's first slice have landed — see C2–C4 below). **Selection — the substance of this
 capability — has landed** (aspect 2 part 2, 2026-09-21): the M3 rule under
 `src/plumb/extract/selection.py` with a closed selection-side cause vocabulary, a free-text
 metric namer, `extract_claims(raw)` as the end-to-end seam, and pooled precision/recall over
@@ -67,10 +67,11 @@ C5's job. The Phase 0 gate's **C1 prerequisite ("text/PDF") is met for the fixtu
 whole** — all 5/5 fixtures clear the recovery floors, including the two-column journals
 (Oxford cleared its M4 exclusion at 25/25 non-table, 1.000, on 2026-09-22; the full
 mechanism account is in `fixtures/papers/README.md`). The
-gate itself still needs C4 (C2's minimum — resolve a local path or git URL to a pinned
-checkout — is met as of 2026-09-22; C3's — run the repo's own entry point and capture
-structured output, freshness-guarded — as of 2026-09-23; C4 remains unbuilt), so **the gate is
-not met and C1 must not be read as complete.**
+gate itself still needs a real paper run through C4 (C2's minimum — resolve a local path or git
+URL to a pinned checkout — is met as of 2026-09-22; C3's — run the repo's own entry point and
+capture structured output, freshness-guarded — as of 2026-09-23; C4's first slice binds and
+decides on synthetic repos as of 2026-09-25), so **the gate is not met and C1 must not be read
+as complete.**
 
 ## C2. Artifact intake & pinned environment
 
@@ -94,8 +95,9 @@ with a lockfile-first → declared → best-effort policy, python pin from `.pyt
 `UNVERIFIED` causes. The boundary is honest: resolution and the descriptor are **offline-tested**
 (`file://` repos, synthetic tar/zip archives, stub env runner), while the **one real `uv sync`**
 runs only via `tools/demo_env_build.py` at dev time (its output is recorded as evidence in the
-PR, not in CI). C3 consumes this checkout + descriptor (built 2026-09-23, see below); **C4
-remains unbuilt, so the Phase 0 gate is not met.**
+PR, not in CI). C3 consumes this checkout + descriptor (built 2026-09-23, see below); C4's
+first slice consumes C3 (2026-09-25), but **no real paper has run through it, so the Phase 0
+gate is not met.**
 
 ## C3. Execution & result capture
 
@@ -124,8 +126,8 @@ back-dated file and a `cp -p` of a committed result are all caught, and a mutati
 (guard removed, or loosened to `<=`) fails the suite. A successful run with no fresh output and
 empty stdout is `NO_ARTIFACT`. All offline-tested with local programs. **Not built:** notebook
 cell capture (needs nbconvert — named follow-on), resource caps beyond the timeout, and
-container isolation. C4 is unbuilt, so **the Phase 0 gate is not met** and no verdict has
-been emitted.
+container isolation. C4's first slice (2026-09-25) consumes the trace and capture; verdicts
+have been emitted on synthetic repos only, so **the Phase 0 gate is not met**.
 
 ## C4. Claim↔artifact binding & re-derivation verdict — **the moat**
 
@@ -141,6 +143,33 @@ requires the artifact's own run to contradict its own claim.
 
 **Depends on:** C1 + C3. **Guardrail:** constraints #1, #3 — never `REPRODUCED` on a model's
 say-so, never `DIVERGED` on a harness-side failure.
+
+**Status (2026-09-25, first slice):** built under `src/plumb/verify/` — PRD and decisions
+D1–D8 in `docs/planning/binding-verdict/prd.md`. `verify_claims(claims, bindings, run)` returns
+exactly one evidence-carrying `Verdict` per claim (sorted, never dropped) plus a coverage
+summary derived from the records, serialized canonically (byte-identical across processes).
+
+- **Bindings** are a **user-written** JSON file (`load_bindings`); no proposer exists and
+  `artifact_hint` is not read. Tolerances and scales must be decimal *strings*; a file that
+  can't be trusted raises `BindingInvalid`.
+- **Locators:** RFC 6901 JSON pointer, stdout regex (one group, exactly one match), CSV cell
+  (column + one row key). Bytes are read only through `Capture.read` (hash re-checked); a stale
+  target is `STALE_ARTIFACT` and never read; zero / many matches are `NO_BINDING` /
+  `AMBIGUOUS_BINDING`; no float anywhere.
+- **Compare** in a pinned `Decimal` context: a `Point` holds within the paper's **written
+  precision** (closed half-unit band) or an explicit tolerance; a `Bound` by its operator. A run
+  that wrote fewer digits than the paper is `ARTIFACT_PRECISION_COARSER` — checked first, so it
+  is never a false `REPRODUCED`; round integers are `PRECISION_AMBIGUOUS`; percent claims need a
+  declared scale (`UNIT_UNDECLARED`); `±`/CI/range/`~` are `UNSUPPORTED_VALUE_KIND`.
+- **Run causes govern first** (no run → the run's failure → `NO_ARTIFACT`), so **no harness
+  failure becomes `DIVERGED`** — pinned by `tests/verify/test_false_diverged_guard.py`, which is
+  mutation-checked in-suite; every `DIVERGED` carries `review_required`. A catalogue test
+  proves every cause in the closed vocabulary is emitted.
+
+**Not built:** a real gate paper through the spine (owner decision; none of the five fixtures
+runs offline), a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved),
+comparison of `PlusMinus`/`Interval`/`Range`/`Approximate`, notebook-cell locators, the
+`plumb verify` CLI. **The Phase 0 gate is not met.**
 
 ## C5. Discrepancy corpus & calibration benchmark
 

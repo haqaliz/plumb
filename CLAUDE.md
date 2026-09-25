@@ -16,15 +16,25 @@ The name: a *plumb line* is the oldest tool for testing whether something stands
 is also to investigate a thing to the bottom. Plumb asks of a paper: *does the claim hold when
 you actually run it?*
 
-Status: **the deterministic spine of C1, the C2 artifact-intake spine and the C3 run spine
-are built; nothing downstream is.** `src/plumb/extract/`
+Status: **the deterministic spine of C1, the C2 artifact-intake spine, the C3 run spine and
+the first C4 binding & verdict slice are built; C5–C8 are not.** `src/plumb/extract/`
 holds the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a paper hash,
 byte-identical serialization, value-identity dedup, Markdown table parsing, exhaustive candidate
 extraction, and the admission gate that is the sole constructor of a `Claim`. One pinned
 runtime dependency — pypdf (pure-Python, no transitive deps), powering the PDF→Markdown
 converter in `src/plumb/pdf/`; no network reachable from any test.
 
-**Not built:** C4–C8. **C3 execution & capture is built** (2026-09-23): `src/plumb/run/`
+**Not built:** C5–C8, and C4 beyond its first slice. **C4 binding & verdict, first slice, is
+built** (2026-09-25): `src/plumb/verify/` takes C1 claims, a **user-written** bindings file
+(no proposer) and a C3 run, locates exactly one value per claim through a JSON pointer, a
+stdout regex or a CSV cell — read only through the object store by hash, never a stale
+output — and decides it in pinned `Decimal` arithmetic: a `Point` against the paper's
+**written precision** (`0.87` is `[0.865, 0.875]`) or an explicit tolerance, a `Bound` by its
+operator. A run that wrote fewer digits than the paper is `ARTIFACT_PRECISION_COARSER`, never
+`REPRODUCED`; `±`/CI/range/`~` values are `UNSUPPORTED_VALUE_KIND`; percent claims must
+declare a scale. Run causes govern every claim first, so **no harness failure can become
+`DIVERGED`** — pinned by a mutation-checked guard — and every `DIVERGED` carries
+`review_required`. Decisions D1–D8 in `docs/planning/binding-verdict/prd.md`. **C3 execution & capture is built** (2026-09-23): `src/plumb/run/`
 resolves an entry point (explicit wins; else one `[project.scripts]` entry or a root
 `main.py`; ambiguity or absence is a named cause, never a guess), runs it in a working copy of
 the checkout under the run area (never the pinned checkout), and captures stdout/JSON/CSV into
@@ -60,8 +70,9 @@ landed**: the M3 rule (`src/plumb/extract/selection.py`) scored pooled precision
 on the 73-row blind set, floored at 0.90. Read that score honestly: it is *conformance*, not
 validation — the labels were criteria-drafted from M3/M11 (owner-delegated pass), so a perfect
 score means the rule implements its criteria. Validation against third-party labels is C5's job.
-**No verdict has ever been emitted**, because nothing that emits one exists yet. The Phase 0 gate
-is not met.
+**Verdicts have been emitted on synthetic repos only**; no real paper has been verified. The
+Phase 0 gate is not met — it needs a real, public, runnable gate paper (an owner decision; none
+of the five fixtures runs offline).
 
 When in doubt, verify against the code and `git log` rather than this prose. Two assumptions in
 these docs have already been falsified by real papers — the interval grammar required brackets no
