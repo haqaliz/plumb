@@ -77,6 +77,7 @@ from plumb.verify.compare import (
     decide,
 )
 from plumb.verify.locate import Unlocated, locate
+from plumb.verify.serialize import serialize_verdicts
 from plumb.verify.verdict import Verdict, VerdictSet
 
 __all__ = [
@@ -91,6 +92,7 @@ __all__ = [
     "Verdict",
     "VerdictSet",
     "load_bindings",
+    "serialize_verdicts",
     "verify_claims",
 ]
 
