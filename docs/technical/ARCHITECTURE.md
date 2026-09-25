@@ -117,18 +117,28 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
 
   | Verdict | Condition |
   |---|---|
-  | `REPRODUCED` | bound, ran, matches exactly (or tolerance is zero and delta is zero) |
-  | `WITHIN-TOLERANCE` | bound, ran, delta non-zero but inside the tolerance band |
+  | `REPRODUCED` | bound, ran, and the value lies within the paper's **written precision** (`0.87` is `[0.865, 0.875]`; revised 2026-09-25, D1 — rounding is how the paper stated the number, not a tolerance) |
+  | `WITHIN-TOLERANCE` | bound, ran, outside the written precision but inside an explicit tolerance |
   | `DIVERGED` | bound, ran, and the artifact's own output contradicts the paper's claim |
   | `UNVERIFIED` | anything else, with a named cause (see below) |
 
-- **`UNVERIFIED` causes** (closed, extensible vocabulary): `NO_ARTIFACT`, `WONT_RUN`,
-  `NO_BINDING`, `AMBIGUOUS_BINDING`, `NO_TOLERANCE`, `STALE_ARTIFACT`, `PROPOSER_UNGROUNDED`,
-  `MODEL_ONLY_SIGNAL`. Any failure to decide resolves here — never `DIVERGED` by default, never
-  a silent `REPRODUCED`.
+- **`UNVERIFIED` causes** (closed, extensible vocabulary; `plumb.verify.causes.CAUSES`):
+  run-side `ENTRYPOINT_MISSING`, `ENTRYPOINT_AMBIGUOUS`, `ENV_BUILD_FAILED`, `WONT_RUN`,
+  `TIMEOUT`, `NO_ARTIFACT`, `STALE_ARTIFACT`; binding-side `NO_BINDING`, `AMBIGUOUS_BINDING`,
+  `BINDING_INVALID`, `UNPARSEABLE_VALUE`; comparison-side `NO_TOLERANCE`,
+  `UNSUPPORTED_VALUE_KIND`, `UNIT_UNDECLARED`, `PRECISION_AMBIGUOUS`,
+  `ARTIFACT_PRECISION_COARSER`. `PROPOSER_UNGROUNDED` and `MODEL_ONLY_SIGNAL` are reserved
+  for a proposer that does not exist yet and are never emitted. Any failure to decide resolves
+  here — never `DIVERGED` by default, never a silent `REPRODUCED`.
 - **`DIVERGED` is conservative by construction:** it requires the artifact's *own* run to
   contradict its *own* claim. A discrepancy attributable to harness fault (env drift, wrong
   locator) is `UNVERIFIED`, not `DIVERGED`.
+- **Status (2026-09-25, first slice):** built — `verify_claims(claims, bindings, run)` over
+  user-written bindings, three locators (JSON pointer, stdout regex, CSV cell), `Point`/`Bound`
+  comparison in a pinned `Decimal` context, an evidence-enforcing `Verdict` record and
+  canonical serialization. Run causes govern first; the false-`DIVERGED` guard is
+  mutation-checked. Verdicts have been emitted on **synthetic repos only**; the Phase 0 gate is
+  not met. Details and D1–D8: `docs/planning/binding-verdict/prd.md`.
 
 ### C5 — Discrepancy corpus (`src/plumb/corpus/`)
 
@@ -188,9 +198,15 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   own directory); it also sets `UV_OFFLINE=1` and kills the whole process group on timeout.
   Container isolation is a named follow-on; whatever lands, the posture is recorded in the
   bundle regardless.
-- Tolerance policy: per-claim explicit vs a typed default per claim kind; how to represent "no
-  defensible tolerance" (→ `UNVERIFIED: NO_TOLERANCE`).
-- Locator grammar: how much a model may propose vs a fixed deterministic set.
+- Tolerance policy — **resolved for the first C4 slice (2026-09-25, D1/D2/D1a/D7):** the
+  paper's written precision is the default band; an explicit per-binding `abs`/`rel` tolerance
+  widens it; no per-kind defaults. Round integers without a tolerance are
+  `PRECISION_AMBIGUOUS`; a run coarser than the paper is `ARTIFACT_PRECISION_COARSER`;
+  `NO_TOLERANCE` is left for a relative tolerance of a reported zero. Revisit with evidence from
+  the gate paper.
+- Locator grammar — **resolved for the first slice:** a fixed deterministic set (JSON pointer,
+  stdout regex, CSV cell), user-written. How much a model may propose is open until a proposer
+  is built; whatever it proposes goes through the same `locate`.
 - Value identity across spellings: `0.87`, `.87` and `0.870` are currently three identities,
   because identity is the verbatim text. That errs toward splitting (visible in the coverage
   number) over merging (silently loses a claim), but a paper writing `.87` in a table and `0.87`

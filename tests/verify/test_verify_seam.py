@@ -179,3 +179,19 @@ class TestRefusals:
         bindings = load_bindings(bindings_json((AUC, "results.json", ptr("/auc"))), [AUC.id])
         with pytest.raises(ValueError, match="does not match its hash"):
             verify_claims([AUC], bindings, run)
+
+
+class TestThePublicSurface:
+    def test_the_seam_exports(self) -> None:
+        import plumb.verify as verify
+
+        for name in ("verify_claims", "load_bindings", "serialize_verdicts", "Completed",
+                     "NoRun", "Verdict", "VerdictSet", "BindingInvalid", "CAUSES"):
+            assert hasattr(verify, name), name
+
+    def test_the_docstring_documents_every_cause(self) -> None:
+        import plumb.verify as verify
+
+        doc = verify.__doc__ or ""
+        for cause in verify.CAUSES:
+            assert f"`{cause}`" in doc, cause
