@@ -169,3 +169,18 @@ class TestPerEntryInvalid:
     def test_the_empty_pointer_is_valid(self) -> None:
         bindings = load_bindings(raw(entry(locator={"kind": "json_pointer", "pointer": ""})), IDS)
         assert bindings["c-auc"].invalid is None
+
+
+class TestFloatRepr:
+    """`float_repr` declares the artifact wrote shortest round-trip floats (gate-paper G1)."""
+
+    def test_it_defaults_to_false(self) -> None:
+        assert load_bindings(raw(entry()), IDS)["c-auc"].float_repr is False
+
+    def test_it_loads_as_true(self) -> None:
+        assert load_bindings(raw(entry(float_repr=True)), IDS)["c-auc"].float_repr is True
+
+    @pytest.mark.parametrize("value", ["true", 1, None])
+    def test_a_non_boolean_is_refused(self, value) -> None:
+        with pytest.raises(BindingInvalid, match="float_repr"):
+            load_bindings(raw(entry(float_repr=value)), IDS)

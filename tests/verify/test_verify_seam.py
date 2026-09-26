@@ -195,3 +195,22 @@ class TestThePublicSurface:
         doc = verify.__doc__ or ""
         for cause in verify.CAUSES:
             assert f"`{cause}`" in doc, cause
+
+
+class TestFloatReprThroughTheSeam:
+    """pandas writes the exact 2.5 as `2.5`; the paper's `2.500` must not look coarser."""
+
+    MS = claim("2.500", "Residual MS")
+
+    def _verdict(self, tmp_path: Path, **extra):
+        run = completed(tmp_path, writes("t.csv", ",MS\nResidual,2.5\n"))
+        locator = {"kind": "csv_cell", "column": "MS", "row": {"": "Residual"}}
+        bindings = load_bindings(bindings_json((self.MS, "t.csv", locator, extra)), [self.MS.id])
+        (verdict,) = verify_claims([self.MS], bindings, run).verdicts
+        return verdict
+
+    def test_without_the_flag_it_is_coarser(self, tmp_path: Path) -> None:
+        assert self._verdict(tmp_path).cause == causes.ARTIFACT_PRECISION_COARSER
+
+    def test_with_the_flag_it_is_reproduced(self, tmp_path: Path) -> None:
+        assert self._verdict(tmp_path, float_repr=True).verdict == REPRODUCED
