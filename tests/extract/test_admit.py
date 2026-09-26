@@ -823,6 +823,51 @@ class TestPartialValues:
         assert isinstance(result, Claim), result
         assert_location_reproduces_the_value(result, text=paper)
 
+    @pytest.mark.parametrize(
+        ("paper", "text"),
+        [
+            # LaTeX's OT1 encoding renders `<` as `¡` and `>` as `¿`; AgroDesign
+            # (fixtures/gate/agrodesign) writes `p ¡ 0.001` twice.
+            ("The effect is significant (F = 145.33, p ¡ 0.001), which holds.\n", "0.001"),
+            ("The effect is significant (p ¡0.001) here.\n", "0.001"),
+            ("The ratio was x ¿ 3 in every run.\n", "3"),
+        ],
+    )
+    def test_a_number_behind_an_ot1_comparator_glyph_is_refused(
+        self, paper: str, text: str
+    ) -> None:
+        """`p ¡ 0.001` is `p < 0.001` in a font the text layer did not decode.
+
+        The parser cannot read `¡` as a comparator, so the bare `0.001` would admit as
+        the Point p = 0.001 — a value the paper never wrote, and a re-derived 1e-10
+        would then read as a contradiction. It is a fragment of a value the gate
+        cannot represent, so it is refused, not repaired.
+        """
+        start = paper.index(text, paper.index("¡" if "¡" in paper else "¿"))
+        subject = Candidate(
+            text=text,
+            span=CharSpan(start, start + len(text)),
+            context=paper.strip(),
+            section_hint=SECTION_RESULTS,
+        )
+
+        result = admit(subject, normalized_text=paper, metric="p")
+
+        assert isinstance(result, NonClaim)
+        assert result.cause == CAUSE_PARTIAL_VALUE
+
+    def test_a_plain_p_value_is_still_admitted(self) -> None:
+        paper = "The residual analysis shows normality (p = 0.121), which holds.\n"
+        start = paper.index("0.121")
+        subject = Candidate(
+            text="0.121",
+            span=CharSpan(start, start + 5),
+            context=paper.strip(),
+            section_hint=SECTION_RESULTS,
+        )
+
+        assert isinstance(admit(subject, normalized_text=paper, metric="p"), Claim)
+
     def test_a_signed_slice_of_a_hyphen_range_is_still_refused(self) -> None:
         # The narrowing must not reach this: `"12-15"[2:5] == "-15"` is a span a
         # proposer can compute, it grounds, and it reads a negative value out of a

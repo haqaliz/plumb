@@ -214,7 +214,14 @@ _SAMPLE_SIZE: Final = re.compile(
 #: operand rather than a value in its own right: the magnitude of a bound, the margin
 #: of a ±. These are exactly the operators `value.py` parses, so a widened candidate
 #: covering the operator lands on the right variant.
-_OPERATOR_BEFORE: Final = re.compile(r"(?:<=|>=|[<>≤≥±]|\+/-|\+-)[ \t]*\Z")
+#:
+#: `¡` and `¿` are the exception: LaTeX's OT1 encoding renders `<` and `>` as these
+#: glyphs, so `p ¡ 0.001` (AgroDesign, twice) is a bound whose comparator the text
+#: layer lost. `value.py` cannot read them, so no widening lands anywhere — the number
+#: is refused as a fragment rather than admitted as the Point the paper never wrote.
+#: Not repaired: the text is what the signed bundle re-admits against, byte for byte.
+#: A Spanish `¡3 goles!` is refused too; a false negative, the safe direction.
+_OPERATOR_BEFORE: Final = re.compile(r"(?:<=|>=|[<>≤≥±¡¿]|\+/-|\+-)[ \t]*\Z")
 
 #: A number, a dash, then our number: the high endpoint of a range. The digit is
 #: load-bearing — without it an em dash used as prose punctuation ("the model — 0.87
