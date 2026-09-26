@@ -16,15 +16,16 @@ The name: a *plumb line* is the oldest tool for testing whether something stands
 is also to investigate a thing to the bottom. Plumb asks of a paper: *does the claim hold when
 you actually run it?*
 
-Status: **the deterministic spine of C1, the C2 artifact-intake spine, the C3 run spine and
-the first C4 binding & verdict slice are built; C5–C8 are not.** `src/plumb/extract/`
+Status: **the deterministic spine of C1, the C2 artifact-intake spine, the C3 run spine, and
+the first slices of C4 (binding & verdict) and C6 (signed bundle) are built; C5, C7 and C8 are
+not.** `src/plumb/extract/`
 holds the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a paper hash,
 byte-identical serialization, value-identity dedup, Markdown table parsing, exhaustive candidate
 extraction, and the admission gate that is the sole constructor of a `Claim`. One pinned
 runtime dependency — pypdf (pure-Python, no transitive deps), powering the PDF→Markdown
 converter in `src/plumb/pdf/`; no network reachable from any test.
 
-**Not built:** C5–C8, and C4 beyond its first slice. **C4 binding & verdict, first slice, is
+**Not built:** C5, C7, C8, and C4/C6 beyond their first slices. **C4 binding & verdict, first slice, is
 built** (2026-09-25): `src/plumb/verify/` takes C1 claims, a **user-written** bindings file
 (no proposer) and a C3 run, locates exactly one value per claim through a JSON pointer, a
 stdout regex or a CSV cell — read only through the object store by hash, never a stale
@@ -76,8 +77,15 @@ rule-defined claims, **86 bound, 85 `REPRODUCED`, 1 `DIVERGED`** (a third-decima
 p, `review_required`, unchanged in an environment resolved as of the code's date). **C1
 recovered 0 of the 86**: the claims are curated by a fixed rule and grounded verbatim, and that 0
 is the real extraction number. Two engine gaps it exposed were fixed test-first (`float_repr`
-bindings for shortest-repr floats; `parse_trace`). The Phase 0 gate's **number exists; its
-signed, replayable bundle (C6) does not, so the gate is not met.** Details:
+bindings for shortest-repr floats; `parse_trace`). The Phase 0 gate's **number exists**, and
+**C6's first slice is built** (2026-09-27): `src/plumb/bundle/` writes a hash-listed directory
+signed with `ssh-keygen -Y` (no crypto dependency; deterministic), and `verify_bundle` checks the
+signature before reading anything, then the members, refused content (local paths, stderr), every
+claim re-admitted against the paper **through the admission gate** (`readmit` — `parse_claims`
+returns records, never a second door to `Claim`), and the re-derived verdicts, with named causes.
+The AgroDesign bundle (`bundles/agrodesign/`) verifies, and `tools/bundle_replay.py` re-ran it
+from a clean clone byte-identical. **The gate waits only on the owner's review of the one
+`DIVERGED`**; it is not declared met. Details:
 `fixtures/gate/agrodesign/README.md`.
 
 When in doubt, verify against the code and `git log` rather than this prose. Two assumptions in

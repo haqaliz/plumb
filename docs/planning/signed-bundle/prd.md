@@ -4,6 +4,14 @@ Source: `docs/planning/_card/issue.md` (inline brief from `plumb-next`) and
 `docs/planning/_card/understanding.md` (deep dig + signing spike). Decisions B1–B7 are
 recommendations for approval at the review gate.
 
+**Status (2026-09-27): landed.** The AgroDesign bundle verifies (also from a fresh clone) and its
+run replayed byte-identical from a clean clone. **One change from B3, forced by a guardrail:**
+reading claims back could not construct `Claim`s outside the admission gate
+(`test_admit.py`), so `parse_claims` returns records and `readmit` re-admits them against the
+paper — which makes the paper **required at verification** (bundled, or supplied and checked
+against its SHA-256). The committed AgroDesign bundle includes it (CC BY). Gate conditions: 1 and
+2 met; 3 (owner review of the `DIVERGED`) outstanding.
+
 ## Problem Statement
 
 Plumb has produced its first real-paper panel (AgroDesign: 86 bound, 85 `REPRODUCED`,
