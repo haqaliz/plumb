@@ -84,8 +84,9 @@ signature before reading anything, then the members, refused content (local path
 claim re-admitted against the paper **through the admission gate** (`readmit` — `parse_claims`
 returns records, never a second door to `Claim`), and the re-derived verdicts, with named causes.
 The AgroDesign bundle (`bundles/agrodesign/`) verifies, and `tools/bundle_replay.py` re-ran it
-from a clean clone byte-identical. **The gate waits only on the owner's review of the one
-`DIVERGED`**; it is not declared met. Details:
+from a clean clone byte-identical. **The Phase 0 gate is met** (2026-09-27): the one
+`DIVERGED` was reviewed by the owner and confirmed as a genuine reporting discrepancy. Met on one
+paper — cross-paper coverage (R1) is unmeasured, and C1 recovered 0/86 of its claims. Details:
 `fixtures/gate/agrodesign/README.md`.
 
 When in doubt, verify against the code and `git log` rather than this prose. Two assumptions in
