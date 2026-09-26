@@ -38,6 +38,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 import json
+import re
 from typing import Any, Callable
 
 from plumb.extract.claim import Claim
@@ -54,7 +55,7 @@ from plumb.extract.value import (
     Range,
 )
 
-__all__ = ["SERIALIZATION", "serialize_claims"]
+__all__ = ["SERIALIZATION", "SerializedClaim", "parse_claims", "serialize_claims"]
 
 
 # --------------------------------------------------------------------------------
@@ -345,3 +346,110 @@ def serialize_claims(claims: Iterable[Claim], *, paper_hash: PaperHash) -> bytes
     }
     text = json.dumps(document, **options) + SERIALIZATION.trailing_newline
     return text.encode(SERIALIZATION.encoding)
+
+
+# --------------------------------------------------------------------------------
+# Reading back
+# --------------------------------------------------------------------------------
+
+_VARIANTS_BY_TAG = {tag: (cls, fields) for cls, (tag, fields) in _VALUE_VARIANTS.items()}
+_CLAIM_FIELDS = {
+    "id", "metric", "units", "reported_value", "location", "artifact_hint", "tolerance_hint",
+}
+_DECIMAL_TEXT = re.compile(r"-?[0-9]+(?:\.[0-9]+)?(?:E[+-]?[0-9]+)?")
+
+
+@dataclass(frozen=True, slots=True)
+class SerializedClaim:
+    """A claim as a serialized document recorded it — **not** a `Claim`.
+
+    Reading bytes back must not become a second door to `Claim` (plan D1; pinned by
+    `tests/extract/test_admit.py`): a document is data from wherever it came from, and a
+    `Claim` is only ever issued by the admission gate after grounding. So `parse_claims`
+    returns these records, and `plumb.extract.admit.readmit` turns them into claims by
+    re-admitting each one against the paper text, which also recomputes its id.
+    """
+
+    id: str
+    reported_value: ClaimValue
+    units: str | None
+    metric: str
+    location: CharSpan
+    artifact_hint: str | None
+    tolerance_hint: str | None
+
+
+def parse_claims(data: bytes) -> tuple[tuple[SerializedClaim, ...], PaperHash]:
+    """The claim records and paper hash `serialize_claims` wrote as `data`.
+
+    The inverse, for C6: a bundle is verified from its bytes. Every field is read strictly —
+    no extra or missing field, a registered value variant and location kind, decimals as
+    their exact text, never a JSON number (it would have passed through a float). The
+    records are not claims until `readmit` grounds them. Anything else raises `ValueError`.
+    """
+    try:
+        document = json.loads(data.decode(SERIALIZATION.encoding))
+        if not isinstance(document, dict) or set(document) != {"claims", "paper_hash"}:
+            raise ValueError("a claim document has exactly the fields claims and paper_hash")
+        paper = document["paper_hash"]
+        if not isinstance(paper, dict) or set(paper) != {"algorithm", "digest"}:
+            raise ValueError("paper_hash has exactly the fields algorithm and digest")
+        paper_hash = PaperHash(digest=_read_string(paper["digest"], "paper_hash.digest"))
+        if paper["algorithm"] != paper_hash.algorithm:
+            raise ValueError(
+                f"paper_hash.algorithm {paper['algorithm']!r} is not {paper_hash.algorithm!r}"
+            )
+        if not isinstance(document["claims"], list):
+            raise ValueError("claims must be a list")
+        records = tuple(_decode_claim(body) for body in document["claims"])
+    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        raise ValueError(f"not a serialized claim document: {exc!r}") from None
+    return records, paper_hash
+
+
+def _decode_claim(body: Any) -> SerializedClaim:
+    if not isinstance(body, dict) or set(body) != _CLAIM_FIELDS:
+        raise ValueError(f"a claim has exactly the fields {sorted(_CLAIM_FIELDS)}")
+    location = body["location"]
+    if not isinstance(location, dict) or location.get("kind") != CharSpan.kind or set(
+        location
+    ) != {"kind", "start", "end"}:
+        raise ValueError(f"unregistered or malformed location: {location!r}")
+    return SerializedClaim(
+        id=_read_string(body["id"], "id"),
+        reported_value=_decode_value(body["reported_value"]),
+        units=_read_optional(body["units"], "units"),
+        metric=_read_string(body["metric"], "metric"),
+        location=CharSpan(_offset(location["start"], "start"), _offset(location["end"], "end")),
+        artifact_hint=_read_optional(body["artifact_hint"], "artifact_hint"),
+        tolerance_hint=_read_optional(body["tolerance_hint"], "tolerance_hint"),
+    )
+
+
+def _decode_value(encoded: Any) -> ClaimValue:
+    if not isinstance(encoded, dict) or encoded.get("kind") not in _VARIANTS_BY_TAG:
+        raise ValueError(f"unregistered value variant: {encoded!r}")
+    cls, fields = _VARIANTS_BY_TAG[encoded["kind"]]
+    names = [name for name, _ in fields]
+    if set(encoded) != {"kind", "text", *names}:
+        raise ValueError(f"a {encoded['kind']} value has exactly kind, text and {names}")
+    kwargs: dict[str, Any] = {"text": _read_string(encoded["text"], "text")}
+    for name, encode in fields:
+        raw = _read_string(encoded[name], name)
+        if encode is _decimal:
+            if not _DECIMAL_TEXT.fullmatch(raw):
+                raise ValueError(f"{name} {raw!r} is not an exact decimal text")
+            kwargs[name] = Decimal(raw)
+        else:
+            kwargs[name] = raw
+    return cls(**kwargs)
+
+
+def _read_string(value: Any, field: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f"{field} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _read_optional(value: Any, field: str) -> str | None:
+    return None if value is None else _read_string(value, field)
