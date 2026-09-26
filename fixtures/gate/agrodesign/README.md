@@ -33,3 +33,81 @@ recorded as unrepresentable.
 **C1 on this paper:** `extract_claims(pdf_to_markdown(paper.pdf))` recovers **0** of the 86
 (290 candidates rejected: 241 `outside_sections`, 49 `reference_numeral`). The claims here are
 curated, not extracted; that gap is pinned by `tests/gate/test_agrodesign_fixture.py`.
+
+Run-time files, written once by `tools/gate_run.py` (the only networked code; never imported
+by tests):
+
+| File | What it is |
+|---|---|
+| `trace.json` | the C3 `RunTrace` (`serialize_trace`); `parse_trace` reads it back |
+| `objects/` | the run's locatable outputs (stdout and 21 CSVs), each named by its SHA-256; stderr is left out (diagnostic-only, may carry local paths) |
+| `verdicts.json` | the C4 verdict set (`serialize_verdicts`), replayed byte for byte by `tests/gate/test_agrodesign_replay.py` |
+| `environment.txt` | the resolved environment (`uv pip freeze`) and the C2 descriptor |
+| `drift.json` | the cross-check in an environment resolved with `--exclude-newer 2026-02-12` |
+
+## The number (Phase 0)
+
+| | |
+|---|---|
+| Claims in the rule | 88 (75 table cells + 13 prose values) |
+| Representable as claims | 86 (2 × "p ¡ 0.001" cannot be parsed) |
+| Recovered by C1 automatically | **0** of 86 |
+| Bound to a value the run produced | **86** of 86 |
+| `REPRODUCED` | **85** |
+| `WITHIN-TOLERANCE` | 0 |
+| `DIVERGED` | **1** (`review_required`) |
+| `UNVERIFIED` | 0 |
+| Verdicts changed in the older environment | 0 — its outputs are byte-identical (same `run_id`) |
+
+Every `REPRODUCED` is within the paper's written precision (D1): e.g. Table 1 MS `363.333`
+against the run's `363.3333333333342`, Table 4 F `5637.0` against `5637.000000000339`, Table 8
+BLUP `7.7` against `7.677269579347461`. None needed a tolerance.
+
+## Findings
+
+These are discrepancies against the paper's **own** artifacts, recorded for review. They are
+not claims that the paper's conclusions are wrong, and nothing here has been published or sent
+to the author (R4; contacting the author is an owner decision).
+
+1. **One reported value does not match its own code (`DIVERGED`).** §4.1 states the CRD
+   residuals' Shapiro-Wilk test at "p-value = 0.034"; the package, run on the bundled CRD
+   dataset, prints `p = 0.03455`, which rounds to 0.035. The paper's value looks truncated
+   rather than rounded. It is a third-decimal reporting discrepancy, it does not change the
+   stated conclusion ("a slight violation of normality"), and it is identical in an environment
+   resolved as of the pinned code's date — so it is not environment drift.
+2. **The documented workflow cannot complete as written.** The paper's appendix runs
+   `result = Experiment(...).run()` then `result.export("results")`. With the default
+   `plots=True`, `export()` raises `AttributeError: 'NoneType' object has no attribute
+   'savefig'` for the CRD, RCBD, factorial and split-plot designs, because
+   `agrodesign/plots/report_plot.py` never returns its figure. This holds at `v1.0.1` and at
+   HEAD. The gate run uses `run(plots=False)`; no figure is a claim.
+
+## Deviations from the paper's workflow (disclosed)
+
+- `run(plots=False)` — finding 2.
+- `mixed(["Genotype"], ["Block"])` — the API requires lists; the paper shows no mixed-model
+  code. The bundled `mixed.csv` names its treatment column `Genotype`.
+- Factor names per design are the bundled datasets' columns, as §4's prose names them.
+- The driver prints `===== <design>` before each report, so each stdout binding matches once.
+
+## Engine gaps this paper exposed (fixed test-first before the run)
+
+- **Shortest-repr floats are not roundings.** pandas writes the exact 2.5 as `2.5`; C4 read the
+  digits as precision and made the paper's `2.500` look finer than the run
+  (`ARTIFACT_PRECISION_COARSER`, a harness-side false `UNVERIFIED`). Bindings now declare
+  `"float_repr": true` for such artifacts; every CSV binding here does.
+- **No trace loader.** `parse_trace` now reads `trace.json` back, run id re-checked.
+
+## Known limits
+
+- The claims are curated (by rule, grounded verbatim), not extracted — C1's 0/86 is the real
+  extraction number on this paper. Why, from the rejections: §4 "Experimental Validation" is not
+  recognised as a results section (241 `outside_sections`), and the tables arrive as
+  whitespace-delimited text rows with glued tokens (`145.333<0.001`), not Markdown tables.
+- The environment is resolved, not locked: the repo ships no lockfile, so C2's policy is
+  "best-effort". `uv sync` also wrote `uv.lock` and `.venv` into the pinned checkout during the
+  build (the run itself works in a copy); the tree hash was recorded before.
+- The datasets are small, synthetic, author-constructed examples; this record shows the spine
+  works end to end on a real paper's own code. It is not a scientific finding.
+- This is not the Phase 0 gate's signed bundle: the verdict step replays offline from committed
+  evidence, but a third-party *run-level* replay needs C6.
