@@ -137,8 +137,11 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   user-written bindings, three locators (JSON pointer, stdout regex, CSV cell), `Point`/`Bound`
   comparison in a pinned `Decimal` context, an evidence-enforcing `Verdict` record and
   canonical serialization. Run causes govern first; the false-`DIVERGED` guard is
-  mutation-checked. Verdicts have been emitted on **synthetic repos only**; the Phase 0 gate is
-  not met. Details and D1–D8: `docs/planning/binding-verdict/prd.md`.
+  mutation-checked. Details and D1–D8: `docs/planning/binding-verdict/prd.md`. A binding may
+  declare `"float_repr": true` when the artifact writes shortest round-trip floats (pandas,
+  `json`): the located value is then the program's exact double, not a rounding (added
+  2026-09-26 for the first real paper, `fixtures/gate/agrodesign/`: 86 bound, 85 `REPRODUCED`,
+  1 `DIVERGED`). The Phase 0 gate still needs C6.
 
 ### C5 — Discrepancy corpus (`src/plumb/corpus/`)
 

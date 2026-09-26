@@ -4,6 +4,10 @@ Source: `docs/planning/_card/issue.md` (inline brief; the owner delegated the pi
 `docs/planning/_card/understanding.md` (deep dig and feasibility spike). Candidate screening:
 `survey.md` alongside this file.
 
+**Status (2026-09-26): landed** — 86 claims, 86 bound, 85 `REPRODUCED`, 1 `DIVERGED`; M4a
+drift check: byte-identical outputs in the older environment. One plan-time addition: the
+`float_repr` binding flag (engine gap). The record: `fixtures/gate/agrodesign/`.
+
 ## Problem Statement
 
 C1–C4 are built and have emitted verdicts only on synthetic repos. Phase 0's question — *what

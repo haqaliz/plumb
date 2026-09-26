@@ -22,11 +22,13 @@ finding.
 - C2 (minimum): resolve a local path or git URL to a pinned checkout on the user's compute.
 - C3 (minimum): run the repo's own entry point and capture structured output, freshness-guarded.
 - C4 (minimum): bind one headline claim to a re-derived value and emit the verdict. *(First
-  slice built 2026-09-25 — `src/plumb/verify/`; verdicts emitted on synthetic repos only. The
-  gate still needs a real, public, runnable paper.)*
+  slice built 2026-09-25 — `src/plumb/verify/`. First real paper run 2026-09-26: AgroDesign,
+  86 bound, 85 `REPRODUCED`, 1 `DIVERGED`; `fixtures/gate/agrodesign/`.)*
 - **Gate:** at least one real, reproducible `DIVERGED` (or a clean panel of `REPRODUCED`) with a
   bundle a third party can replay. If C4 can't clear a conservative false-positive bar, stop and
-  rethink before building further.
+  rethink before building further. **Status (2026-09-26): number produced; bundle pending (C6).**
+  The panel is real and reproducible (85 `REPRODUCED`, 1 `DIVERGED` held for review), and its
+  verdict step replays offline from committed evidence — but the signed, run-level replay is C6.
 
 ## Phase 1 — OSS core (months 1–2)
 

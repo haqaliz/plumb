@@ -40,7 +40,7 @@ by tests):
 | File | What it is |
 |---|---|
 | `trace.json` | the C3 `RunTrace` (`serialize_trace`); `parse_trace` reads it back |
-| `objects/` | the run's locatable outputs (stdout and 21 CSVs), each named by its SHA-256; stderr is left out (diagnostic-only, may carry local paths) |
+| `objects/` | the run's locatable outputs (stdout and 21 CSVs — 21 objects, since two CSVs have identical bytes), each named by its SHA-256; stderr is left out (diagnostic-only, may carry local paths) |
 | `verdicts.json` | the C4 verdict set (`serialize_verdicts`), replayed byte for byte by `tests/gate/test_agrodesign_replay.py` |
 | `environment.txt` | the resolved environment (`uv pip freeze`) and the C2 descriptor |
 | `drift.json` | the cross-check in an environment resolved with `--exclude-newer 2026-02-12` |
