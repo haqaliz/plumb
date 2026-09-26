@@ -1,2 +1,5 @@
 * text=auto eol=lf
 *.pdf binary
+# Content-addressed and hash-listed files must never be rewritten on checkout.
+bundles/** binary
+fixtures/gate/**/objects/** binary

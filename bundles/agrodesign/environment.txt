@@ -1,0 +1,23 @@
+# resolved by uv sync (policy 'best-effort': no lockfile or declared deps; best-effort resolve recorded as such) on the pinned checkout v1.0.1; python pin '>=3.9' (pyproject.toml); tools: git=git version 2.50.1 (Apple Git-155), uv=uv 0.12.17 (Homebrew 2026-09-18 aarch64-apple-darwin)
+python==3.12.13
+contourpy==1.4.0
+cycler==0.12.1
+fonttools==4.66.0
+formulaic==1.2.2
+interface-meta==2.0.1
+kiwisolver==1.5.1
+matplotlib==3.11.2
+narwhals==2.26.0
+numpy==2.5.3
+packaging==26.3
+pandas==3.0.6
+patsy==1.0.3
+pillow==12.3.0
+pyparsing==3.3.3
+python-dateutil==2.9.0.post0
+scipy==1.18.1
+seaborn==0.13.2
+six==1.17.0
+statsmodels==0.15.0
+typing-extensions==4.16.0
+wrapt==2.4.1
