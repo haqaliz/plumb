@@ -96,9 +96,10 @@ the owner's decision about contacting AgroDesign's author.
 
 ### Should-have
 
-- **S1** `tools/bundle_replay.py` (B6), run once by hand on the AgroDesign bundle; the result
-  recorded in `bundles/agrodesign/README.md` (outside the signed members? — no: the README is
-  written *before* signing and is a member).
+- **S1** `tools/bundle_replay.py` (B6), run once by hand on the AgroDesign bundle. Replay
+  happens *after* signing, so its result cannot live inside the signed directory (an extra file
+  there is `MEMBER_UNLISTED`): it is recorded in `bundles/README.md`, beside the bundle. Layout:
+  `bundles/README.md`, `bundles/allowed_signers`, `bundles/agrodesign/` (the bundle).
 - **S2** Docs: `ARCHITECTURE.md` (C6 status; signing open question resolved), `CAPABILITY_ROADMAP.md`,
   `ROADMAP.md` (gate status per below), `CLAUDE.md`, `README.md`.
 
@@ -130,6 +131,23 @@ the docs state which of the three is outstanding.
 - **`ssh-keygen` availability** — standard on macOS/Linux; Windows ships OpenSSH but untested
   here.
 - **Open:** B7's key (owner).
+
+## Self-critique (prd-generator, 2026-09-27)
+
+| Dimension | Rating | Note |
+|---|---|---|
+| Problem | 🟢 | The gate's last criterion, and R4's precondition for any disclosure |
+| Metrics | 🟢 | Each goal is a test or a committed artifact |
+| Scope | 🟢 | Directory bundle, SSHSIG, no transparency log |
+| Risks | 🟡 | Run replay depends on PyPI keeping the pinned versions |
+| Verdict honesty | 🟢 | Replay drift is `UNVERIFIED`; verify never trusts an unsigned byte |
+| Feasibility | 🟢 | Signing spiked; loaders exist or are small (`parse_claims`) |
+| Fixed | — | S1 put the post-signing replay result inside the signed directory — moved beside it |
+
+**Hard question:** a signature proves *who* vouches for the bundle, not that the run was honest.
+A third party who trusts neither Plumb nor its owner must still re-run (B6). Is the gate's
+"bundle a third party can replay" satisfied by the verdict-level replay alone, or only once a
+run-level replay has succeeded from a clean clone? This PRD takes the stricter reading.
 
 ## Out of Scope
 
