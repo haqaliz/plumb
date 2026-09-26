@@ -1,0 +1,440 @@
+===== crd
+==================================================
+AGRODESIGN ANALYSIS
+==================================================
+
+CRD ANALYSIS
+Response variable: Yield
+Post-hoc test: Tukey HSD (α = 0.05)
+
+--------------------------------------------------
+ANOVA TABLE
+--------------------------------------------------
+Source          DF          MS           F p-value Significance
+C(Treatment)   3.0  363.333333  145.333333  <0.001          ***
+Residual      16.0    2.500000         NaN     nan           ns
+
+Highest significant effect: Treatment
+
+Interpretation rule:
+No interaction detected → interpret main effects
+
+--------------------------------------------------
+POST HOC TEST CRITICAL VALUES
+--------------------------------------------------
+HSD(Treatment) = 2.8612
+
+--------------------------------------------------
+MEAN COMPARISON (ALL EFFECTS)
+--------------------------------------------------
+
+MAIN EFFECTS
+---------------
+
+Factor Treatment
+  Mean Group
+61.000     a
+54.000     b
+48.000     c
+41.000     d
+
+--------------------------------------------------
+AGRONOMIC INTERPRETATION
+--------------------------------------------------
+CRD INTERPRETATION
+
+Interpretation restricted to C(Treatment) due to significant effect.
+Significant factors : Treatment.
+No interaction detected. Factors act independently.
+Best levels:
+NPK_100.
+No specific treatment combination is statistically superior.
+
+--------------------------------------------------
+ASSUMPTION CHECK
+--------------------------------------------------
+Shapiro-Wilk normality test: p = 0.03455
+Residuals: Not normally distributed
+Recommendation: transformation may improve model validity
+
+==================================================
+===== rcbd
+==================================================
+AGRODESIGN ANALYSIS
+==================================================
+
+RCBD ANALYSIS
+Response variable: Yield
+Post-hoc test: Tukey HSD (α = 0.05)
+
+--------------------------------------------------
+ANOVA TABLE
+--------------------------------------------------
+Source       DF          MS      F p-value Significance
+C(Variety)  3.0  106.666667  320.0  <0.001          ***
+C(Block)    3.0    5.666667   17.0  <0.001          ***
+Residual    9.0    0.333333    NaN     nan           ns
+
+Highest significant effect: Variety
+
+Interpretation rule:
+No interaction detected → interpret main effects
+
+--------------------------------------------------
+POST HOC TEST CRITICAL VALUES
+--------------------------------------------------
+HSD(Variety) = 1.2745
+
+--------------------------------------------------
+MEAN COMPARISON (ALL EFFECTS)
+--------------------------------------------------
+
+MAIN EFFECTS
+---------------
+
+Factor Variety
+  Mean Group
+58.500     a
+54.500     b
+50.500     c
+46.500     d
+
+--------------------------------------------------
+AGRONOMIC INTERPRETATION
+--------------------------------------------------
+RCBD INTERPRETATION
+
+Interpretation restricted to C(Variety) due to significant effect.
+Significant factors : Variety, Block.
+No interaction detected. Factors act independently.
+Best levels:
+V4.
+No specific treatment combination is statistically superior.
+
+--------------------------------------------------
+ASSUMPTION CHECK
+--------------------------------------------------
+Shapiro-Wilk normality test: p = 0.06404
+Residuals: Normally distributed
+Recommendation: assumptions satisfied
+
+==================================================
+===== factorial
+==================================================
+AGRODESIGN ANALYSIS
+==================================================
+
+FACTORIAL EXPERIMENT ANALYSIS
+Response variable: Yield
+Post-hoc test: Tukey HSD (α = 0.05)
+
+--------------------------------------------------
+ANOVA TABLE
+--------------------------------------------------
+Source                    DF     MS      F p-value Significance
+C(Nitrogen)              2.0  433.5  433.5  <0.001          ***
+C(Spacing)               1.0  112.5  112.5  <0.001          ***
+C(Nitrogen):C(Spacing)   2.0    1.5    1.5   0.262           ns
+Residual                12.0    1.0    NaN     nan           ns
+
+Highest significant effect: Nitrogen
+
+Interpretation rule:
+No interaction detected → interpret main effects
+
+--------------------------------------------------
+POST HOC TEST CRITICAL VALUES
+--------------------------------------------------
+HSD(Nitrogen) = 1.5395
+HSD(Spacing) = 1.0271
+HSD(Nitrogen:Spacing) = 2.7431
+
+--------------------------------------------------
+MEAN COMPARISON (ALL EFFECTS)
+--------------------------------------------------
+
+MAIN EFFECTS
+---------------
+
+Factor Nitrogen
+  Mean Group
+61.000     a
+52.500     b
+44.000     c
+
+Factor Spacing
+  Mean Group
+55.000     a
+50.000     b
+
+
+TWO WAY INTERACTIONS
+--------------------
+
+Nitrogen × Spacing
+Nitrogen Spacing   Mean Group
+    High    Wide 64.000     a
+    High  Narrow 58.000     b
+  Medium    Wide 55.000     c
+  Medium  Narrow 50.000     d
+     Low    Wide 46.000     e
+     Low  Narrow 42.000     f
+
+--------------------------------------------------
+AGRONOMIC INTERPRETATION
+--------------------------------------------------
+FACTORIAL INTERPRETATION
+
+Interpretation restricted to C(Nitrogen) due to significant effect.
+Significant factors : Nitrogen, Spacing.
+No interaction detected. Factors act independently.
+Best levels:
+High, Wide.
+Best combination    : High × Wide
+Expected mean       : 64.00
+Recommendation      : Adopt High × Wide for maximizing yield
+
+--------------------------------------------------
+ASSUMPTION CHECK
+--------------------------------------------------
+Shapiro-Wilk normality test: p = 0.00157
+Residuals: Not normally distributed
+Recommendation: transformation may improve model validity
+
+Levene's test for Nitrogen: p = 0.18757, Yes
+Levene's test for Spacing: p = 0.72818, Yes
+
+==================================================
+===== splitplot
+==================================================
+AGRODESIGN ANALYSIS
+==================================================
+
+SPLIT ANALYSIS
+Response variable: Yield
+Post-hoc test: Tukey HSD (α = 0.05)
+
+--------------------------------------------------
+ANOVA TABLE
+--------------------------------------------------
+Source                      DF          MS       F p-value Significance
+C(Block)                   2.0    8.111111    73.0  <0.001          ***
+C(Irrigation)              2.0  626.333333  5637.0  <0.001          ***
+C(Variety)                 2.0   90.333333   813.0  <0.001          ***
+C(Block):C(Irrigation)     4.0    0.111111     1.0   0.445           ns
+C(Irrigation):C(Variety)   4.0    1.333333    12.0  <0.001          ***
+Residual                  12.0    0.111111     NaN     nan           ns
+
+Highest significant effect: Irrigation:Variety
+
+Interpretation rule:
+Interaction detected → interpret interaction effects
+
+--------------------------------------------------
+POST HOC TEST CRITICAL VALUES
+--------------------------------------------------
+HSD(Irrigation) = 0.4190
+HSD(Variety) = 0.4190
+HSD(Irrigation:Variety) = 1.0134
+
+--------------------------------------------------
+MEAN COMPARISON (ALL EFFECTS)
+--------------------------------------------------
+
+MAIN EFFECTS
+---------------
+
+Factor Irrigation
+  Mean Group
+60.333     a
+52.667     b
+43.667     c
+
+Factor Variety
+  Mean Group
+55.333     a
+52.333     b
+49.000     c
+
+
+TWO WAY INTERACTIONS
+--------------------
+
+Irrigation × Variety
+Irrigation Variety   Mean Group
+      High      V3 64.000     a
+      High      V2 60.000     b
+      High      V1 57.000     c
+    Medium      V3 56.000     c
+    Medium      V2 53.000     d
+    Medium      V1 49.000     e
+       Low      V3 46.000     f
+       Low      V2 44.000     g
+       Low      V1 41.000     h
+
+--------------------------------------------------
+AGRONOMIC INTERPRETATION
+--------------------------------------------------
+SPLIT INTERPRETATION
+
+Interpretation restricted to C(_F1) × C(_F2) due to significant effect.
+Significant factors : _F0, _F1, _F2, _F1:_F2.
+
+--------------------------------------------------
+ASSUMPTION CHECK
+--------------------------------------------------
+Shapiro-Wilk normality test: p = 0.00000
+Residuals: Not normally distributed
+Recommendation: transformation may improve model validity
+
+==================================================
+===== mixed
+==================================================
+AGRODESIGN ANALYSIS
+==================================================
+
+MIXED MODEL ANALYSIS
+Response variable: Yield
+Post-hoc test: Tukey HSD (α = 0.05)
+
+Variance components:
+--------------------------------
+Block (random)     1.22
+Residual (random)     0.44
+
+BLUPs (Treatment effects)
+--------------------------------
+T3    54.5
+T2    48.5
+T1    41.5
+
+Normality test (Shapiro-Wilk): p = 0.30
+Residuals: Normally distributed
+
+--------------------------------------------------
+FINAL RECOMMENDATION
+--------------------------------------------------
+After adjusting for block-to-block variability,
+treatment T3 consistently produced superior yield.
+
+Farmers should adopt treatment T3 across environments.
+
+Expected improvement: +31% compared to T1
+
+==================================================
+===== gxe
+==================================================
+AGRODESIGN ANALYSIS
+==================================================
+
+GxE ANALYSIS
+Response variable: Yield
+Post-hoc test: Tukey HSD (α = 0.05)
+
+--------------------------------------------------
+ANOVA TABLE
+--------------------------------------------------
+Source                        DF          MS           F p-value Significance
+C(Genotype)                  3.0  364.458333  728.916667  <0.001          ***
+C(Environment)               3.0   42.458333   84.916667  <0.001          ***
+C(Genotype):C(Environment)   9.0    0.458333    0.916667   0.535           ns
+Residual                    16.0    0.500000         NaN     nan           ns
+
+Highest significant effect: Genotype
+
+Interpretation rule:
+No interaction detected → interpret main effects
+
+Heritability (broad sense): 0.99
+
+Genotype BLUPs
+---------------
+G4   7.7
+G3   2.7
+G2   -2.3
+G1   -8.1
+
+Stability (AMMI/IPCA1)
+----------------------
+Most stable genotype: G2
+
+Mega-environment winner
+-----------------------
+E1 → G4
+E2 → G4
+E3 → G4
+E4 → G4
+
+FINAL RECOMMENDATION
+---------------------
+G4 is the highest yielding genotype across environments.
+G2 is the most stable genotype.
+
+==================================================
+STABILITY ANALYSIS
+==================================================
+
+AMMI
+----
+Genotype          ASV
+      G2 2.038996e+16
+      G3 2.038996e+16
+      G4 2.038996e+16
+      G1 6.116987e+16
+
+AMMI Ranking
+------------
+          MeanYield     Stability  Rank
+Genotype                               
+G4            60.00  2.038996e+16   3.0
+G3            55.00  2.038996e+16   4.0
+G2            50.00  2.038996e+16   5.0
+G1            44.25  6.116987e+16   8.0
+
+Finlay-Wilkinson
+----------------
+Genotype  MeanYield       Bi     S2di       R2                      Adaptation
+      G4      60.00 0.902846 0.010795 0.998339                  Widely adapted
+      G3      55.00 0.902846 0.010795 0.998339                  Widely adapted
+      G2      50.00 0.902846 0.010795 0.998339                  Widely adapted
+      G1      44.25 1.291462 0.097154 0.992736 Responsive (high-input adapted)
+
+Eberhart-Russell
+----------------
+Genotype  MeanYield       bi     S2di   t(bi=1)  p(bi=1)       R2 Adaptation
+      G4      60.00 0.902846 0.010795 -3.731203 0.064914 0.998339   Unstable
+      G3      55.00 0.902846 0.010795 -3.731203 0.064914 0.998339   Unstable
+      G2      50.00 0.902846 0.010795 -3.731203 0.064914 0.998339   Unstable
+      G1      44.25 1.291462 0.097154  3.731203 0.064914 0.992736   Unstable
+
+Consensus Stability
+-------------------
+MeanYield                                    60.0
+ASV                           20389957185662832.0
+Bi                                       0.902846
+S2di                                     0.010795
+R2                                       0.998339
+bi                                       0.902846
+t(bi=1)                                 -3.731203
+p(bi=1)                                  0.064914
+Recommendation    Ideal genotype (widely adapted)
+
+--------------------------------------------------
+AGRONOMIC INTERPRETATION
+--------------------------------------------------
+GENOTYPE × ENVIRONMENT INTERPRETATION
+
+Significant genotypic differences detected indicating genetic variability.
+Environments differed significantly indicating strong environmental influence.
+Non-significant G×E interaction indicating stable genotype performance.
+High heritability (H²=0.99) suggesting effective selection.
+Genotype 'G4' showed highest predicted performance (BLUP=7.677) and is recommended.
+
+--------------------------------------------------
+ASSUMPTION CHECK
+--------------------------------------------------
+Shapiro-Wilk normality test: p = 0.12058
+Residuals: Normally distributed
+Recommendation: assumptions satisfied
+
+==================================================
