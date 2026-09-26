@@ -1,0 +1,20 @@
+{
+ "unrepresentable": [
+  {
+   "section": "4.1",
+   "text": "p ¡ 0.001",
+   "context": "(F = 145.33, p ¡ 0.001)",
+   "start": 25573,
+   "end": 25582,
+   "reason": "the PDF renders `<` as `¡` (a LaTeX text-mode `<` in the OT1 encoding), so the paper's own text is not a parseable bound"
+  },
+  {
+   "section": "4.2",
+   "text": "p ¡ 0.001",
+   "context": "(F = 320.00, p ¡ 0.001)",
+   "start": 27494,
+   "end": 27503,
+   "reason": "the PDF renders `<` as `¡` (a LaTeX text-mode `<` in the OT1 encoding), so the paper's own text is not a parseable bound"
+  }
+ ]
+}

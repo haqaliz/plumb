@@ -70,9 +70,15 @@ landed**: the M3 rule (`src/plumb/extract/selection.py`) scored pooled precision
 on the 73-row blind set, floored at 0.90. Read that score honestly: it is *conformance*, not
 validation — the labels were criteria-drafted from M3/M11 (owner-delegated pass), so a perfect
 score means the rule implements its criteria. Validation against third-party labels is C5's job.
-**Verdicts have been emitted on synthetic repos only**; no real paper has been verified. The
-Phase 0 gate is not met — it needs a real, public, runnable gate paper (an owner decision; none
-of the five fixtures runs offline).
+**The first real paper has run through the spine** (2026-09-26): AgroDesign, arXiv:2603.09041
+(`fixtures/gate/agrodesign/`), on its own code at a pinned tag, through C2 → C3 → C4 — 86
+rule-defined claims, **86 bound, 85 `REPRODUCED`, 1 `DIVERGED`** (a third-decimal Shapiro-Wilk
+p, `review_required`, unchanged in an environment resolved as of the code's date). **C1
+recovered 0 of the 86**: the claims are curated by a fixed rule and grounded verbatim, and that 0
+is the real extraction number. Two engine gaps it exposed were fixed test-first (`float_repr`
+bindings for shortest-repr floats; `parse_trace`). The Phase 0 gate's **number exists; its
+signed, replayable bundle (C6) does not, so the gate is not met.** Details:
+`fixtures/gate/agrodesign/README.md`.
 
 When in doubt, verify against the code and `git log` rather than this prose. Two assumptions in
 these docs have already been falsified by real papers — the interval grammar required brackets no

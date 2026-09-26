@@ -1,0 +1,692 @@
+{
+ "claims": [
+  {
+   "text": "3",
+   "metric": "Table 1 crd ANOVA Treatment DF",
+   "source": "table",
+   "context": "Treatment 3 363.333 145.333<0.001",
+   "start": 25710,
+   "end": 25711
+  },
+  {
+   "text": "363.333",
+   "metric": "Table 1 crd ANOVA Treatment MS",
+   "source": "table",
+   "context": "Treatment 3 363.333 145.333<0.001",
+   "start": 25712,
+   "end": 25719
+  },
+  {
+   "text": "145.333",
+   "metric": "Table 1 crd ANOVA Treatment F",
+   "source": "table",
+   "context": "Treatment 3 363.333 145.333<0.001",
+   "start": 25720,
+   "end": 25727
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 1 crd ANOVA Treatment p-value",
+   "source": "table",
+   "context": "Treatment 3 363.333 145.333<0.001",
+   "start": 25727,
+   "end": 25733
+  },
+  {
+   "text": "16",
+   "metric": "Table 1 crd ANOVA Residual DF",
+   "source": "table",
+   "context": "Residual 16 2.500 – –",
+   "start": 25743,
+   "end": 25745
+  },
+  {
+   "text": "2.500",
+   "metric": "Table 1 crd ANOVA Residual MS",
+   "source": "table",
+   "context": "Residual 16 2.500 – –",
+   "start": 25746,
+   "end": 25751
+  },
+  {
+   "text": "3",
+   "metric": "Table 2 rcbd ANOVA Variety DF",
+   "source": "table",
+   "context": "Variety 3 106.667 320.000<0.001",
+   "start": 27847,
+   "end": 27848
+  },
+  {
+   "text": "106.667",
+   "metric": "Table 2 rcbd ANOVA Variety MS",
+   "source": "table",
+   "context": "Variety 3 106.667 320.000<0.001",
+   "start": 27849,
+   "end": 27856
+  },
+  {
+   "text": "320.000",
+   "metric": "Table 2 rcbd ANOVA Variety F",
+   "source": "table",
+   "context": "Variety 3 106.667 320.000<0.001",
+   "start": 27857,
+   "end": 27864
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 2 rcbd ANOVA Variety p-value",
+   "source": "table",
+   "context": "Variety 3 106.667 320.000<0.001",
+   "start": 27864,
+   "end": 27870
+  },
+  {
+   "text": "3",
+   "metric": "Table 2 rcbd ANOVA Block DF",
+   "source": "table",
+   "context": "Block 3 5.667 17.000<0.001",
+   "start": 27877,
+   "end": 27878
+  },
+  {
+   "text": "5.667",
+   "metric": "Table 2 rcbd ANOVA Block MS",
+   "source": "table",
+   "context": "Block 3 5.667 17.000<0.001",
+   "start": 27879,
+   "end": 27884
+  },
+  {
+   "text": "17.000",
+   "metric": "Table 2 rcbd ANOVA Block F",
+   "source": "table",
+   "context": "Block 3 5.667 17.000<0.001",
+   "start": 27885,
+   "end": 27891
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 2 rcbd ANOVA Block p-value",
+   "source": "table",
+   "context": "Block 3 5.667 17.000<0.001",
+   "start": 27891,
+   "end": 27897
+  },
+  {
+   "text": "9",
+   "metric": "Table 2 rcbd ANOVA Residual DF",
+   "source": "table",
+   "context": "Residual 9 0.333 – –",
+   "start": 27907,
+   "end": 27908
+  },
+  {
+   "text": "0.333",
+   "metric": "Table 2 rcbd ANOVA Residual MS",
+   "source": "table",
+   "context": "Residual 9 0.333 – –",
+   "start": 27909,
+   "end": 27914
+  },
+  {
+   "text": "2",
+   "metric": "Table 3 factorial ANOVA Nitrogen DF",
+   "source": "table",
+   "context": "Nitrogen 2 433.500 433.500<0.001",
+   "start": 29598,
+   "end": 29599
+  },
+  {
+   "text": "433.500",
+   "metric": "Table 3 factorial ANOVA Nitrogen MS",
+   "source": "table",
+   "context": "Nitrogen 2 433.500 433.500<0.001",
+   "start": 29600,
+   "end": 29607
+  },
+  {
+   "text": "433.500",
+   "metric": "Table 3 factorial ANOVA Nitrogen F",
+   "source": "table",
+   "context": "Nitrogen 2 433.500 433.500<0.001",
+   "start": 29608,
+   "end": 29615
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 3 factorial ANOVA Nitrogen p-value",
+   "source": "table",
+   "context": "Nitrogen 2 433.500 433.500<0.001",
+   "start": 29615,
+   "end": 29621
+  },
+  {
+   "text": "1",
+   "metric": "Table 3 factorial ANOVA Spacing DF",
+   "source": "table",
+   "context": "Spacing 1 112.500 112.500<0.001",
+   "start": 29630,
+   "end": 29631
+  },
+  {
+   "text": "112.500",
+   "metric": "Table 3 factorial ANOVA Spacing MS",
+   "source": "table",
+   "context": "Spacing 1 112.500 112.500<0.001",
+   "start": 29632,
+   "end": 29639
+  },
+  {
+   "text": "112.500",
+   "metric": "Table 3 factorial ANOVA Spacing F",
+   "source": "table",
+   "context": "Spacing 1 112.500 112.500<0.001",
+   "start": 29640,
+   "end": 29647
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 3 factorial ANOVA Spacing p-value",
+   "source": "table",
+   "context": "Spacing 1 112.500 112.500<0.001",
+   "start": 29647,
+   "end": 29653
+  },
+  {
+   "text": "2",
+   "metric": "Table 3 factorial ANOVA Nitrogen×Spacing DF",
+   "source": "table",
+   "context": "Nitrogen×Spacing 2 1.500 1.500 0.262",
+   "start": 29671,
+   "end": 29672
+  },
+  {
+   "text": "1.500",
+   "metric": "Table 3 factorial ANOVA Nitrogen×Spacing MS",
+   "source": "table",
+   "context": "Nitrogen×Spacing 2 1.500 1.500 0.262",
+   "start": 29673,
+   "end": 29678
+  },
+  {
+   "text": "1.500",
+   "metric": "Table 3 factorial ANOVA Nitrogen×Spacing F",
+   "source": "table",
+   "context": "Nitrogen×Spacing 2 1.500 1.500 0.262",
+   "start": 29679,
+   "end": 29684
+  },
+  {
+   "text": "0.262",
+   "metric": "Table 3 factorial ANOVA Nitrogen×Spacing p-value",
+   "source": "table",
+   "context": "Nitrogen×Spacing 2 1.500 1.500 0.262",
+   "start": 29685,
+   "end": 29690
+  },
+  {
+   "text": "12",
+   "metric": "Table 3 factorial ANOVA Residual DF",
+   "source": "table",
+   "context": "Residual 12 1.000 – –",
+   "start": 29700,
+   "end": 29702
+  },
+  {
+   "text": "1.000",
+   "metric": "Table 3 factorial ANOVA Residual MS",
+   "source": "table",
+   "context": "Residual 12 1.000 – –",
+   "start": 29703,
+   "end": 29708
+  },
+  {
+   "text": "2",
+   "metric": "Table 4 splitplot ANOVA Block DF",
+   "source": "table",
+   "context": "Block 2 8.111 73.0<0.001",
+   "start": 31249,
+   "end": 31250
+  },
+  {
+   "text": "8.111",
+   "metric": "Table 4 splitplot ANOVA Block MS",
+   "source": "table",
+   "context": "Block 2 8.111 73.0<0.001",
+   "start": 31251,
+   "end": 31256
+  },
+  {
+   "text": "73.0",
+   "metric": "Table 4 splitplot ANOVA Block F",
+   "source": "table",
+   "context": "Block 2 8.111 73.0<0.001",
+   "start": 31257,
+   "end": 31261
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 4 splitplot ANOVA Block p-value",
+   "source": "table",
+   "context": "Block 2 8.111 73.0<0.001",
+   "start": 31261,
+   "end": 31267
+  },
+  {
+   "text": "2",
+   "metric": "Table 4 splitplot ANOVA Irrigation DF",
+   "source": "table",
+   "context": "Irrigation 2 626.333 5637.0<0.001",
+   "start": 31279,
+   "end": 31280
+  },
+  {
+   "text": "626.333",
+   "metric": "Table 4 splitplot ANOVA Irrigation MS",
+   "source": "table",
+   "context": "Irrigation 2 626.333 5637.0<0.001",
+   "start": 31281,
+   "end": 31288
+  },
+  {
+   "text": "5637.0",
+   "metric": "Table 4 splitplot ANOVA Irrigation F",
+   "source": "table",
+   "context": "Irrigation 2 626.333 5637.0<0.001",
+   "start": 31289,
+   "end": 31295
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 4 splitplot ANOVA Irrigation p-value",
+   "source": "table",
+   "context": "Irrigation 2 626.333 5637.0<0.001",
+   "start": 31295,
+   "end": 31301
+  },
+  {
+   "text": "2",
+   "metric": "Table 4 splitplot ANOVA Variety DF",
+   "source": "table",
+   "context": "Variety 2 90.333 813.0<0.001",
+   "start": 31310,
+   "end": 31311
+  },
+  {
+   "text": "90.333",
+   "metric": "Table 4 splitplot ANOVA Variety MS",
+   "source": "table",
+   "context": "Variety 2 90.333 813.0<0.001",
+   "start": 31312,
+   "end": 31318
+  },
+  {
+   "text": "813.0",
+   "metric": "Table 4 splitplot ANOVA Variety F",
+   "source": "table",
+   "context": "Variety 2 90.333 813.0<0.001",
+   "start": 31319,
+   "end": 31324
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 4 splitplot ANOVA Variety p-value",
+   "source": "table",
+   "context": "Variety 2 90.333 813.0<0.001",
+   "start": 31324,
+   "end": 31330
+  },
+  {
+   "text": "4",
+   "metric": "Table 4 splitplot ANOVA Block×Irrigation DF",
+   "source": "table",
+   "context": "Block×Irrigation 4 0.111 1.0 0.445",
+   "start": 31348,
+   "end": 31349
+  },
+  {
+   "text": "0.111",
+   "metric": "Table 4 splitplot ANOVA Block×Irrigation MS",
+   "source": "table",
+   "context": "Block×Irrigation 4 0.111 1.0 0.445",
+   "start": 31350,
+   "end": 31355
+  },
+  {
+   "text": "1.0",
+   "metric": "Table 4 splitplot ANOVA Block×Irrigation F",
+   "source": "table",
+   "context": "Block×Irrigation 4 0.111 1.0 0.445",
+   "start": 31356,
+   "end": 31359
+  },
+  {
+   "text": "0.445",
+   "metric": "Table 4 splitplot ANOVA Block×Irrigation p-value",
+   "source": "table",
+   "context": "Block×Irrigation 4 0.111 1.0 0.445",
+   "start": 31360,
+   "end": 31365
+  },
+  {
+   "text": "4",
+   "metric": "Table 4 splitplot ANOVA Irrigation×Variety DF",
+   "source": "table",
+   "context": "Irrigation×Variety 4 1.333 12.0<0.001",
+   "start": 31385,
+   "end": 31386
+  },
+  {
+   "text": "1.333",
+   "metric": "Table 4 splitplot ANOVA Irrigation×Variety MS",
+   "source": "table",
+   "context": "Irrigation×Variety 4 1.333 12.0<0.001",
+   "start": 31387,
+   "end": 31392
+  },
+  {
+   "text": "12.0",
+   "metric": "Table 4 splitplot ANOVA Irrigation×Variety F",
+   "source": "table",
+   "context": "Irrigation×Variety 4 1.333 12.0<0.001",
+   "start": 31393,
+   "end": 31397
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 4 splitplot ANOVA Irrigation×Variety p-value",
+   "source": "table",
+   "context": "Irrigation×Variety 4 1.333 12.0<0.001",
+   "start": 31397,
+   "end": 31403
+  },
+  {
+   "text": "12",
+   "metric": "Table 4 splitplot ANOVA Residual DF",
+   "source": "table",
+   "context": "Residual 12 0.111 – –",
+   "start": 31413,
+   "end": 31415
+  },
+  {
+   "text": "0.111",
+   "metric": "Table 4 splitplot ANOVA Residual MS",
+   "source": "table",
+   "context": "Residual 12 0.111 – –",
+   "start": 31416,
+   "end": 31421
+  },
+  {
+   "text": "3",
+   "metric": "Table 7 gxe ANOVA Genotype DF",
+   "source": "table",
+   "context": "Genotype 3 364.458 728.917<0.001",
+   "start": 35182,
+   "end": 35183
+  },
+  {
+   "text": "364.458",
+   "metric": "Table 7 gxe ANOVA Genotype MS",
+   "source": "table",
+   "context": "Genotype 3 364.458 728.917<0.001",
+   "start": 35184,
+   "end": 35191
+  },
+  {
+   "text": "728.917",
+   "metric": "Table 7 gxe ANOVA Genotype F",
+   "source": "table",
+   "context": "Genotype 3 364.458 728.917<0.001",
+   "start": 35192,
+   "end": 35199
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 7 gxe ANOVA Genotype p-value",
+   "source": "table",
+   "context": "Genotype 3 364.458 728.917<0.001",
+   "start": 35199,
+   "end": 35205
+  },
+  {
+   "text": "3",
+   "metric": "Table 7 gxe ANOVA Environment DF",
+   "source": "table",
+   "context": "Environment 3 42.458 84.917<0.001",
+   "start": 35218,
+   "end": 35219
+  },
+  {
+   "text": "42.458",
+   "metric": "Table 7 gxe ANOVA Environment MS",
+   "source": "table",
+   "context": "Environment 3 42.458 84.917<0.001",
+   "start": 35220,
+   "end": 35226
+  },
+  {
+   "text": "84.917",
+   "metric": "Table 7 gxe ANOVA Environment F",
+   "source": "table",
+   "context": "Environment 3 42.458 84.917<0.001",
+   "start": 35227,
+   "end": 35233
+  },
+  {
+   "text": "<0.001",
+   "metric": "Table 7 gxe ANOVA Environment p-value",
+   "source": "table",
+   "context": "Environment 3 42.458 84.917<0.001",
+   "start": 35233,
+   "end": 35239
+  },
+  {
+   "text": "9",
+   "metric": "Table 7 gxe ANOVA Genotype×Environment DF",
+   "source": "table",
+   "context": "Genotype×Environment 9 0.458 0.917 0.535",
+   "start": 35261,
+   "end": 35262
+  },
+  {
+   "text": "0.458",
+   "metric": "Table 7 gxe ANOVA Genotype×Environment MS",
+   "source": "table",
+   "context": "Genotype×Environment 9 0.458 0.917 0.535",
+   "start": 35263,
+   "end": 35268
+  },
+  {
+   "text": "0.917",
+   "metric": "Table 7 gxe ANOVA Genotype×Environment F",
+   "source": "table",
+   "context": "Genotype×Environment 9 0.458 0.917 0.535",
+   "start": 35269,
+   "end": 35274
+  },
+  {
+   "text": "0.535",
+   "metric": "Table 7 gxe ANOVA Genotype×Environment p-value",
+   "source": "table",
+   "context": "Genotype×Environment 9 0.458 0.917 0.535",
+   "start": 35275,
+   "end": 35280
+  },
+  {
+   "text": "16",
+   "metric": "Table 7 gxe ANOVA Residual DF",
+   "source": "table",
+   "context": "Residual 16 0.500 – –",
+   "start": 35290,
+   "end": 35292
+  },
+  {
+   "text": "0.500",
+   "metric": "Table 7 gxe ANOVA Residual MS",
+   "source": "table",
+   "context": "Residual 16 0.500 – –",
+   "start": 35293,
+   "end": 35298
+  },
+  {
+   "text": "1.22",
+   "metric": "Table 5 mixed variance component Block",
+   "source": "table",
+   "context": "Block (random) 1.22",
+   "start": 33094,
+   "end": 33098
+  },
+  {
+   "text": "0.44",
+   "metric": "Table 5 mixed variance component Residual",
+   "source": "table",
+   "context": "Residual (random) 0.44",
+   "start": 33117,
+   "end": 33121
+  },
+  {
+   "text": "54.5",
+   "metric": "Table 6 mixed BLUP T3",
+   "source": "table",
+   "context": "T3 54.5",
+   "start": 33576,
+   "end": 33580
+  },
+  {
+   "text": "48.5",
+   "metric": "Table 6 mixed BLUP T2",
+   "source": "table",
+   "context": "T2 48.5",
+   "start": 33584,
+   "end": 33588
+  },
+  {
+   "text": "41.5",
+   "metric": "Table 6 mixed BLUP T1",
+   "source": "table",
+   "context": "T1 41.5",
+   "start": 33592,
+   "end": 33596
+  },
+  {
+   "text": "7.7",
+   "metric": "Table 8 gxe BLUP G4",
+   "source": "table",
+   "context": "G4 7.7",
+   "start": 35381,
+   "end": 35384
+  },
+  {
+   "text": "2.7",
+   "metric": "Table 8 gxe BLUP G3",
+   "source": "table",
+   "context": "G3 2.7",
+   "start": 35388,
+   "end": 35391
+  },
+  {
+   "text": "-2.3",
+   "metric": "Table 8 gxe BLUP G2",
+   "source": "table",
+   "context": "G2 -2.3",
+   "start": 35395,
+   "end": 35399
+  },
+  {
+   "text": "-8.1",
+   "metric": "Table 8 gxe BLUP G1",
+   "source": "table",
+   "context": "G1 -8.1",
+   "start": 35403,
+   "end": 35407
+  },
+  {
+   "text": "145.33",
+   "metric": "§4.1 CRD Treatment F (prose)",
+   "source": "prose",
+   "context": "(F = 145.33, p ¡ 0.001)",
+   "start": 25565,
+   "end": 25571
+  },
+  {
+   "text": "0.034",
+   "metric": "§4.1 CRD Shapiro-Wilk p (prose)",
+   "source": "prose",
+   "context": "(p-value = 0.034)",
+   "start": 26862,
+   "end": 26867
+  },
+  {
+   "text": "320.00",
+   "metric": "§4.2 RCBD Variety F (prose)",
+   "source": "prose",
+   "context": "(F = 320.00, p ¡ 0.001)",
+   "start": 27486,
+   "end": 27492
+  },
+  {
+   "text": "0.064",
+   "metric": "§4.2 RCBD Shapiro-Wilk p (prose)",
+   "source": "prose",
+   "context": "(Shapiro-Wilk test p-value = 0.064)",
+   "start": 28647,
+   "end": 28652
+  },
+  {
+   "text": "1.50",
+   "metric": "§4.3 factorial interaction F (prose)",
+   "source": "prose",
+   "context": "(F = 1.50, p = 0.262)",
+   "start": 29217,
+   "end": 29221
+  },
+  {
+   "text": "0.262",
+   "metric": "§4.3 factorial interaction p (prose)",
+   "source": "prose",
+   "context": "(F = 1.50, p = 0.262)",
+   "start": 29227,
+   "end": 29232
+  },
+  {
+   "text": "0.0016",
+   "metric": "§4.3 factorial Shapiro-Wilk p (prose)",
+   "source": "prose",
+   "context": "p-value = 0.0016)",
+   "start": 30402,
+   "end": 30408
+  },
+  {
+   "text": "12.0",
+   "metric": "§4.4 split-plot Irrigation×Variety F (prose)",
+   "source": "prose",
+   "context": "(F= 12.0, p <0.001)",
+   "start": 31142,
+   "end": 31146
+  },
+  {
+   "text": "p <0.001",
+   "metric": "§4.4 split-plot Irrigation×Variety p (prose)",
+   "source": "prose",
+   "context": "(F= 12.0, p <0.001)",
+   "start": 31148,
+   "end": 31156
+  },
+  {
+   "text": "0.535",
+   "metric": "§4.6 G×E interaction p (prose)",
+   "source": "prose",
+   "context": "(p = 0.535)",
+   "start": 34829,
+   "end": 34834
+  },
+  {
+   "text": "0.121",
+   "metric": "§4.6 G×E Shapiro-Wilk p (prose)",
+   "source": "prose",
+   "context": "(p = 0.121)",
+   "start": 36354,
+   "end": 36359
+  }
+ ]
+}

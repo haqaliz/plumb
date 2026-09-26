@@ -52,7 +52,7 @@ from plumb.run.causes import (
 )
 from plumb.run.entrypoint import EntryPoint, resolve_entrypoint
 from plumb.run.runner import RunFailure, RunResult, run_entrypoint
-from plumb.run.trace import RunTrace, build_trace, derive_run_id, serialize_trace
+from plumb.run.trace import RunTrace, build_trace, derive_run_id, parse_trace, serialize_trace
 
 __all__ = [
     "NO_ARTIFACT",
@@ -71,6 +71,7 @@ __all__ = [
     "build_trace",
     "capture_outputs",
     "derive_run_id",
+    "parse_trace",
     "resolve_entrypoint",
     "run_and_capture",
     "run_entrypoint",

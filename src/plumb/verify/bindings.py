@@ -10,7 +10,8 @@ The file is JSON::
                  | {"kind": "stdout_regex", "pattern": "AUC = (\\S+)"}
                  | {"kind": "csv_cell", "column": "auc", "row": {"model": "A"}},
        "tolerance": {"abs": "0.01"} | {"rel": "0.05"},   # optional
-       "scale": "100"}                                    # optional
+       "scale": "100",                                    # optional
+       "float_repr": true}                                # optional
     ]}
 
 **Two kinds of refusal.** Anything that makes the *file* untrustworthy raises
@@ -24,6 +25,15 @@ well-formed but unusable — a pointer that is not RFC 6901, a regex that does n
 compile or lacks exactly one group, a CSV selector without exactly one key, or a
 locator aimed at the wrong artifact kind — only sets `Binding.invalid`, and that
 one claim is `UNVERIFIED: BINDING_INVALID`.
+
+**`float_repr` declares how the artifact wrote its numbers.** pandas' `to_csv` and
+`json.dumps` write a binary64 as its *shortest round-trip repr*: the exact value 2.5 comes out
+as `2.5`. Those digits are not a rounding, so reading them as the artifact's written precision
+would make a paper's `2.500` look finer than the run and turn an exact match into
+`ARTIFACT_PRECISION_COARSER`. With `"float_repr": true` the located value is taken as the
+program's exact double (half-unit 0). It is never inferred — a number formatted with `%.3f` is
+a rounding and must not carry the flag — so the binding states it, and the committed bindings
+file is where it is audited. It must be a JSON boolean.
 """
 
 from __future__ import annotations
@@ -80,9 +90,10 @@ class Binding:
     tolerance: Tolerance | None
     scale: Decimal | None
     invalid: str | None
+    float_repr: bool = False
 
 
-_ENTRY_FIELDS = {"claim_id", "artifact", "locator", "tolerance", "scale"}
+_ENTRY_FIELDS = {"claim_id", "artifact", "locator", "tolerance", "scale", "float_repr"}
 _LOCATOR_FIELDS = {
     "json_pointer": {"kind", "pointer"},
     "stdout_regex": {"kind", "pattern"},
@@ -155,6 +166,9 @@ def _binding(index: int, item: Any, known: set[str]) -> Binding:
     if artifact == STDERR:
         raise BindingInvalid(f"{where}: stderr is diagnostic-only and is never bound")
 
+    float_repr = item.get("float_repr", False)
+    if not isinstance(float_repr, bool):
+        raise BindingInvalid(f"{where}: float_repr must be true or false")
     locator, invalid = _locator(where, item.get("locator"))
     mismatch = _kind_mismatch(artifact, locator)
     return Binding(
@@ -164,6 +178,7 @@ def _binding(index: int, item: Any, known: set[str]) -> Binding:
         tolerance=_tolerance(where, item.get("tolerance")),
         scale=_scale(where, item.get("scale")),
         invalid=invalid or mismatch,
+        float_repr=float_repr,
     )
 
 

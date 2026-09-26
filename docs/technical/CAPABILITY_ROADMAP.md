@@ -127,7 +127,8 @@ back-dated file and a `cp -p` of a committed result are all caught, and a mutati
 empty stdout is `NO_ARTIFACT`. All offline-tested with local programs. **Not built:** notebook
 cell capture (needs nbconvert — named follow-on), resource caps beyond the timeout, and
 container isolation. C4's first slice (2026-09-25) consumes the trace and capture; verdicts
-have been emitted on synthetic repos only, so **the Phase 0 gate is not met**.
+ran on a real paper for the first time on 2026-09-26 (AgroDesign, see C4); the Phase 0 gate
+still needs C6's bundle.
 
 ## C4. Claim↔artifact binding & re-derivation verdict — **the moat**
 
@@ -166,10 +167,18 @@ summary derived from the records, serialized canonically (byte-identical across 
   mutation-checked in-suite; every `DIVERGED` carries `review_required`. A catalogue test
   proves every cause in the closed vocabulary is emitted.
 
-**Not built:** a real gate paper through the spine (owner decision; none of the five fixtures
-runs offline), a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved),
+**First real paper (2026-09-26):** AgroDesign, arXiv:2603.09041 (`fixtures/gate/agrodesign/`;
+survey and PRD in `docs/planning/gate-paper/`). 86 rule-defined claims (curated, grounded
+verbatim — C1 recovered 0), **86 bound, 85 `REPRODUCED`, 1 `DIVERGED`**, 0 changed in an
+environment resolved as of the code's date; the verdicts replay offline from the committed
+trace and objects. Two engine gaps it exposed, fixed test-first: bindings may declare
+`"float_repr": true` (pandas and `json` write the exact 2.5 as `2.5`, which is not a rounding —
+without it the paper's `2.500` was a false `ARTIFACT_PRECISION_COARSER`), and `parse_trace`
+reads a `RunTrace` back.
+
+**Not built:** the signed bundle (C6), so the gate is not met; a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved),
 comparison of `PlusMinus`/`Interval`/`Range`/`Approximate`, notebook-cell locators, the
-`plumb verify` CLI. **The Phase 0 gate is not met.**
+`plumb verify` CLI. **The Phase 0 gate's number exists; the gate is not met until C6.**
 
 ## C5. Discrepancy corpus & calibration benchmark
 

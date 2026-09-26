@@ -1,8 +1,11 @@
 """The RunTrace record: what actually happened, deterministically (R4).
 
 `build_trace(checkout, result, capture)` folds one run into a `RunTrace` — the
-"what ran" record C4 binds against and C6 will bundle — and `serialize_trace`
-renders it as a single canonical JSON line.
+"what ran" record C4 binds against and C6 will bundle — `serialize_trace`
+renders it as a single canonical JSON line, and `parse_trace` reads that line
+back into the identical record (offline replay starts from the committed bytes,
+not from a live run). `parse_trace` recomputes the run id and refuses a record
+whose id does not match its own argv, tree hash and artifact hashes.
 
 **No run-side absolute paths.** The run dir, the working copy and the
 checkout's location stay on the user's compute; the record carries the
@@ -34,7 +37,7 @@ from plumb.intake.tree import TreeHash
 from plumb.run.capture import Artifact, Capture, StaleOutput
 from plumb.run.runner import RunFailure, RunResult
 
-__all__ = ["RunTrace", "build_trace", "derive_run_id", "serialize_trace"]
+__all__ = ["RunTrace", "build_trace", "derive_run_id", "parse_trace", "serialize_trace"]
 
 _JSON = {
     "sort_keys": True,
@@ -126,3 +129,58 @@ def _document(trace: RunTrace) -> dict[str, Any]:
         ],
         "causes": list(trace.causes),
     }
+
+
+def parse_trace(data: bytes) -> RunTrace:
+    """The `RunTrace` that `serialize_trace` wrote as `data`; anything else is refused."""
+    try:
+        doc = json.loads(data.decode("utf-8"))
+        failure = doc["failure"]
+        trace = RunTrace(
+            run_id=_typed(doc["run_id"], str),
+            tree_hash=TreeHash(
+                scheme=_typed(doc["tree_hash"]["scheme"], str),
+                digest=_typed(doc["tree_hash"]["digest"], str),
+            ),
+            argv=tuple(_typed(arg, str) for arg in doc["argv"]),
+            entrypoint_source=_typed(doc["entrypoint_source"], str),
+            cwd=_typed(doc["cwd"], str),
+            env_policy=_typed(doc["env_policy"], str),
+            timeout_seconds=doc["timeout_seconds"],
+            started_at_ns=_typed(doc["started_at_ns"], int),
+            exit_code=doc["exit_code"],
+            failure=None if failure is None else RunFailure(
+                cause=_typed(failure["cause"], str), detail=_typed(failure["detail"], str)
+            ),
+            artifacts=tuple(
+                Artifact(
+                    kind=_typed(a["kind"], str),
+                    relpath=_typed(a["relpath"], str),
+                    sha256=_typed(a["sha256"], str),
+                    size=_typed(a["size"], int),
+                    mtime_ns=a["mtime_ns"],
+                    diagnostic_only=_typed(a["diagnostic_only"], bool),
+                )
+                for a in doc["artifacts"]
+            ),
+            stale=tuple(
+                StaleOutput(
+                    relpath=_typed(s["relpath"], str),
+                    mtime_ns=_typed(s["mtime_ns"], int),
+                    size=_typed(s["size"], int),
+                )
+                for s in doc["stale"]
+            ),
+            causes=tuple(_typed(c, str) for c in doc["causes"]),
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        raise ValueError(f"not a serialized RunTrace: {exc!r}") from None
+    if derive_run_id(trace.argv, trace.tree_hash, trace.artifacts) != trace.run_id:
+        raise ValueError("run_id does not match the trace's argv, tree hash and artifacts")
+    return trace
+
+
+def _typed(value: Any, kind: type) -> Any:
+    if not isinstance(value, kind) or (kind is int and isinstance(value, bool)):
+        raise TypeError(f"expected {kind.__name__}, got {type(value).__name__}")
+    return value

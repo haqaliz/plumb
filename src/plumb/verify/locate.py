@@ -24,6 +24,9 @@ duplicated object key *anywhere* in the document: the standard parser cannot
 say whether the duplicate sits on the pointer's path, so the conservative
 reading is that the document is ambiguous.
 
+**Written precision** is the located text's last digit, unless the binding declares
+`float_repr` — then the half-unit is 0 (see `plumb.verify.bindings`).
+
 **No float.** A JSON number reaches `strict_decimal` as the literal text the run
 wrote, so `0.870` keeps its three places and nothing passes through a binary
 approximation. NaN and Infinity are refused, as is any leaf that is not a number
@@ -93,18 +96,20 @@ def locate(binding: Binding, capture: Capture) -> Located | Unlocated:
         found = _csv(data, locator)
     if isinstance(found, Unlocated):
         return found
-    return _number(found, artifact)
+    return _number(found, artifact, exact=binding.float_repr)
 
 
 def _stale_target(binding: Binding, capture: Capture) -> bool:
     return binding.artifact in {s.relpath for s in capture.stale}
 
 
-def _number(text: str, artifact: Artifact) -> Located | Unlocated:
+def _number(text: str, artifact: Artifact, *, exact: bool) -> Located | Unlocated:
     value = strict_decimal(text)
     if value is None:
         return Unlocated(UNPARSEABLE_VALUE, f"{text!r} in {artifact.relpath} is not a number")
-    return Located(text, value, half_unit(value), artifact.relpath, artifact.sha256)
+    # A shortest round-trip float repr is the program's exact double, not a rounding.
+    precision = Decimal(0) if exact else half_unit(value)
+    return Located(text, value, precision, artifact.relpath, artifact.sha256)
 
 
 # --------------------------------------------------------------------------------

@@ -215,3 +215,22 @@ class TestTargets:
         (capture.store / artifact.sha256).write_bytes(b'{"auc": 0.95}')
         with pytest.raises(ValueError, match="does not match its hash"):
             locate(pointer("/auc"), capture)
+
+
+class TestFloatRepr:
+    """A shortest-repr float is the program's exact double, not a rounding (gate-paper G1)."""
+
+    def test_a_float_repr_binding_locates_with_zero_half_unit(self, tmp_path: Path) -> None:
+        raw_bindings = json.dumps({"bindings": [{
+            "claim_id": "c", "artifact": "results.json",
+            "locator": {"kind": "json_pointer", "pointer": "/ms"}, "float_repr": True,
+        }]}).encode()
+        binding = load_bindings(raw_bindings, ["c"])["c"]
+        located = locate(binding, json_run(tmp_path, '{"ms": 2.5}'))
+        assert located.text == "2.5"
+        assert located.value == Decimal("2.5")
+        assert located.half_unit == 0
+
+    def test_without_the_flag_the_written_digits_are_the_precision(self, tmp_path: Path) -> None:
+        located = locate(pointer("/ms"), json_run(tmp_path, '{"ms": 2.5}'))
+        assert located.half_unit == Decimal("0.05")
