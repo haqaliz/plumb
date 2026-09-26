@@ -10,7 +10,7 @@ reading claims back could not construct `Claim`s outside the admission gate
 (`test_admit.py`), so `parse_claims` returns records and `readmit` re-admits them against the
 paper — which makes the paper **required at verification** (bundled, or supplied and checked
 against its SHA-256). The committed AgroDesign bundle includes it (CC BY). Gate conditions: 1 and
-2 met; 3 (owner review of the `DIVERGED`) outstanding.
+2 met; 3 met on 2026-09-27 — the owner reviewed the `DIVERGED` and confirmed it.
 
 ## Problem Statement
 

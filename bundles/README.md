@@ -54,4 +54,6 @@ produces the bundled outputs, and that 85 of the paper's 86 rule-defined claims 
 them within the paper's written precision; one (`§4.1` Shapiro-Wilk p, reported 0.034, computed
 0.03455) does not. That is a discrepancy against the paper's own artifact, flagged
 `review_required` — not a statement that the paper's conclusions are wrong, and not a
-misconduct claim. The bundle has not been published or sent to the author.
+misconduct claim. The owner reviewed it on 2026-09-27 and confirmed it as a genuine reporting
+discrepancy; the review is recorded here rather than inside the signed bundle, which is
+unchanged. The bundle has not been published or sent to the author.

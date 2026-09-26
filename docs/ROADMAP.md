@@ -26,10 +26,11 @@ finding.
   86 bound, 85 `REPRODUCED`, 1 `DIVERGED`; `fixtures/gate/agrodesign/`.)*
 - **Gate:** at least one real, reproducible `DIVERGED` (or a clean panel of `REPRODUCED`) with a
   bundle a third party can replay. If C4 can't clear a conservative false-positive bar, stop and
-  rethink before building further. **Status (2026-09-27):** the panel is real and reproducible (85 `REPRODUCED`, 1 `DIVERGED`),
-  signed (`bundles/agrodesign/`), verified offline, and its run replayed byte-identical from a
-  clean clone (`bundles/README.md`). **Outstanding: the owner's review of the `DIVERGED`** before
-  the gate is declared met.
+  rethink before building further. **Status (2026-09-27): met.** The panel is real and reproducible (85 `REPRODUCED`,
+  1 `DIVERGED`), signed (`bundles/agrodesign/`), verified offline, and its run replayed
+  byte-identical from a clean clone (`bundles/README.md`). The `DIVERGED` was reviewed by the owner on 2026-09-27 and confirmed as a genuine reporting discrepancy (the paper's 0.034 against its own code's 0.03455).
+  Met on one paper: coverage across papers (R1) is still unmeasured, and C1 recovered 0/86
+  of its claims.
 
 ## Phase 1 — OSS core (months 1–2)
 

@@ -74,7 +74,9 @@ to the author (R4; contacting the author is an owner decision).
    dataset, prints `p = 0.03455`, which rounds to 0.035. The paper's value looks truncated
    rather than rounded. It is a third-decimal reporting discrepancy, it does not change the
    stated conclusion ("a slight violation of normality"), and it is identical in an environment
-   resolved as of the pinned code's date — so it is not environment drift.
+   resolved as of the pinned code's date — so it is not environment drift. **Reviewed by the
+   owner on 2026-09-27 and confirmed as a genuine reporting discrepancy** (R2's human review).
+   The signed verdict keeps `review_required`; the review is recorded here, beside it.
 2. **The documented workflow cannot complete as written.** The paper's appendix runs
    `result = Experiment(...).run()` then `result.export("results")`. With the default
    `plots=True`, `export()` raises `AttributeError: 'NoneType' object has no attribute

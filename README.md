@@ -11,8 +11,8 @@ surfacing the claims that do not hold.
 Status: **early.** The deterministic extraction spine, the C2 artifact-intake spine, the C3
 run spine and the first C4 binding & verdict slice exist and are tested (offline). The first
 real paper has been run through the spine end to end (below). The Its signed, replayable bundle
-(C6) is built and its run replays byte-identical from a clean clone; the Phase 0 gate waits
-only on the owner's review of the one `DIVERGED`.
+(C6) is built and its run replays byte-identical from a clean clone; with the owner's review of
+its one `DIVERGED`, the **Phase 0 gate is met** — on one paper.
 
 ```
 uv sync && uv run pytest        # 1489 tests, no network, one pinned runtime dependency (pypdf)

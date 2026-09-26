@@ -128,7 +128,8 @@ empty stdout is `NO_ARTIFACT`. All offline-tested with local programs. **Not bui
 cell capture (needs nbconvert — named follow-on), resource caps beyond the timeout, and
 container isolation. C4's first slice (2026-09-25) consumes the trace and capture; verdicts
 ran on a real paper for the first time on 2026-09-26 (AgroDesign, see C4); the Phase 0 gate
-now has its signed bundle (C6, 2026-09-27); it waits on the owner's review of the `DIVERGED`.
+now has its signed bundle (C6, 2026-09-27), and with the owner's review of the `DIVERGED` the
+Phase 0 gate is met.
 
 ## C4. Claim↔artifact binding & re-derivation verdict — **the moat**
 
@@ -178,7 +179,7 @@ reads a `RunTrace` back.
 
 **Not built:** a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved),
 comparison of `PlusMinus`/`Interval`/`Range`/`Approximate`, notebook-cell locators, the
-`plumb verify` CLI. **The Phase 0 gate's number and bundle exist; the gate waits on the owner's review of the one `DIVERGED`.**
+`plumb verify` CLI. **The Phase 0 gate is met (2026-09-27), on one paper.**
 
 ## C5. Discrepancy corpus & calibration benchmark
 
