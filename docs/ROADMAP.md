@@ -26,9 +26,10 @@ finding.
   86 bound, 85 `REPRODUCED`, 1 `DIVERGED`; `fixtures/gate/agrodesign/`.)*
 - **Gate:** at least one real, reproducible `DIVERGED` (or a clean panel of `REPRODUCED`) with a
   bundle a third party can replay. If C4 can't clear a conservative false-positive bar, stop and
-  rethink before building further. **Status (2026-09-26): number produced; bundle pending (C6).**
-  The panel is real and reproducible (85 `REPRODUCED`, 1 `DIVERGED` held for review), and its
-  verdict step replays offline from committed evidence — but the signed, run-level replay is C6.
+  rethink before building further. **Status (2026-09-27):** the panel is real and reproducible (85 `REPRODUCED`, 1 `DIVERGED`),
+  signed (`bundles/agrodesign/`), verified offline, and its run replayed byte-identical from a
+  clean clone (`bundles/README.md`). **Outstanding: the owner's review of the `DIVERGED`** before
+  the gate is declared met.
 
 ## Phase 1 — OSS core (months 1–2)
 

@@ -46,7 +46,7 @@ from dataclasses import dataclass
 import re
 from typing import Final
 
-from plumb.extract.candidates import Candidate, extract_candidates
+from plumb.extract.candidates import SECTION_OTHER, Candidate, extract_candidates
 from plumb.extract.claim import Claim
 from plumb.extract.location import CharSpan, Location, normalize_text
 from plumb.extract.ordering import location_sort_key
@@ -62,6 +62,7 @@ __all__ = [
     "NON_CLAIM_CAUSES",
     "NonClaim",
     "admit",
+    "readmit",
     "study_parameters",
 ]
 
@@ -428,6 +429,43 @@ def admit(
         artifact_hint=artifact_hint,
         tolerance_hint=tolerance_hint,
     )
+
+
+def readmit(records, *, normalized_text: str) -> tuple[Claim, ...]:
+    """Serialized claim records back to `Claim`s — through this gate, never around it.
+
+    A document read from disk (a C6 bundle) is data, not a claim: each record is turned into
+    a `Candidate` at its recorded span and **admitted again** against `normalized_text`, so
+    it must be grounded verbatim in the paper exactly as a fresh extraction would. The
+    candidate's `context` is the record's own line of the paper; its `section_hint` is
+    `other`, the vocabulary's honest default (the gate does not read it). The admitted
+    claim must then equal the record — same id (recomputed from its content) and the same
+    parsed value — or the document lied about the paper.
+
+    Raises `ValueError` naming the record on any refusal or mismatch: a bundle whose claims
+    do not re-admit is refused whole, not partly believed.
+    """
+    claims = []
+    for record in records:
+        span = record.location
+        line_start = normalized_text.rfind("\n", 0, span.start) + 1
+        line_end = normalized_text.find("\n", span.end)
+        context = normalized_text[line_start : len(normalized_text) if line_end < 0 else line_end]
+        candidate = Candidate(
+            text=record.reported_value.text, span=span, context=context,
+            section_hint=SECTION_OTHER,
+        )
+        result = admit(
+            candidate, normalized_text=normalized_text, metric=record.metric,
+            units=record.units, artifact_hint=record.artifact_hint,
+            tolerance_hint=record.tolerance_hint,
+        )
+        if isinstance(result, NonClaim):
+            raise ValueError(f"claim {record.id} does not re-admit: {result.cause}")
+        if result.id != record.id or result.reported_value != record.reported_value:
+            raise ValueError(f"claim {record.id} does not match what the paper says at its span")
+        claims.append(result)
+    return tuple(claims)
 
 
 def study_parameters(raw: str) -> tuple[StudyParameter, ...]:

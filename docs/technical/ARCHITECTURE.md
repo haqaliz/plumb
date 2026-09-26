@@ -141,7 +141,7 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   declare `"float_repr": true` when the artifact writes shortest round-trip floats (pandas,
   `json`): the located value is then the program's exact double, not a rounding (added
   2026-09-26 for the first real paper, `fixtures/gate/agrodesign/`: 86 bound, 85 `REPRODUCED`,
-  1 `DIVERGED`). The Phase 0 gate still needs C6.
+  1 `DIVERGED`), now signed and replayed as a C6 bundle.
 
 ### C5 — Discrepancy corpus (`src/plumb/corpus/`)
 
@@ -157,6 +157,12 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   per-claim verdicts, such that a third party can **replay** and reach the same verdicts.
 - Only what the user chooses to publish is included — hashes, verdicts, and the method, not raw
   data (constraint #2).
+- **Status (2026-09-27, first slice):** built — a hash-listed directory signed with
+  `ssh-keygen -Y` (SSHSIG, Ed25519, namespace `plumb-bundle-v1`); only bound outputs, never
+  stderr; verification re-checks the signature first, then members, refused content, the
+  claims' re-admission against the paper, and the re-derived verdicts. A run-level replay
+  (`tools/bundle_replay.py`) re-runs from a clean clone in the frozen environment; drift is
+  reported as `UNVERIFIED`, never `DIVERGED`. Details: `docs/planning/signed-bundle/prd.md`.
 
 ### C7 — Internal-consistency checks (`src/plumb/consistency/`)
 
@@ -191,7 +197,9 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
 
 ## Open questions (resolve as code lands)
 
-- Signing scheme for the C6 bundle (sigstore-style vs a simpler detached signature).
+- Signing scheme for the C6 bundle — **resolved for the first slice (2026-09-27):** a detached
+  SSHSIG via `ssh-keygen -Y` (no dependency; the verifier supplies its own allowed-signers).
+  Sigstore-style transparency is a later slice.
 - Isolation default for running untrusted repo code (container vs lighter sandbox). **First
   slice (decided 2026-09-22):** a subprocess on the user's compute with a scrubbed env (secret-
   bearing variables removed), cwd = checkout, a timeout, and no network beyond the recorded env

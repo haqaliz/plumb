@@ -128,7 +128,7 @@ empty stdout is `NO_ARTIFACT`. All offline-tested with local programs. **Not bui
 cell capture (needs nbconvert — named follow-on), resource caps beyond the timeout, and
 container isolation. C4's first slice (2026-09-25) consumes the trace and capture; verdicts
 ran on a real paper for the first time on 2026-09-26 (AgroDesign, see C4); the Phase 0 gate
-still needs C6's bundle.
+now has its signed bundle (C6, 2026-09-27); it waits on the owner's review of the `DIVERGED`.
 
 ## C4. Claim↔artifact binding & re-derivation verdict — **the moat**
 
@@ -176,9 +176,9 @@ trace and objects. Two engine gaps it exposed, fixed test-first: bindings may de
 without it the paper's `2.500` was a false `ARTIFACT_PRECISION_COARSER`), and `parse_trace`
 reads a `RunTrace` back.
 
-**Not built:** the signed bundle (C6), so the gate is not met; a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved),
+**Not built:** a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved),
 comparison of `PlusMinus`/`Interval`/`Range`/`Approximate`, notebook-cell locators, the
-`plumb verify` CLI. **The Phase 0 gate's number exists; the gate is not met until C6.**
+`plumb verify` CLI. **The Phase 0 gate's number and bundle exist; the gate waits on the owner's review of the one `DIVERGED`.**
 
 ## C5. Discrepancy corpus & calibration benchmark
 
@@ -201,6 +201,26 @@ defensible and `REPRODUCED` auditable.
 
 **Depends on:** C4. **Guardrail:** constraints #2, #3 — only what the user chooses to publish is
 in the bundle; the bundle is the evidence, not an accusation.
+
+**Status (2026-09-27, first slice):** built under `src/plumb/bundle/` (PRD:
+`docs/planning/signed-bundle/prd.md`). A bundle is a directory: `manifest.json` (format
+`plumb-bundle/1`, paper identity, source + tree hash, run id, signer, every member's path /
+SHA-256 / size) and its detached SSHSIG `manifest.sig` (`ssh-keygen -Y`, namespace
+`plumb-bundle-v1`, Ed25519 — deterministic, no crypto dependency), plus the claims, bindings,
+trace, verdicts, frozen environment, **only the outputs a binding reads** (never stderr), and
+optionally the paper. `build_bundle` re-derives the verdicts itself and refuses to sign anything
+`verify_bundle` would reject. `verify_bundle` checks the signature before reading anything
+unsigned, then members, structure, refused content (local paths, stderr, outputs the run did not
+produce), the claims — **re-admitted against the paper through the admission gate**
+(`plumb.extract.admit.readmit`; `parse_claims` returns records, so reading bytes is never a
+second door to `Claim`) — and the re-derived verdicts, reporting 11 named causes and never
+raising on content. Because claims are re-grounded, verification needs the paper: bundled, or
+supplied by the verifier and checked against its SHA-256. **The AgroDesign bundle**
+(`bundles/agrodesign/`, signed with the dedicated `plumb-bundle` key; public key in
+`bundles/allowed_signers`) verifies, including from a fresh clone, and
+`tools/bundle_replay.py` re-ran it from a clean clone in the frozen environment with a
+byte-identical run id. **Not built:** transparency logs / sigstore, timestamps, key rotation,
+tar packaging, a `plumb bundle` CLI.
 
 ## C7. Internal-consistency checks (no-code path)
 
