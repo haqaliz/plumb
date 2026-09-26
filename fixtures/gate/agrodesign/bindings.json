@@ -1,0 +1,1000 @@
+{
+ "bindings": [
+  {
+   "claim_id": "b9f69b3890b5653aee6f88c089adfd71843d5389ae5730a23b188892f4f3f85d",
+   "artifact": "results/crd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Treatment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "6c69d1940b720c55dc3341843ee9db6fbc838905fc0a6d09d07edd5fd8cbfcc8",
+   "artifact": "results/crd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Treatment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "4dd75426bcb7c19e34f4bd56c5fafc049f70a94316737a9c4b7ad6bb4804d383",
+   "artifact": "results/crd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Treatment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "685ee907b428c99672b71686abf4cf9032ae233e7281daef1ee8df610b6353ae",
+   "artifact": "results/crd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Treatment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "9d7b1ffebbf5a9d3a04491d2cafba27db345d589dc59682af8b4e98a914b7e69",
+   "artifact": "results/crd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "2d96f9a014cb741de91270c035d02ad59dff1ceab237a6df627decd1065c8861",
+   "artifact": "results/crd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "eaa89c1bd59b87f7553ccc82da402af5bbf17c3720838a30a2d30eb758d34e89",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "50b07c4d4440df5349f4565e8aba2012d9f8b8de9d23235f935149eeb94af2bf",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "09f16137bbf962456e702b6cacaad7d82aede391112e65acc2bbe102faf76b02",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "1853d2f4b4b61d29c443f897969baef0e426ecb557df4bf5055a706a982fb7c2",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "46289d515e875f90822fd0b446a9f5501f03f9fb46ec5c5afe70ad9319ec82af",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Block)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "c8078f4ce37b97ba8f20046a37b19e638173487c5b55233c1d265a2f39d07930",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Block)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "8ce0376ca5ddda24eb2c4c031bbb048c74db5169bfceb314b01f6dfc60470715",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Block)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "70e0de34530cf823bd7480872c2524fabef64c4f5d3d83de6099da577aef1d70",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Block)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "0815add8377c408cdbaaa623bcf6bfa92b92b0af76febabefb8ad271099f4463",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "2992875ea4dec8a5805af8cd311686565f435232d82d40e4eed9c6c5fd616d60",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "285341eca13b3cc7b733d56f443a242970fb25b13d5fe85c2eae1ff06ee7c5ee",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Nitrogen)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "c33341a2017f3c48c70716321995c3f59c6799b7b3419a1d8030fc705d8be792",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Nitrogen)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "5d848d604c52308567d843185b0512c8c2ce05851b727d715eac79d5babaa31c",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Nitrogen)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "74851eae1ec4a9abd9629f369a2c3ac3785f2223e3115e13d160ea4c81d7444a",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Nitrogen)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "64549f312da408d9ff438c66d43eeef00e28a0efebc9da5b70045a251f25ba64",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "c52d6af23f4e68f6f17c24cd44f990fecab742c44fba9f7fb0c19f917cff8190",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "91b85f5d2305785a119c4970d358012204a84e3bdabc635fe5904d4b330522af",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "1f8b26d25a10a6a5a9c080e854bd88b23af8acfe524ffe8946375d7011ffe85d",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "da2e3f26703859917aad97ae01365f9df34cbb7c65c4cf6a109cf31b9d859a1c",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Nitrogen):C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "ceb4f6a567ab25d34209693666efbac371376edbfa800ad7f03727244435ac62",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Nitrogen):C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "67d88815a7de400a0079a50e399c3b4d943f77dda316893a309f76714c343d29",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Nitrogen):C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "410517a07880ca00acb9d0a6b6463f463f07faa892e239cf8ae571172e48bc0c",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Nitrogen):C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "b7ab8d38ba722558c0da350465ddf627d0b743770baa1f575a44e6b9e8aa31e7",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "5a31313d4d32857813adccbf6a737b4c66a3440f17f8392e728212fa34a8c5b0",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "694a1eae4fc2382760f23a994efb368562193959ee669c710d50f088a3c891d3",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Block)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "38dd59c6e7880bc9ae74980e3fd2684cf5e1735a3b7b81ee74c1d00f1519aa96",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Block)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "442685e5ee456c8d8b4ef05df885bb295058b37020200b86e510577278deedfb",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Block)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "a1973844067bdf5485365cf6def0c328df6455bd4375d8bda355e183ea3fd34f",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Block)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "52bafad41265a34b01a79b69f5f9fdb0e94d009c5649f5fff0c453e2c54340e5",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Irrigation)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "d3ec62785237c5d61867a112853d4fc956793719280389eaff8267cff4252d22",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Irrigation)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "1ce5abdfb0d5bdc82270533115722652e8757bf5ff3868283d83a299cb2acf98",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Irrigation)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "83bd8433ea1d4cec9566609e0ff6aa86996cc7b39ca94de77c07053c009e9c22",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Irrigation)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "224a6efe2090239f1a1c525b36e907f4e349d3ab0aab22e50a906fcc990efcf8",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "82b96ba08c50c08010cbc0486cefd835576a453883564e3106d5419bd0ca0600",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "d8097b303be79f13581585014017c525723fc6b1140f8b57f3a1ffc6d9108f39",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "9199a94478c108e53f7b8abf24e03e61bb5fc1b25a65fbc9010c201f4a5d9f7a",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "dde7b453596e7a89bd73cc03fc26f59cd0f8a0a04c9c57f543da551e1d13a336",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Block):C(Irrigation)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "44108afb468110ff661294b7696e3e1b5f2ec8df15f010de4445bafc40e476a6",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Block):C(Irrigation)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "df22053b70211232912a89661b43bb9f163ee65c4bcc6c9bb8b8b16004b393e4",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Block):C(Irrigation)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "081ada3629271b8f8054291a547d4dc8305a5d0a5b6601e948c62de9e4eeb08e",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Block):C(Irrigation)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "278e976eaf1ed590b379a484aa60ea35946ce623798e0b89ab6a1f0e9eb71269",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Irrigation):C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "c3e70fec0a5b05fdb714bd5e1d64c9bd5c2ab4d01c7213761bd43a0d2fc10d51",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Irrigation):C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "1a4849224555272ff74b3c58c552fa9f06fcda8cc0d900161c4614cc437bbc64",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Irrigation):C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "d125555617ed711622ae83f1247c38998b7d03c2763b51acaf31c1323f9e7e13",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Irrigation):C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "823cf3dd29700e2844ea60b77691b696d740884c58c511115fd8d2adc4141900",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "e6c26b26a69c0347629b58d3461ca7db9612209d88967a2c1e3677b3bc99f9e0",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "6359bd298ae136375d165c3b8f9a3fcd872ccae7daf3803cb71e421ac8e21f71",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Genotype)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "c1194cccaf6f3962179e19694d376249a0bedc566cae550de6f8ae8c3d491db4",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Genotype)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "f9cd55775aa2f066336949eb648d4c90d222f915859145de3f834a300cff48eb",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Genotype)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "40e01eb5066d00c381dee17ee0ea208366f3554974c477ce8f7eeff903f566db",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Genotype)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "9900b8b487450610b71f04b013b89febd41d0b49e401469aa888ccf138a669c9",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Environment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "63b699d7d193ad3e3ccec2924214a2a5817b1fe4080afcbc473dbc954986e690",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Environment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "6def09c490c8f1f9730042aba035d835d631657297223c5a6db4e79de76dd524",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Environment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "382d62558ff97feff8f3e2742e1c7127ad8725a7c6bd8c1c7b3cb65ca58281ba",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Environment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "6d62e0c45695dac9ba9864ee91fbd513a4df197b9c81d7415e91a91ba3f744cd",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "C(Genotype):C(Environment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "d6319ff62cce2c6c3fd8f32a484fe4a50a8eb95943141fb2c8591c3e075faf7c",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "C(Genotype):C(Environment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "ac655c7e4a52671ca82303ee734bc1682932b3a7d6966f547c5be1a3d6f9a007",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Genotype):C(Environment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "19fad99685d097d207e15778ea1ee4491f4cbf75e34c2bef3e9bedf36907c60e",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Genotype):C(Environment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "1c9d765a24d4414c527ebfc3048c332acb468579c86fb46f38f936cefd3937ef",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "DF",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "af76c4c87e876c1a07d7cc1027e46028bf049a1351fe3c07179a12b37e4ea959",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "MS",
+    "row": {
+     "": "Residual"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "ce74a3af23fd5036be14c8270780b351cac462aa5f150fa34a78cdf84dc8ce99",
+   "artifact": "<stdout>",
+   "locator": {
+    "kind": "stdout_regex",
+    "pattern": "===== mixed\\b[\\s\\S]*?Block \\(random\\)\\s+(\\S+)"
+   }
+  },
+  {
+   "claim_id": "402907172393953cabfeddcf529df5982e96706d72d5a722c39062a07ee7492c",
+   "artifact": "<stdout>",
+   "locator": {
+    "kind": "stdout_regex",
+    "pattern": "===== mixed\\b[\\s\\S]*?Residual \\(random\\)\\s+(\\S+)"
+   }
+  },
+  {
+   "claim_id": "5dd2c6ed807afe1101233e35113a14542f3f71cf4f7cf6ce2a931ff4e34da082",
+   "artifact": "<stdout>",
+   "locator": {
+    "kind": "stdout_regex",
+    "pattern": "===== mixed\\b[\\s\\S]*?\\nT3\\s+(\\S+)"
+   }
+  },
+  {
+   "claim_id": "b892ba6c97490925045d1829a53fcba97dfdb7d2f5bd3c4af95ced53feff31d8",
+   "artifact": "<stdout>",
+   "locator": {
+    "kind": "stdout_regex",
+    "pattern": "===== mixed\\b[\\s\\S]*?\\nT2\\s+(\\S+)"
+   }
+  },
+  {
+   "claim_id": "cb02ad771d48c377ec1b23ebc2cd3a9eaf5f13e48efbafb8226da72b38ac2f94",
+   "artifact": "<stdout>",
+   "locator": {
+    "kind": "stdout_regex",
+    "pattern": "===== mixed\\b[\\s\\S]*?\\nT1\\s+(\\S+)"
+   }
+  },
+  {
+   "claim_id": "f424e0ba8fcad65d47a6d282eb85ac87da64aa819f4fc37f985c1f85660f3668",
+   "artifact": "results/gxe/tables/blups.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "BLUP",
+    "row": {
+     "Genotype": "G4"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "ff5a85b84427cb8fcea2dc57c90b0a0d293b78063dafbcc1d746d9007e1c2cff",
+   "artifact": "results/gxe/tables/blups.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "BLUP",
+    "row": {
+     "Genotype": "G3"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "3484db08c18d1f4723e052416cd3c215f242da894974e8a0eb101d6f0c50e784",
+   "artifact": "results/gxe/tables/blups.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "BLUP",
+    "row": {
+     "Genotype": "G2"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "b53ecef5f3b0edba5ab66edf6cbd4aae6684324fdef2e988248fad49b27dc5f9",
+   "artifact": "results/gxe/tables/blups.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "BLUP",
+    "row": {
+     "Genotype": "G1"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "fce34ad799bd40ef6cda94888788ab9f8c76ed7263d741a77c62e99a19b0a7f4",
+   "artifact": "results/crd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Treatment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "424724672c5a746a42bdb2a701f0ecf0c3b4d1549125aba38fad72b07c9c376a",
+   "artifact": "<stdout>",
+   "locator": {
+    "kind": "stdout_regex",
+    "pattern": "===== crd\\b[\\s\\S]*?Shapiro-Wilk normality test: p = (\\S+)"
+   }
+  },
+  {
+   "claim_id": "41f59a010bf1c2edfb33e1d8679d07ea1c2034e4ed9ae4757afb66a9f1bfe47a",
+   "artifact": "results/rcbd/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "dd72fd87823a93d3c28062e5ce90e1701641a99bcd2d092dc6855af101f208c5",
+   "artifact": "<stdout>",
+   "locator": {
+    "kind": "stdout_regex",
+    "pattern": "===== rcbd\\b[\\s\\S]*?Shapiro-Wilk normality test: p = (\\S+)"
+   }
+  },
+  {
+   "claim_id": "323a1ffd62347709fc885de1f64b9e0328e65e467600563118bb20f29713b8da",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Nitrogen):C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "a060a0a9f3748b1bc393d339780fc908046f684f48b8068d3716d011d8d72a88",
+   "artifact": "results/factorial/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Nitrogen):C(Spacing)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "a05b8c3a330ffd608a3278a700c397fc2b430885a88d5ba6bc3b979a21d302e1",
+   "artifact": "<stdout>",
+   "locator": {
+    "kind": "stdout_regex",
+    "pattern": "===== factorial\\b[\\s\\S]*?Shapiro-Wilk normality test: p = (\\S+)"
+   }
+  },
+  {
+   "claim_id": "19a284b57adcf9d574bd053f8aa290f314259d58a89f883f99700962b861a960",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "F",
+    "row": {
+     "": "C(Irrigation):C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "442a8373716a011ddf9891bfe70a99a14a78310e1a0548d397e4b1faef401386",
+   "artifact": "results/splitplot/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Irrigation):C(Variety)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "597d2b23e20eea68255e11f3eb44f6358def75816ededa5e2eac7ae081aa5187",
+   "artifact": "results/gxe/tables/anova_table.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "p-value",
+    "row": {
+     "": "C(Genotype):C(Environment)"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "a4374dd5b522bf8e18cc03b7a899a9615f55d1bd60138849e4aae5e71709bfdd",
+   "artifact": "<stdout>",
+   "locator": {
+    "kind": "stdout_regex",
+    "pattern": "===== gxe\\b[\\s\\S]*?Shapiro-Wilk normality test: p = (\\S+)"
+   }
+  }
+ ]
+}
