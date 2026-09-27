@@ -14,7 +14,12 @@ from dataclasses import FrozenInstanceError
 import pytest
 
 from plumb.extract.location import CharSpan, normalize_text
-from plumb.extract.tables import Table, TableCell, parse_tables
+from plumb.extract.tables import (
+    Table,
+    TableCell,
+    parse_captioned_tables,
+    parse_tables,
+)
 
 # A table with a leading and trailing pipe, an alignment row carrying colons, an empty
 # cell, and numbers of two shapes. The prose around it is there so that offsets are not
@@ -255,3 +260,124 @@ class TestTheRecordsAreSealed:
     def test_a_table_requires_cells_to_be_cells(self) -> None:
         with pytest.raises(TypeError):
             Table(cells=("x",), span=CharSpan(0, 1))  # type: ignore[arg-type]
+
+
+class TestCaptionedWhitespaceTables:
+    """The second table form: a `Table N:` caption, an optional header line, then rows of
+    a label and numeric cells — what a PDF text layer makes of a typeset table
+    (AgroDesign, fixtures/gate/agrodesign). docs/planning/claim-recovery/whitespace-tables.
+    """
+
+    DOCUMENT = normalize_text(
+        "Some prose before the table.\n"
+        "Table 1: Automatically generated ANOVA for the CRD experiment.\n"
+        "Source DF MS F p-value\n"
+        "Treatment 3 363.333 145.333<0.001\n"
+        "Residual 16 2.500 – –\n"
+        "of yield differences among treatments.\n"
+    )
+
+    def headed(self, document: str) -> list[tuple[str, str]]:
+        return [
+            (c.cell.text, c.header)
+            for table in parse_captioned_tables(document)
+            for c in table
+        ]
+
+    def test_cells_are_named_by_table_row_and_header(self) -> None:
+        assert self.headed(self.DOCUMENT) == [
+            ("3", "Table 1 Treatment DF"),
+            ("363.333", "Table 1 Treatment MS"),
+            ("145.333", "Table 1 Treatment F"),
+            ("<0.001", "Table 1 Treatment p-value"),
+            ("16", "Table 1 Residual DF"),
+            ("2.500", "Table 1 Residual MS"),
+        ]
+
+    def test_every_cell_span_reproduces_its_text(self) -> None:
+        for table in parse_captioned_tables(self.DOCUMENT):
+            for c in table:
+                assert self.DOCUMENT[c.cell.span.start:c.cell.span.end] == c.cell.text
+
+    def test_without_a_header_columns_are_ordinal(self) -> None:
+        document = normalize_text(
+            "Table 3: Automatically generated ANOVA for the factorial experiment.\n"
+            "Nitrogen 2 433.500 433.500<0.001\n"
+            "Nitrogen×Spacing 2 1.500 1.500 0.262\n"
+            "Figure 4: an interaction plot.\n"
+        )
+        assert self.headed(document) == [
+            ("2", "Table 3 Nitrogen column 1"),
+            ("433.500", "Table 3 Nitrogen column 2"),
+            ("433.500", "Table 3 Nitrogen column 3"),
+            ("<0.001", "Table 3 Nitrogen column 4"),
+            ("2", "Table 3 Nitrogen×Spacing column 1"),
+            ("1.500", "Table 3 Nitrogen×Spacing column 2"),
+            ("1.500", "Table 3 Nitrogen×Spacing column 3"),
+            ("0.262", "Table 3 Nitrogen×Spacing column 4"),
+        ]
+
+    def test_a_multi_word_label_and_a_negative_value(self) -> None:
+        document = normalize_text(
+            "Table 5: Estimated variance components.\n"
+            "Component Variance\n"
+            "Block (random) 1.22\n"
+            "Residual (random) -0.44\n"
+        )
+        assert self.headed(document) == [
+            ("1.22", "Table 5 Block (random) Variance"),
+            ("-0.44", "Table 5 Residual (random) Variance"),
+        ]
+
+    def test_a_ragged_row_falls_back_to_ordinals(self) -> None:
+        # The header fits the first row; a later row with fewer cells is not misnamed.
+        document = normalize_text(
+            "Table 2: Something.\n"
+            "Source DF MS F\n"
+            "Variety 3 106.667 320.000\n"
+            "Block 3 5.667\n"
+        )
+        assert [h for _, h in self.headed(document)] == [
+            "Table 2 Variety DF",
+            "Table 2 Variety MS",
+            "Table 2 Variety F",
+            "Table 2 Block column 1",
+            "Table 2 Block column 2",
+        ]
+
+    def test_a_line_that_does_not_fit_the_first_row_is_not_a_header(self) -> None:
+        # A wrapped caption reads like a header of words; it is not one.
+        document = normalize_text(
+            "Table 2: A caption that wraps\nonto a second line of words.\n"
+            "Treatment 3 4.5\nBlock 3 5.6\n"
+        )
+        assert self.headed(document) == []
+
+    def test_a_heading_after_the_caption_is_not_a_header(self) -> None:
+        document = normalize_text(
+            "Table 8: Genotype BLUP-based ranking.\n"
+            "## Genotype BLUP\n"
+            "G4 7.7\n"
+            "G3 2.7\n"
+        )
+        assert self.headed(document) == []
+
+    @pytest.mark.parametrize(
+        "document",
+        [
+            # one row is not a table
+            "Table 1: A caption.\nTreatment 3 363.333\nand then prose continues here.\n",
+            # a pipe table after a caption is a pipe table, never re-read
+            "Table 3: Pipes.\n| a | b |\n|---|---|\n| x | 1 |\n| y | 2 |\n",
+            # rows with no caption above them
+            "Treatment 3 363.333\nResidual 16 2.500\n",
+        ],
+    )
+    def test_what_is_not_a_captioned_table(self, document: str) -> None:
+        assert parse_captioned_tables(normalize_text(document)) == ()
+
+    def test_the_table_span_covers_header_and_rows_but_not_the_caption(self) -> None:
+        (table,) = parse_captioned_tables(self.DOCUMENT)
+        covered = self.DOCUMENT[table.table.span.start:table.table.span.end]
+        assert covered.startswith("Source DF")
+        assert covered.endswith("2.500 – –")
