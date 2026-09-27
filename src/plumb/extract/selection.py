@@ -225,6 +225,11 @@ _HYPERPARAM_CUES: Final = re.compile(
     r"hidden unit|seed|lr)\b",
     re.IGNORECASE,
 )
+#: A significance level is a design input too — but `α` also names results
+#: (Cronbach's α = 0.87), so the cue counts only at a conventional level. `α` has no
+#: word boundary before it: PDF text layers glue it on (AgroDesign: `atα= 0.05`).
+_SIGNIFICANCE_CUES: Final = re.compile(r"\b(significance level|alpha)\b|α", re.IGNORECASE)
+_SIGNIFICANCE_LEVELS: Final = frozenset({"0.05", "0.01", "0.001", "0.1", "0.10"})
 _AXIS_CUES: Final = re.compile(r"\b(x-?axis|y-?axis|tick|scale)\b", re.IGNORECASE)
 _CITATION_BRACKET: Final = re.compile(r"^[\[\(]")
 #: Numerals-and-separators only: a decimal point makes it a value, not a citation
@@ -462,7 +467,10 @@ def select(
     if _DOI_RE.search(context):
         return _reject(CAUSE_DOI_DIGITS, candidate)
 
-    if _HYPERPARAM_CUES.search(_window(context, position, _CUE_WINDOW)):
+    if _HYPERPARAM_CUES.search(_window(context, position, _CUE_WINDOW)) or (
+        candidate.text in _SIGNIFICANCE_LEVELS
+        and _SIGNIFICANCE_CUES.search(_window(context, position, _CUE_WINDOW))
+    ):
         return _reject(CAUSE_HYPERPARAMETER, candidate)
 
     if _AXIS_CUES.search(_window(context, position, _CUE_WINDOW)):

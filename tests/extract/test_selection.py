@@ -134,6 +134,24 @@ class TestRejectionCategories:
         c = candidate("32", context="The model was trained with batch size 32 for 50 epochs.")
         assert rejected(c).cause == CAUSE_HYPERPARAMETER
 
+    @pytest.mark.parametrize(
+        "context",
+        [
+            # AgroDesign's figure captions, as the PDF text layer writes them.
+            "Letters denote Tukey HSD groupings atα= 0.05 after adjusting for block effects.",
+            "Differences were tested at a significance level of 0.05 throughout.",
+            "Comparisons used alpha = 0.05 for every contrast.",
+        ],
+    )
+    def test_a_significance_level_is_a_design_input(self, context: str) -> None:
+        c = candidate("0.05", context=context)
+        assert rejected(c).cause == CAUSE_HYPERPARAMETER
+
+    def test_a_reported_alpha_estimate_is_still_a_claim(self) -> None:
+        # α also names results; only a conventional significance level is refused.
+        c = candidate("0.87", context="Internal consistency was good (Cronbach's α = 0.87).")
+        assert selected(c).metric
+
     def test_an_axis_label_is_not_a_claim(self) -> None:
         c = candidate("100", context="The x-axis 0-100 was rescaled before plotting.")
         assert rejected(c).cause == CAUSE_AXIS_LABEL
