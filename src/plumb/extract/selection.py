@@ -39,6 +39,7 @@ from typing import Final, Iterable
 from plumb.extract.candidates import (
     SECTION_OTHER,
     SECTION_REFERENCES,
+    SECTION_TABLE,
     Candidate,
 )
 from plumb.extract.location import Location
@@ -48,6 +49,7 @@ __all__ = [
     "CAUSE_DOI_DIGITS",
     "CAUSE_FIGURE_NUMBER",
     "CAUSE_HYPERPARAMETER",
+    "CAUSE_LAYOUT_NUMERAL",
     "CAUSE_NO_NAMED_METRIC",
     "CAUSE_OUTSIDE_SECTIONS",
     "CAUSE_REFERENCE_NUMERAL",
@@ -73,6 +75,7 @@ CAUSE_HYPERPARAMETER: Final = "hyperparameter"
 CAUSE_AXIS_LABEL: Final = "axis_label"
 CAUSE_RELATED_WORK: Final = "related_work"
 CAUSE_NO_NAMED_METRIC: Final = "no_named_metric"
+CAUSE_LAYOUT_NUMERAL: Final = "layout_numeral"
 
 SELECTION_CAUSES: Final = frozenset(
     {
@@ -86,6 +89,7 @@ SELECTION_CAUSES: Final = frozenset(
         CAUSE_AXIS_LABEL,
         CAUSE_RELATED_WORK,
         CAUSE_NO_NAMED_METRIC,
+        CAUSE_LAYOUT_NUMERAL,
     }
 )
 
@@ -250,6 +254,7 @@ _AFTER_TOKEN: Final = re.compile(r"^[^A-Za-z0-9]*([A-Za-zµμ]+)")
 #: categories in this exact order, then the metric. A candidate matching two
 #: categories carries the documented first cause (tested).
 #:   references -> reference_numeral; other -> outside_sections
+#:   layout_numeral (heading number, page-number line, list marker)
 #:   year -> figure_number -> version_string -> doi_digits -> hyperparameter
 #:     -> axis_label -> reference_numeral(citation) -> related_work
 #:   metric_of empty -> no_named_metric
@@ -278,6 +283,33 @@ def _window(context: str, position: int, width: int) -> str:
 
 
 _NUMBER_RUN: Final = re.compile(r"\d[\d.,%×]*")
+
+#: Page furniture, read off the candidate's own line: the numbering prefix of an ATX
+#: heading (`## 4.1 Design`), a bare integer alone on its line (a PDF page number), and
+#: a line-leading list marker (`1. Correct identification`). AgroDesign's §4 carries
+#: all three. A genuine value wrapped alone onto its own line is refused too — a named
+#: false negative, the safe direction.
+_HEADING_PREFIX: Final = re.compile(r"#{1,6}[ \t]+")
+_BARE_INTEGER: Final = re.compile(r"\d+")
+_LIST_MARKER_AFTER: Final = re.compile(r"[.)][ \t]")
+
+
+def _is_layout_numeral(candidate: Candidate, normalized_text: str) -> bool:
+    if candidate.section_hint == SECTION_TABLE:
+        return False  # a parsed cell is a value wherever it sits
+    start = candidate.span.start
+    line_start = normalized_text.rfind("\n", 0, start) + 1
+    line_end = normalized_text.find("\n", start)
+    line = normalized_text[line_start:line_end if line_end >= 0 else len(normalized_text)]
+    offset = start - line_start
+    heading = _HEADING_PREFIX.match(line)
+    if heading is not None and heading.end() == offset:
+        return True
+    if not _BARE_INTEGER.fullmatch(candidate.text):
+        return False
+    if line.strip() == candidate.text:
+        return True
+    return offset == 0 and _LIST_MARKER_AFTER.match(line, offset + len(candidate.text)) is not None
 
 
 def _preceding_clauses(context: str, position: int) -> list[str]:
@@ -450,6 +482,9 @@ def select(
         return _reject(CAUSE_REFERENCE_NUMERAL, candidate)
     if candidate.section_hint == SECTION_OTHER:
         return _reject(CAUSE_OUTSIDE_SECTIONS, candidate)
+
+    if _is_layout_numeral(candidate, normalized_text):
+        return _reject(CAUSE_LAYOUT_NUMERAL, candidate)
 
     if _YEAR_RE.match(candidate.text) and 1900 <= int(candidate.text) <= 2100:
         if _YEAR_CUES.search(_window(context, position, _CUE_WINDOW)):

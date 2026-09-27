@@ -19,13 +19,15 @@ from plumb.extract.candidates import (
     SECTION_RESULTS,
     SECTION_TABLE,
     Candidate,
+    extract_candidates,
 )
-from plumb.extract.location import CharSpan
+from plumb.extract.location import CharSpan, normalize_text
 from plumb.extract.selection import (
     CAUSE_AXIS_LABEL,
     CAUSE_DOI_DIGITS,
     CAUSE_FIGURE_NUMBER,
     CAUSE_HYPERPARAMETER,
+    CAUSE_LAYOUT_NUMERAL,
     CAUSE_NO_NAMED_METRIC,
     CAUSE_OUTSIDE_SECTIONS,
     CAUSE_REFERENCE_NUMERAL,
@@ -89,6 +91,7 @@ class TestTheCauseVocabulary:
             CAUSE_AXIS_LABEL,
             CAUSE_RELATED_WORK,
             CAUSE_NO_NAMED_METRIC,
+            CAUSE_LAYOUT_NUMERAL,
         }
         assert named == SELECTION_CAUSES
 
@@ -271,3 +274,75 @@ class TestTheRecord:
 
         assert not issubclass(Selected, Claim)
         assert not issubclass(SelectionRejection, Claim)
+
+class TestLayoutNumerals:
+    """Numbers that are page furniture, not values: the numbering prefix of a heading,
+    a page number alone on its line, a line-leading list marker. All three reach the
+    rule from AgroDesign's §4 once it reads as `results` (docs/planning/claim-recovery).
+    """
+
+    PAPER = normalize_text(
+        "## 4 Results\n"
+        "### 4.1 Completely Randomized Design\n"
+        "The accuracy was 0.87 on the held-out set.\n"
+        "8\n"
+        "effect. The treatment mean was 12.5 overall.\n"
+        "Validation focuses on four criteria:\n"
+        "1. Correct identification of the statistical model.\n"
+        "Treatment 3 363.333 145.333\n"
+        "## Results at 12 months\n"
+        "Sensitivity was 1.2 points higher.\n"
+    )
+
+    def outcome(self, text: str, *, line: str) -> Selected | SelectionRejection:
+        at = self.PAPER.index(line) + line.index(text)
+        for c in extract_candidates(self.PAPER):
+            if c.span.start == at:
+                return select(c, normalized_text=self.PAPER)
+        raise AssertionError(f"no candidate {text!r} at {at}")
+
+    def test_the_cause_is_in_the_vocabulary(self) -> None:
+        assert CAUSE_LAYOUT_NUMERAL == "layout_numeral"
+        assert CAUSE_LAYOUT_NUMERAL in SELECTION_CAUSES
+
+    @pytest.mark.parametrize(
+        ("text", "line"),
+        [
+            ("4", "## 4 Results"),
+            ("4.1", "### 4.1 Completely Randomized Design"),
+            ("8", "8\n"),
+            ("1", "1. Correct identification"),
+        ],
+    )
+    def test_furniture_is_refused(self, text: str, line: str) -> None:
+        result = self.outcome(text, line=line)
+        assert isinstance(result, SelectionRejection), result
+        assert result.cause == CAUSE_LAYOUT_NUMERAL
+
+    @pytest.mark.parametrize(
+        ("text", "line"),
+        [
+            ("0.87", "The accuracy was 0.87"),
+            ("12.5", "The treatment mean was 12.5"),
+            ("363.333", "Treatment 3 363.333"),
+            ("1.2", "Sensitivity was 1.2"),
+        ],
+    )
+    def test_values_are_not_furniture(self, text: str, line: str) -> None:
+        result = self.outcome(text, line=line)
+        assert not (
+            isinstance(result, SelectionRejection)
+            and result.cause == CAUSE_LAYOUT_NUMERAL
+        ), result
+
+    def test_a_table_cell_is_never_furniture(self) -> None:
+        # A parsed cell alone on its "line" is a value; the N-row test above relies on it.
+        c = candidate("412", context="412", section_hint=SECTION_TABLE)
+        assert rejected(c).cause == CAUSE_NO_NAMED_METRIC
+
+    def test_only_the_heading_prefix_is_furniture(self) -> None:
+        result = self.outcome("12", line="## Results at 12 months")
+        assert not (
+            isinstance(result, SelectionRejection)
+            and result.cause == CAUSE_LAYOUT_NUMERAL
+        ), result
