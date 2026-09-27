@@ -191,8 +191,19 @@ without it the paper's `2.500` was a false `ARTIFACT_PRECISION_COARSER`), and `p
 reads a `RunTrace` back.
 
 **Not built:** a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved),
-comparison of `PlusMinus`/`Interval`/`Range`/`Approximate`, notebook-cell locators, the
-`plumb verify` CLI. **The Phase 0 gate is met (2026-09-27), on one paper.**
+comparison of `PlusMinus`/`Interval`/`Range`/`Approximate`, notebook-cell locators.
+**The `plumb verify` CLI is built** (2026-09-27, `verify-cli`): `plumb verify <paper> <repo>
+[--rev REV] [--bindings FILE] [--out DIR] [--from-record DIR] [--no-env-build] [--signer-key
+PATH] [--no-paper] [--json]` runs the C1→C2→C3→C4→C6 spine live (local dir / git URL / archive;
+real env build by default, offline stub with `--no-env-build`) or replays a committed record
+(`--from-record`, byte-identical re-derivation cross-checked against the record's
+`verdicts.json`), renders a fixed-layout verdict table or canonical JSON (byte-identical across
+invocations, PYTHONHASHSEED-varied), and writes a signed bundle with `--out` that
+`verify_bundle` accepts. Exit contract: 0 iff every claim decided; 1 on any `UNVERIFIED`,
+spine failure, or named CLI cause (`RECORD_INVALID`, `KEY_MISSING`, `BUNDLE_REFUSED`, ...); 2
+on usage; never a traceback, never `DIVERGED` on a harness failure. The real AgroDesign run
+replays offline through the CLI (85 `REPRODUCED`, 1 `DIVERGED`, 86/86 bound).
+**The Phase 0 gate is met (2026-09-27), on one paper.**
 
 ## C5. Discrepancy corpus & calibration benchmark
 

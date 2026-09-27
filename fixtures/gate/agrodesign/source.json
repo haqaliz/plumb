@@ -1,0 +1,8 @@
+{
+ "kind": "git",
+ "location": "https://github.com/DeepStatistix/AgroDesign.git",
+ "rev_requested": "v1.0.1",
+ "rev_resolved": "18b7c29a4f8de3dc9260b9fa42849e5a74097825",
+ "rev_defaulted": false,
+ "size_cap_bytes": 1073741824
+}
