@@ -125,6 +125,8 @@ _HEADING_SECTIONS: Final = {
     SECTION_ABSTRACT: SECTION_ABSTRACT,
     SECTION_RESULTS: SECTION_RESULTS,
     SECTION_REFERENCES: SECTION_REFERENCES,
+    # AgroDesign's §4 (fixtures/gate/agrodesign): every result in the paper is under it.
+    "experimental validation": SECTION_RESULTS,
 }
 
 #: A number as a paper writes one. See the module docstring for the two lookbehinds;

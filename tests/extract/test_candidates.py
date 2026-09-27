@@ -596,6 +596,20 @@ class TestSectionHints:
         assert texts_of(document) == ("3", "0.87")
         assert hints_of(document) == (SECTION_RESULTS, SECTION_RESULTS)
 
+    def test_experimental_validation_is_a_results_section(self) -> None:
+        # AgroDesign's §4 (fixtures/gate/agrodesign): every result in the paper sits
+        # under this title. A literal entry, not a synonym rule — `Experimental Setup`
+        # is methods, and must stay `other`.
+        document = (
+            "# 4 Experimental Validation\n\nWe got 0.87.\n\n"
+            "## 4.1 Completely Randomized Design\n\nThe F was 145.33.\n\n"
+            "# 5 Experimental Setup\n\nWe used 12.\n"
+        )
+
+        assert self._hint_of(document, "0.87") == SECTION_RESULTS
+        assert self._hint_of(document, "145.33") == SECTION_RESULTS
+        assert self._hint_of(document, "12") == SECTION_OTHER
+
     def test_a_subheading_inherits_its_parent_section(self) -> None:
         # Structural, by heading level — not by reading the subheading's words.
         assert self._hint_of(PAPER, "0.85 ± 0.03") == SECTION_RESULTS

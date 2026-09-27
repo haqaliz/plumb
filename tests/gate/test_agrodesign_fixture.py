@@ -92,10 +92,10 @@ def test_unrepresentable_members_are_real_text_that_cannot_parse(paper_text: str
         assert entry["reason"]
 
 
-def test_c1_recovers_none_of_the_curated_claims_today(paper_text: str) -> None:
-    # Pinned so an improvement is visible: the C1 follow-on updates this, never silently.
+def test_curated_ids_are_not_extraction_ids() -> None:
+    # C1's recovery is measured by place and value in `test_agrodesign_recovery.py`
+    # (it was 0/86 before claim-recovery). The curated metrics are hand-written, so no
+    # extracted claim shares a curated id — which is why that test does not match by id.
     raw = pdf_to_markdown((FIXTURE / "paper.pdf").read_bytes())
-    extracted, rejections = extract_claims(raw)
-    curated = {c.id for c in load_claims()}
-    assert len({c.id for c in extracted} & curated) == 0
-    assert Counter(r.cause for r in rejections) == {"outside_sections": 241, "reference_numeral": 49}
+    extracted, _ = extract_claims(raw)
+    assert not {c.id for c in extracted} & {c.id for c in load_claims()}
