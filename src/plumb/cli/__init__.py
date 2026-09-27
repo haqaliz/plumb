@@ -28,7 +28,8 @@ never deciding an exit code. `run_live` and `replay_record` take the parsed `arg
 namespace and return the exit code — the shell trusts the seams' verdict-level
 decision, because only the spine can see the verdicts. In the cli-core aspect the
 seams were stubs raising `SpineError`; the render aspect replaced `render_verdicts`
-without touching the shell, and the replay and live aspects replace the remaining two.
+without touching the shell, the replay aspect replaced `replay_record`
+(`plumb.cli.replay`), and the live aspect replaces the remaining one.
 The shell guarantees, before dispatch: live mode has a `<paper>` and a
 `<repo>` and a `--bindings` file, the paper path is a readable `.md`/`.pdf`, a
 `--out` bundle has an existing signer key, and `--from-record` carries none of the
@@ -53,6 +54,7 @@ from plumb.run.causes import (
     EntryPointMissing,
 )
 from plumb.cli.render import render_verdicts
+from plumb.cli.replay import replay_record
 from plumb.verify.causes import ENV_BUILD_FAILED, BindingInvalid
 
 __all__ = [
@@ -304,16 +306,6 @@ def run_live(args: argparse.Namespace) -> int:
     or 1 when any claim is `UNVERIFIED`).
     """
     raise SpineError("the live spine is not implemented yet (run_live)")
-
-
-def replay_record(args: argparse.Namespace) -> int:
-    """Record replay seam: re-derive verdicts from a committed record, then render.
-
-    The shell has already rejected the live-mode arguments. An unreadable record is
-    reported by raising `ValueError` (as `parse_trace` and `parse_claims` do),
-    which the failure contract renders as `RECORD_INVALID`.
-    """
-    raise SpineError("record replay is not implemented yet (replay_record)")
 
 
 if __name__ == "__main__":

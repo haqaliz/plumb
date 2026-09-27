@@ -193,10 +193,10 @@ class TestUsageErrorsExitTwo:
         assert "--from-record" in captured.err
 
     def test_from_record_alone_dispatches_to_replay(self, capsys) -> None:
-        """Replay mode is a valid invocation: the stub seam is SPINE_ERROR, exit 1."""
+        """Replay mode is a valid invocation: the real seam reports the record, exit 1."""
         assert main(["verify", "--from-record", "some-record"]) == 1
         captured = capsys.readouterr()
-        assert captured.err.startswith(f"plumb verify: {SPINE_ERROR}: ")
+        assert captured.err.startswith(f"plumb verify: {RECORD_INVALID}: ")
 
     def test_live_mode_without_paper_or_repo_names_them(self, capsys) -> None:
         code = main(["verify", "--bindings", "b.json"])
