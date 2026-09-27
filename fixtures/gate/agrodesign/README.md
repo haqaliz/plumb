@@ -30,9 +30,11 @@ table cells and 13 prose values; 2 of the prose values ("p ¡ 0.001", §4.1 and 
 PDF's own rendering of `<` as `¡` and cannot be parsed, so 86 claims are verified and 2 are
 recorded as unrepresentable.
 
-**C1 on this paper:** `extract_claims(pdf_to_markdown(paper.pdf))` recovers **0** of the 86
-(290 candidates rejected: 241 `outside_sections`, 49 `reference_numeral`). The claims here are
-curated, not extracted; that gap is pinned by `tests/gate/test_agrodesign_fixture.py`.
+**C1 on this paper:** `extract_claims(pdf_to_markdown(paper.pdf))` recovers **86** of the 86
+(matched by place and value), emits exactly 86 claims, and gives them 86 distinct ids —
+floored by `tests/gate/test_agrodesign_recovery.py` (claim-recovery, 2026-09-27; it was 0/86
+before). The claims verified here are still the curated set: the extracted set is *measured
+against* it, not substituted for it, so the bindings and the signed bundle are unchanged.
 
 Run-time files, written once by `tools/gate_run.py` (the only networked code; never imported
 by tests):
@@ -51,7 +53,7 @@ by tests):
 |---|---|
 | Claims in the rule | 88 (75 table cells + 13 prose values) |
 | Representable as claims | 86 (2 × "p ¡ 0.001" cannot be parsed) |
-| Recovered by C1 automatically | **0** of 86 |
+| Recovered by C1 automatically | **86** of 86 (was 0; claim-recovery) |
 | Bound to a value the run produced | **86** of 86 |
 | `REPRODUCED` | **85** |
 | `WITHIN-TOLERANCE` | 0 |
@@ -102,10 +104,14 @@ to the author (R4; contacting the author is an owner decision).
 
 ## Known limits
 
-- The claims are curated (by rule, grounded verbatim), not extracted — C1's 0/86 is the real
-  extraction number on this paper. Why, from the rejections: §4 "Experimental Validation" is not
-  recognised as a results section (241 `outside_sections`), and the tables arrive as
-  whitespace-delimited text rows with glued tokens (`145.333<0.001`), not Markdown tables.
+- The verified claims are curated (by rule, grounded verbatim). C1 now recovers all 86
+  (it recovered 0 when the gate was met): §4 "Experimental Validation" reads as a results
+  section, `p ¡ 0.001` is refused as a fragment (`¡` is LaTeX OT1's `<`), layout numerals and
+  the significance level are refused by name, and Tables 1–7 are read as caption-led
+  whitespace tables whose cells are named by table, row and column. Table 8 is not: its
+  header row arrives as a heading, so its cells are named from prose (`G`). The 86/86 is
+  conformance to a curated rule on one paper — not cross-paper extraction coverage.
+  Planning: `docs/planning/claim-recovery/`.
 - The environment is resolved, not locked: the repo ships no lockfile, so C2's policy is
   "best-effort". `uv sync` also wrote `uv.lock` and `.venv` into the pinned checkout during the
   build (the run itself works in a copy); the tree hash was recorded before.

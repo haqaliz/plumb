@@ -74,9 +74,11 @@ score means the rule implements its criteria. Validation against third-party lab
 **The first real paper has run through the spine** (2026-09-26): AgroDesign, arXiv:2603.09041
 (`fixtures/gate/agrodesign/`), on its own code at a pinned tag, through C2 → C3 → C4 — 86
 rule-defined claims, **86 bound, 85 `REPRODUCED`, 1 `DIVERGED`** (a third-decimal Shapiro-Wilk
-p, `review_required`, unchanged in an environment resolved as of the code's date). **C1
-recovered 0 of the 86**: the claims are curated by a fixed rule and grounded verbatim, and that 0
-is the real extraction number. Two engine gaps it exposed were fixed test-first (`float_repr`
+p, `review_required`, unchanged in an environment resolved as of the code's date). The
+claims are curated by a fixed rule and grounded verbatim; **C1 recovered 0 of them when the gate
+was met, and now recovers 86/86** (claim-recovery, 2026-09-27: §4's title reads as results,
+`p ¡ 0.001` is refused, layout numerals are refused by name, and caption-led whitespace tables
+name each cell by table, row and column — 86 claims, 86 distinct ids; no fixture claim moved). Two engine gaps it exposed were fixed test-first (`float_repr`
 bindings for shortest-repr floats; `parse_trace`). The Phase 0 gate's **number exists**, and
 **C6's first slice is built** (2026-09-27): `src/plumb/bundle/` writes a hash-listed directory
 signed with `ssh-keygen -Y` (no crypto dependency; deterministic), and `verify_bundle` checks the
@@ -86,7 +88,7 @@ returns records, never a second door to `Claim`), and the re-derived verdicts, w
 The AgroDesign bundle (`bundles/agrodesign/`) verifies, and `tools/bundle_replay.py` re-ran it
 from a clean clone byte-identical. **The Phase 0 gate is met** (2026-09-27): the one
 `DIVERGED` was reviewed by the owner and confirmed as a genuine reporting discrepancy. Met on one
-paper — cross-paper coverage (R1) is unmeasured, and C1 recovered 0/86 of its claims. Details:
+paper — cross-paper coverage (R1) is unmeasured, and C1's 86/86 there is conformance to a curated rule on one paper. Details:
 `fixtures/gate/agrodesign/README.md`.
 
 When in doubt, verify against the code and `git log` rather than this prose. Two assumptions in
