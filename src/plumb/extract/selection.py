@@ -39,6 +39,7 @@ from typing import Final, Iterable
 from plumb.extract.candidates import (
     SECTION_OTHER,
     SECTION_REFERENCES,
+    SECTION_TABLE,
     Candidate,
 )
 from plumb.extract.location import Location
@@ -48,6 +49,7 @@ __all__ = [
     "CAUSE_DOI_DIGITS",
     "CAUSE_FIGURE_NUMBER",
     "CAUSE_HYPERPARAMETER",
+    "CAUSE_LAYOUT_NUMERAL",
     "CAUSE_NO_NAMED_METRIC",
     "CAUSE_OUTSIDE_SECTIONS",
     "CAUSE_REFERENCE_NUMERAL",
@@ -73,6 +75,7 @@ CAUSE_HYPERPARAMETER: Final = "hyperparameter"
 CAUSE_AXIS_LABEL: Final = "axis_label"
 CAUSE_RELATED_WORK: Final = "related_work"
 CAUSE_NO_NAMED_METRIC: Final = "no_named_metric"
+CAUSE_LAYOUT_NUMERAL: Final = "layout_numeral"
 
 SELECTION_CAUSES: Final = frozenset(
     {
@@ -86,6 +89,7 @@ SELECTION_CAUSES: Final = frozenset(
         CAUSE_AXIS_LABEL,
         CAUSE_RELATED_WORK,
         CAUSE_NO_NAMED_METRIC,
+        CAUSE_LAYOUT_NUMERAL,
     }
 )
 
@@ -225,6 +229,11 @@ _HYPERPARAM_CUES: Final = re.compile(
     r"hidden unit|seed|lr)\b",
     re.IGNORECASE,
 )
+#: A significance level is a design input too — but `α` also names results
+#: (Cronbach's α = 0.87), so the cue counts only at a conventional level. `α` has no
+#: word boundary before it: PDF text layers glue it on (AgroDesign: `atα= 0.05`).
+_SIGNIFICANCE_CUES: Final = re.compile(r"\b(significance level|alpha)\b|α", re.IGNORECASE)
+_SIGNIFICANCE_LEVELS: Final = frozenset({"0.05", "0.01", "0.001", "0.1", "0.10"})
 _AXIS_CUES: Final = re.compile(r"\b(x-?axis|y-?axis|tick|scale)\b", re.IGNORECASE)
 _CITATION_BRACKET: Final = re.compile(r"^[\[\(]")
 #: Numerals-and-separators only: a decimal point makes it a value, not a citation
@@ -245,6 +254,7 @@ _AFTER_TOKEN: Final = re.compile(r"^[^A-Za-z0-9]*([A-Za-zµμ]+)")
 #: categories in this exact order, then the metric. A candidate matching two
 #: categories carries the documented first cause (tested).
 #:   references -> reference_numeral; other -> outside_sections
+#:   layout_numeral (heading number, page-number line, list marker)
 #:   year -> figure_number -> version_string -> doi_digits -> hyperparameter
 #:     -> axis_label -> reference_numeral(citation) -> related_work
 #:   metric_of empty -> no_named_metric
@@ -273,6 +283,33 @@ def _window(context: str, position: int, width: int) -> str:
 
 
 _NUMBER_RUN: Final = re.compile(r"\d[\d.,%×]*")
+
+#: Page furniture, read off the candidate's own line: the numbering prefix of an ATX
+#: heading (`## 4.1 Design`), a bare integer alone on its line (a PDF page number), and
+#: a line-leading list marker (`1. Correct identification`). AgroDesign's §4 carries
+#: all three. A genuine value wrapped alone onto its own line is refused too — a named
+#: false negative, the safe direction.
+_HEADING_PREFIX: Final = re.compile(r"#{1,6}[ \t]+")
+_BARE_INTEGER: Final = re.compile(r"\d+")
+_LIST_MARKER_AFTER: Final = re.compile(r"[.)][ \t]")
+
+
+def _is_layout_numeral(candidate: Candidate, normalized_text: str) -> bool:
+    if candidate.section_hint == SECTION_TABLE:
+        return False  # a parsed cell is a value wherever it sits
+    start = candidate.span.start
+    line_start = normalized_text.rfind("\n", 0, start) + 1
+    line_end = normalized_text.find("\n", start)
+    line = normalized_text[line_start:line_end if line_end >= 0 else len(normalized_text)]
+    offset = start - line_start
+    heading = _HEADING_PREFIX.match(line)
+    if heading is not None and heading.end() == offset:
+        return True
+    if not _BARE_INTEGER.fullmatch(candidate.text):
+        return False
+    if line.strip() == candidate.text:
+        return True
+    return offset == 0 and _LIST_MARKER_AFTER.match(line, offset + len(candidate.text)) is not None
 
 
 def _preceding_clauses(context: str, position: int) -> list[str]:
@@ -412,6 +449,21 @@ def metric_of(candidate: Candidate, *, normalized_text: str) -> str | None:
     return None
 
 
+_SAMPLE_SIZE_WORD: Final = re.compile(r"(?<!\S)[nN](?!\S)")
+
+
+def _header_metric(header: str) -> str | None:
+    """A named table cell's metric: its header, unless that names a sample size.
+
+    The column name is the header's ending, so the N-token test applies as it does to
+    prose; a row labelled `n` is caught by the bare word. The wider N-token list is not
+    applied to row labels — `Model` or `Group` names a row of results.
+    """
+    if _ends_with_n_token(header) or _SAMPLE_SIZE_WORD.search(header):
+        return None
+    return header
+
+
 def _units_token(candidate: Candidate, normalized_text: str) -> str | None:
     position = _position(candidate, normalized_text)
     after = _after_word(candidate.context, position + len(candidate.text))
@@ -446,6 +498,9 @@ def select(
     if candidate.section_hint == SECTION_OTHER:
         return _reject(CAUSE_OUTSIDE_SECTIONS, candidate)
 
+    if _is_layout_numeral(candidate, normalized_text):
+        return _reject(CAUSE_LAYOUT_NUMERAL, candidate)
+
     if _YEAR_RE.match(candidate.text) and 1900 <= int(candidate.text) <= 2100:
         if _YEAR_CUES.search(_window(context, position, _CUE_WINDOW)):
             return _reject(CAUSE_YEAR, candidate)
@@ -462,7 +517,10 @@ def select(
     if _DOI_RE.search(context):
         return _reject(CAUSE_DOI_DIGITS, candidate)
 
-    if _HYPERPARAM_CUES.search(_window(context, position, _CUE_WINDOW)):
+    if _HYPERPARAM_CUES.search(_window(context, position, _CUE_WINDOW)) or (
+        candidate.text in _SIGNIFICANCE_LEVELS
+        and _SIGNIFICANCE_CUES.search(_window(context, position, _CUE_WINDOW))
+    ):
         return _reject(CAUSE_HYPERPARAMETER, candidate)
 
     if _AXIS_CUES.search(_window(context, position, _CUE_WINDOW)):
@@ -476,7 +534,10 @@ def select(
     ) or _ET_AL.search(context) or _SURNAME_YEAR.search(context):
         return _reject(CAUSE_RELATED_WORK, candidate)
 
-    metric = metric_of(candidate, normalized_text=normalized_text)
+    if candidate.cell_header is not None:
+        metric = _header_metric(candidate.cell_header)
+    else:
+        metric = metric_of(candidate, normalized_text=normalized_text)
     if metric is None:
         return _reject(CAUSE_NO_NAMED_METRIC, candidate)
 

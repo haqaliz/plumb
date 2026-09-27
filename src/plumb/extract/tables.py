@@ -50,7 +50,14 @@ import re
 
 from plumb.extract.location import CharSpan, normalize_text
 
-__all__ = ["Table", "TableCell", "parse_tables"]
+__all__ = [
+    "CaptionedCell",
+    "CaptionedTable",
+    "Table",
+    "TableCell",
+    "parse_captioned_tables",
+    "parse_tables",
+]
 
 
 #: One cell of a delimiter row: hyphens, with an optional alignment colon on either
@@ -284,4 +291,169 @@ def parse_tables(raw: str) -> tuple[Table, ...]:
         )
         index = cursor
 
+    return tuple(tables)
+
+
+# --- the second form: caption-led whitespace tables ------------------------------------
+#
+# A PDF text layer turns a typeset table into lines of words and numbers under its
+# caption, with no pipes (AgroDesign: `Treatment 3 363.333 145.333<0.001`). Read as
+# prose, every cell of a row is named by the row label alone, and distinct cells — the
+# MS and the F of one row — become one claim id. So these tables are recognised too, but
+# only in a strict shape, because a table invented out of prose would attach names the
+# author never wrote:
+#
+# - a whole line `Table N:` (or `Table N.`) — the caption;
+# - optionally one header line: not a row, not an ATX heading, no purely numeric token,
+#   at least two tokens, and exactly one token per cell of the first row plus one for
+#   the label column — otherwise the caption opens no table (a wrapped caption line
+#   reads just like a header of words);
+# - then at least two consecutive rows. A row's cells are the longest run of cell tokens
+#   at its end — a number, a dash, or a glued `number<number` (two cells: the PDF lost
+#   the space); its label is the rest, which must contain a letter. The first line that
+#   is not a row ends the table.
+#
+# Column names come from the header for every row it fits; a ragged row gets
+# `column k`. A row label that ends in a number
+# (`Model 2 0.87`) reads the number as a cell — undecidable from the text; the header
+# check then falls back to ordinals rather than misnaming. Pipe tables are never
+# re-read here, and their cells stay unnamed.
+
+_CAPTION = re.compile(r"Table (\d+)[:.](?:\s.*)?")
+_ATX = re.compile(r"#{1,6}(?:[ \t]|$)")
+_NUMERIC = r"[+-]?(?:\d+\.\d+|\d+|\.\d+)"
+_CELL_TOKEN = re.compile(rf"{_NUMERIC}|[–—-]|{_NUMERIC}[<>]{_NUMERIC}")
+_GLUED = re.compile(rf"({_NUMERIC})([<>]{_NUMERIC})")
+_DASH = re.compile(r"[–—-]")
+_TOKEN = re.compile(r"\S+")
+_NUMBER_ONLY = re.compile(_NUMERIC)
+
+
+@dataclass(frozen=True, slots=True)
+class CaptionedCell:
+    """A cell of a caption-led whitespace table, and the names the paper wrote for it.
+
+    `header` is `Table {n} {row label} {column name}` — words read off the caption
+    number, the row and the header line, never inferred. It is what distinguishes the MS
+    of a row from its F once both become claims.
+    """
+
+    cell: TableCell
+    header: str
+
+
+@dataclass(frozen=True, slots=True)
+class CaptionedTable:
+    """One caption-led whitespace table: its extent and its named cells."""
+
+    table: Table
+    cells: tuple[CaptionedCell, ...]
+
+    def __iter__(self):
+        return iter(self.cells)
+
+
+def _row(text: str, start: int, end: int) -> tuple[str, list[tuple[int, int] | None]] | None:
+    """A row's label and its cell regions (`None` for a dash), or `None` if not a row."""
+    tokens = [(m.start() + start, m.end() + start) for m in _TOKEN.finditer(text[start:end])]
+    split = len(tokens)
+    while split > 0 and _CELL_TOKEN.fullmatch(text[tokens[split - 1][0]:tokens[split - 1][1]]):
+        split -= 1
+    if split == 0 or split == len(tokens):
+        return None
+    label = text[tokens[0][0]:tokens[split - 1][1]]
+    if not any(char.isalpha() for char in label):
+        return None
+    cells: list[tuple[int, int] | None] = []
+    for token_start, token_end in tokens[split:]:
+        token = text[token_start:token_end]
+        glued = _GLUED.fullmatch(token)
+        if glued is not None:
+            cells.append((token_start + glued.start(1), token_start + glued.end(1)))
+            cells.append((token_start + glued.start(2), token_start + glued.end(2)))
+        elif _DASH.fullmatch(token):
+            cells.append(None)
+        else:
+            cells.append((token_start, token_end))
+    return label, cells
+
+
+def _header(text: str, start: int, end: int) -> list[str] | None:
+    line = text[start:end]
+    tokens = line.split()
+    if (
+        len(tokens) < 2
+        or _ATX.match(line)
+        or _row(text, start, end) is not None
+        or any(_NUMBER_ONLY.fullmatch(token) for token in tokens)
+    ):
+        return None
+    return tokens
+
+
+def parse_captioned_tables(raw: str) -> tuple[CaptionedTable, ...]:
+    """Every caption-led whitespace table in the paper, in document order.
+
+    Offsets index `normalize_text(raw)`, like `parse_tables`. Lines inside a pipe table
+    are never considered: a pipe is not a cell token, so no such line is a row.
+    """
+    text = normalize_text(raw)
+    lines = _line_regions(text)
+    tables: list[CaptionedTable] = []
+    index = 0
+    while index < len(lines):
+        start, end = lines[index]
+        caption = _CAPTION.fullmatch(text[start:end])
+        if caption is None:
+            index += 1
+            continue
+        cursor = index + 1
+        header = None
+        if cursor + 1 < len(lines):
+            header = _header(text, *lines[cursor])
+            first_row = _row(text, *lines[cursor + 1])
+            if header is not None and (
+                first_row is None or len(header) != len(first_row[1]) + 1
+            ):
+                # Words that do not name the first row's columns are not a header —
+                # a wrapped caption reads just like one.
+                index += 1
+                continue
+            if header is not None:
+                cursor += 1
+        rows: list[tuple[int, str, list[tuple[int, int] | None]]] = []
+        while cursor < len(lines):
+            row = _row(text, *lines[cursor])
+            if row is None:
+                break
+            rows.append((cursor, *row))
+            cursor += 1
+        if len(rows) < 2:
+            index += 1
+            continue
+        number = caption.group(1)
+        named: list[CaptionedCell] = []
+        for row_number, (_, label, regions) in enumerate(rows, start=1):
+            fits = header is not None and len(header) == len(regions) + 1
+            for column, region in enumerate(regions, start=1):
+                if region is None:
+                    continue
+                name = header[column] if fits else f"column {column}"
+                named.append(
+                    CaptionedCell(
+                        cell=_cell(text, region, row_number, column),
+                        header=f"Table {number} {label} {name}",
+                    )
+                )
+        first = lines[index + 1][0]
+        last = lines[rows[-1][0]][1]
+        tables.append(
+            CaptionedTable(
+                table=Table(
+                    cells=tuple(c.cell for c in named), span=CharSpan(first, last)
+                ),
+                cells=tuple(named),
+            )
+        )
+        index = cursor
     return tuple(tables)

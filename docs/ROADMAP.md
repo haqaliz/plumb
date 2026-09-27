@@ -29,8 +29,8 @@ finding.
   rethink before building further. **Status (2026-09-27): met.** The panel is real and reproducible (85 `REPRODUCED`,
   1 `DIVERGED`), signed (`bundles/agrodesign/`), verified offline, and its run replayed
   byte-identical from a clean clone (`bundles/README.md`). The `DIVERGED` was reviewed by the owner on 2026-09-27 and confirmed as a genuine reporting discrepancy (the paper's 0.034 against its own code's 0.03455).
-  Met on one paper: coverage across papers (R1) is still unmeasured, and C1 recovered 0/86
-  of its claims.
+  Met on one paper: coverage across papers (R1) is still unmeasured, and C1 — 0/86 at the gate — now
+  recovers 86/86 of its claims (conformance to a curated rule on one paper; `docs/planning/claim-recovery/`).
 
 ## Phase 1 — OSS core (months 1–2)
 

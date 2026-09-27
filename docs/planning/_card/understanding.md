@@ -1,47 +1,73 @@
-# C6 Signed bundle — understanding (deep dig, 2026-09-27)
+# Understanding — C1 claim recovery on the gate paper
 
-## What the work is really asking
+Deep dig for `docs/planning/_card/issue.md` (2026-09-27). All numbers below are from an
+in-memory probe on `fixtures/gate/agrodesign/paper.pdf` through `extract_claims`, matched to
+the 86 curated claims **by span**, not by `Claim.id` (see contradiction 1).
 
-The last missing piece of the Phase 0 gate: "at least one real, reproducible `DIVERGED` (or a
-clean panel of `REPRODUCED`) with a **bundle a third party can replay**" (`docs/ROADMAP.md`).
-The real-paper panel exists (`fixtures/gate/agrodesign/`: 86 bound, 85 `REPRODUCED`,
-1 `DIVERGED`). C6 turns it into a portable, signed, independently checkable record.
+## What the work really is
 
-Two levels of replay, which must not be confused:
+The brief names three causes. The probe says one of them is the whole recall gap, and the
+work is mostly *precision and identity*, not recall.
 
-1. **Verdict replay (offline):** from the bundle alone, re-check every member's hash and the
-   signature, then re-derive the verdicts from the captured outputs and compare byte for byte.
-   Anyone can do this with no network and no environment.
-2. **Run replay (networked, opt-in):** re-clone the repo at the pinned rev, check the tree hash,
-   install the frozen environment, re-run the recorded argv, and compare the fresh outputs'
-   hashes to the bundle's. This is what shows the numbers came from that code.
+| Probe | Recovered (span match) | Claims emitted | Unique ids |
+|---|---|---|---|
+| As built | 0 / 86 | 0 | 0 |
+| + `"experimental validation"` → `results` in `_HEADING_SECTIONS` | **85 / 86** | 99 | **90** |
 
-## What exists to build on (verified)
+- **Cause 1 (section) is the recall gap, entirely.** Every one of the 86 is refused
+  `outside_sections` today; mapping the one heading recovers 85. Sub-sections the converter
+  failed to mark as headings (4.2, 4.4) inherit from `# 4` already.
+- **Cause 3 (glued `145.333<0.001`) is not a gap.** Tokenization already splits it into
+  `145.333` and the bound `<0.001`; both recover.
+- **Cause 2 (whitespace table rows) is not a recall gap but an identity gap.** Table cells
+  recover as prose, with the row label as metric (`Residual`, `Nitrogen`). Nine claims share
+  an id: `Nitrogen 2 433.500 433.500<0.001` gives MS and F the same `(text, metric, units)`;
+  every table's Residual DF `16`/`12` collides; the first row's metric is
+  `Source DF MS F p-value Treatment`. C4 binds by claim — an id naming two cells is
+  ambiguous.
+- **The one miss** is a span convention, not a failure: curated `p <0.001` (§4.4) vs
+  extracted `<0.001` with metric `p` — the same `Bound`.
 
-- `serialize_claims(claims, paper_hash=...)` (C1) — canonical claims + the paper hash; there
-  is **no loader**, so C6 needs `parse_claims` (6 value variants + `CharSpan`; the id must
-  recompute).
-- `serialize_trace` / `parse_trace` (C3, `parse_trace` added for the gate record; re-checks the
-  run id). `RunTrace` holds the tree hash but **not** the source URL/rev — those live on
-  `Checkout.source` (`SourceRecord`: kind, location, rev_requested, rev_resolved), which the
-  gate run did not persist. AgroDesign's: `https://github.com/DeepStatistix/AgroDesign.git`,
-  `v1.0.1` → `18b7c29a4f8de3dc9260b9fa42849e5a74097825`.
-- `load_bindings`, `verify_claims`, `serialize_verdicts` (C4). `verify_claims` reads bytes only
-  for **bound** artifacts; the run-id check uses the trace's artifact hashes, not bytes. So a
-  bundle can carry only the objects the bindings read — minimal disclosure (constraint #2).
-- `environment.txt` in the gate record: `python==3.12.13` + a `uv pip freeze`.
+## Precision: the 14 non-curated claims (once §4 is `results`)
 
-## Signing spike (scratchpad, throwaway key)
+| Class | Instances | Danger |
+|---|---|---|
+| `p ¡ 0.001` read as **Point 0.001**, metric `p ¡` | 2 | **High** — asserts p = 0.001, a value the paper never wrote; a run's 1e-10 would read `DIVERGED`. `¡` is LaTeX OT1's rendering of `<` |
+| Section-number in a heading line (`# 4`, `## 4.1`, `4.3`, `4.6`) | 4 | metric `#`/`##` — garbage |
+| PDF page-number line (`8`, `11`, `13`, `15`) | 4 | furniture, metric from neighbouring text |
+| Significance level `atα= 0.05` | 2 | a design input, not a result |
+| List-item marker `1.` | 1 | enumeration |
+| (the `<0.001` of the one miss) | 1 | true claim, span convention |
 
-OpenSSH 10.2 here; `ssh-keygen -Y sign/verify` exists since OpenSSH 8.1. Ed25519 SSHSIG over a
-file: **deterministic** (two signatures byte-identical), tampered content fails (rc 255), a
-wrong namespace fails, `-Y check-novalidate` checks without a trust root. No Python dependency.
+## Constraints found
+
+- **The converter's AgroDesign output is frozen.** `verify_bundle` re-runs `pdf_to_markdown`
+  on the bundled paper and re-admits every claim at its recorded offsets
+  (`src/plumb/bundle/verify.py:189,241`), and `claims.json` stores offsets. Any converter
+  change to this paper's text breaks the signed bundle. Fixes belong in `extract/`
+  (candidates, selection, gate), not `pdf/`.
+- **`_HEADING_SECTIONS` is deliberately literal** (`candidates.py` docstring): each title is a
+  deliberate edit with a test. A fuzzy rule (`endswith "results"`) would flip
+  PMC13363872 `## 5. Per-Dataset Analysis Results` and risks `## 4. Experimental Setup`
+  (hyperparameters) — the literal list is the right mechanism.
+- **The blind set is abstract-only** (73 rows); a heading change cannot move it, new
+  rejection cues can. The PDF↔Markdown seam test guards the fixtures.
+
+## Contradictions with the brief (flagged, not papered over)
+
+1. **"Matched by `Claim.id`" cannot work.** `Claim.id` hashes `(text, metric, units)`
+   (`claim.py:61`); the curated metrics are hand-written (`Table 1 crd ANOVA Treatment DF`).
+   Recovery must be matched by location + parsed value.
+2. **Cause 3 is already handled**; cause 2 matters for identity, not recall.
+3. **The real risk moved from recall to precision (R3):** the section fix alone *creates*
+   two false Point claims out of `p ¡ 0.001`. Shipping recall without the precision fixes
+   would be worse than 0/86.
 
 ## Open questions (for the PRD)
 
-1. Signing scheme — spike favours `ssh-keygen -Y`.
-2. Whose key signs the committed AgroDesign bundle — an owner decision; never the owner's
-   personal key without asking.
-3. Is the paper PDF a member? It is public and identified by hash; including it by default
-   would make the bundle carry raw paper bytes.
-4. What "gate met" requires once the bundle exists.
+- Table identity: disambiguate whitespace-row cells how, without touching the converter?
+- `¡`/`¿`: refuse (named cause) vs repair as `<`/`>` (a repair can't change the text, so the
+  claim text wouldn't parse — refusal is the only representable option without converter work).
+- Precision floor on this paper, and whether new causes enter the closed vocabularies.
+
+Place in pipeline: **C1 extract** only. No verdict is touched; execution still decides.

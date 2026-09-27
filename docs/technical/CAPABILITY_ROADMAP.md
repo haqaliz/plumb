@@ -73,6 +73,19 @@ capture structured output, freshness-guarded — as of 2026-09-23; C4's first sl
 decides on synthetic repos as of 2026-09-25), so **the gate is not met and C1 must not be read
 as complete.**
 
+**Claim recovery on the gate paper (2026-09-27, `docs/planning/claim-recovery/`):** on
+AgroDesign, C1 went from **0/86 to 86/86** of the curated claims (matched by place and value),
+emitting exactly 86 claims with 86 distinct ids. Four deterministic changes, each test-first:
+the literal heading `"experimental validation"` maps to `results`; a number behind `¡`/`¿`
+(LaTeX OT1's `<`/`>`) is refused as `partial_value`, so `p ¡ 0.001` never becomes the Point
+0.001; a new selection cause `layout_numeral` refuses heading numbers, page-number lines and
+list markers, and a conventional significance level is a `hyperparameter`; and caption-led
+**whitespace tables** (`tables.parse_captioned_tables`) name each cell `Table {n} {row}
+{column}` through a new `Candidate.cell_header`. Pipe-table cells stay unnamed (a named
+follow-on), and no fixture claim moved on either path. Read the 86/86 as conformance to a
+curated rule on one paper, not extraction coverage: cross-paper recovery is unmeasured (R1),
+and Table 8 (header row rendered as a heading) is named from prose.
+
 ## C2. Artifact intake & pinned environment
 
 **What:** resolve the code/data behind the paper — a local path, an `https` git URL with
@@ -170,7 +183,7 @@ summary derived from the records, serialized canonically (byte-identical across 
 
 **First real paper (2026-09-26):** AgroDesign, arXiv:2603.09041 (`fixtures/gate/agrodesign/`;
 survey and PRD in `docs/planning/gate-paper/`). 86 rule-defined claims (curated, grounded
-verbatim — C1 recovered 0), **86 bound, 85 `REPRODUCED`, 1 `DIVERGED`**, 0 changed in an
+verbatim — C1 recovered 0 at the time, 86/86 since claim-recovery), **86 bound, 85 `REPRODUCED`, 1 `DIVERGED`**, 0 changed in an
 environment resolved as of the code's date; the verdicts replay offline from the committed
 trace and objects. Two engine gaps it exposed, fixed test-first: bindings may declare
 `"float_repr": true` (pandas and `json` write the exact 2.5 as `2.5`, which is not a rounding —
