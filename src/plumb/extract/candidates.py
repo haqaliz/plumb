@@ -79,7 +79,7 @@ from typing import Final
 
 from plumb.extract.location import CharSpan, normalize_text
 from plumb.extract.ordering import location_sort_key
-from plumb.extract.tables import TableCell, parse_tables
+from plumb.extract.tables import TableCell, parse_captioned_tables, parse_tables
 
 __all__ = [
     "Candidate",
@@ -291,6 +291,10 @@ class Candidate:
       one. What a human reads to decide whether this is a claim.
     - `section_hint` — one of `SECTION_HINTS`, derived structurally. A *hint*: it says
       where in the document the number is, never what it means.
+    - `cell_header` — for a cell of a caption-led whitespace table only, the names the
+      paper wrote for it: `Table 1 Treatment MS` (`tables.parse_captioned_tables`).
+      Words read off the caption, row and header line — structure, not a judgement.
+      `None` everywhere else, pipe-table cells included.
 
     There is no `confidence` and no `is_claim`. Both would be a judgement this phase is
     forbidden to make — the first is a model's opinion standing in for a re-derived
@@ -302,6 +306,7 @@ class Candidate:
     span: CharSpan
     context: str
     section_hint: str
+    cell_header: str | None = None
 
     def __post_init__(self) -> None:
         for name in ("text", "context", "section_hint"):
@@ -311,6 +316,11 @@ class Candidate:
                     f"Candidate.{name} must be a string, got "
                     f"{type(value).__name__}: {value!r}"
                 )
+        if self.cell_header is not None and not isinstance(self.cell_header, str):
+            raise TypeError(
+                "Candidate.cell_header must be a string or None, got "
+                f"{type(self.cell_header).__name__}: {self.cell_header!r}"
+            )
         if not isinstance(self.span, CharSpan):
             raise TypeError(
                 "Candidate.span must be a CharSpan into the normalized text, got "
@@ -534,10 +544,21 @@ def extract_candidates(raw: str) -> tuple[Candidate, ...]:
     text = normalize_text(raw)
     lines = _line_regions(text)
     tables = parse_tables(text)
-    cells: tuple[TableCell, ...] = tuple(
-        cell for table in tables for cell in table.cells
+    captioned = parse_captioned_tables(text)
+    # Both table forms feed one cell cursor, so it must see their cells in span order.
+    named: list[tuple[TableCell, str | None]] = [
+        (cell, None) for table in tables for cell in table.cells
+    ]
+    named.extend((c.cell, c.header) for table in captioned for c in table)
+    named.sort(key=lambda pair: (pair[0].span.start, pair[0].span.end))
+    cells: tuple[TableCell, ...] = tuple(cell for cell, _ in named)
+    headers: tuple[str | None, ...] = tuple(header for _, header in named)
+    kinds = _line_kinds(
+        text,
+        lines,
+        tuple(table.span for table in tables)
+        + tuple(table.table.span for table in captioned),
     )
-    kinds = _line_kinds(text, lines, tuple(table.span for table in tables))
     hints = _heading_hints(text, lines)
     regions = _context_regions(text, lines, kinds)
 
@@ -569,11 +590,13 @@ def extract_candidates(raw: str) -> tuple[Candidate, ...]:
             region_cursor += 1
 
         cell = cells[cell_cursor] if cell_cursor < len(cells) else None
+        header = None
         if cell is not None and cell.span.start <= offset:
             # A table cell is the more specific structural container, and it is also
             # the honest context: the sentence around a table row is not a sentence.
             context = cell.text
             hint = SECTION_TABLE
+            header = headers[cell_cursor]
         else:
             # `regions` is never empty: every line yields at least one, and every
             # document has at least one line.
@@ -586,6 +609,7 @@ def extract_candidates(raw: str) -> tuple[Candidate, ...]:
                 span=CharSpan(match.start(), match.end()),
                 context=context,
                 section_hint=hint,
+                cell_header=header,
             )
         )
         position = match.end()

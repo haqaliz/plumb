@@ -721,3 +721,49 @@ class TestTheRecordIsSealed:
                 context="x",
                 section_hint="discussion",
             )
+
+
+class TestCaptionedTableCells:
+    """Cells of a caption-led whitespace table carry the names the paper wrote for them
+    (docs/planning/claim-recovery/whitespace-tables)."""
+
+    DOCUMENT = normalize_text(
+        "## Results\n\n"
+        "Table 1: ANOVA for the CRD experiment.\n"
+        "Source DF MS F p-value\n"
+        "Treatment 3 363.333 145.333<0.001\n"
+        "Residual 16 2.500 – –\n"
+        "The accuracy was 0.87 overall.\n"
+    )
+
+    def by_text(self) -> dict[str, Candidate]:
+        return {c.text: c for c in extract_candidates(self.DOCUMENT)}
+
+    def test_a_cell_is_a_table_candidate_with_its_header(self) -> None:
+        cell = self.by_text()["363.333"]
+        assert cell.section_hint == SECTION_TABLE
+        assert cell.context == "363.333"
+        assert cell.cell_header == "Table 1 Treatment MS"
+
+    def test_a_glued_bound_is_its_own_cell(self) -> None:
+        cell = self.by_text()["<0.001"]
+        assert cell.cell_header == "Table 1 Treatment p-value"
+
+    def test_prose_after_the_table_is_prose(self) -> None:
+        prose = self.by_text()["0.87"]
+        assert prose.section_hint == SECTION_RESULTS
+        assert prose.cell_header is None
+        assert prose.context == "The accuracy was 0.87 overall."
+
+    def test_a_pipe_table_cell_has_no_header(self) -> None:
+        document = "## Results\n\n| AUC | 0.87 |\n|---|---|\n| F1 | 0.91 |\n"
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.91"]
+        assert cell.section_hint == SECTION_TABLE
+        assert cell.cell_header is None
+
+    def test_the_header_must_be_a_string_or_none(self) -> None:
+        with pytest.raises(TypeError):
+            Candidate(
+                text="1", span=CharSpan(0, 1), context="1",
+                section_hint=SECTION_TABLE, cell_header=3,  # type: ignore[arg-type]
+            )

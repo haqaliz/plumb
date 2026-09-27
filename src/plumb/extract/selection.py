@@ -449,6 +449,21 @@ def metric_of(candidate: Candidate, *, normalized_text: str) -> str | None:
     return None
 
 
+_SAMPLE_SIZE_WORD: Final = re.compile(r"(?<!\S)[nN](?!\S)")
+
+
+def _header_metric(header: str) -> str | None:
+    """A named table cell's metric: its header, unless that names a sample size.
+
+    The column name is the header's ending, so the N-token test applies as it does to
+    prose; a row labelled `n` is caught by the bare word. The wider N-token list is not
+    applied to row labels — `Model` or `Group` names a row of results.
+    """
+    if _ends_with_n_token(header) or _SAMPLE_SIZE_WORD.search(header):
+        return None
+    return header
+
+
 def _units_token(candidate: Candidate, normalized_text: str) -> str | None:
     position = _position(candidate, normalized_text)
     after = _after_word(candidate.context, position + len(candidate.text))
@@ -519,7 +534,10 @@ def select(
     ) or _ET_AL.search(context) or _SURNAME_YEAR.search(context):
         return _reject(CAUSE_RELATED_WORK, candidate)
 
-    metric = metric_of(candidate, normalized_text=normalized_text)
+    if candidate.cell_header is not None:
+        metric = _header_metric(candidate.cell_header)
+    else:
+        metric = metric_of(candidate, normalized_text=normalized_text)
     if metric is None:
         return _reject(CAUSE_NO_NAMED_METRIC, candidate)
 

@@ -346,3 +346,26 @@ class TestLayoutNumerals:
             isinstance(result, SelectionRejection)
             and result.cause == CAUSE_LAYOUT_NUMERAL
         ), result
+
+
+class TestCellHeaders:
+    def test_a_named_cell_takes_its_header_as_the_metric(self) -> None:
+        c = Candidate(
+            text="363.333", span=CharSpan(0, 7), context="363.333",
+            section_hint=SECTION_TABLE, cell_header="Table 1 Treatment MS",
+        )
+        assert selected(c).metric == "Table 1 Treatment MS"
+
+    def test_a_sample_size_row_is_still_not_a_metric(self) -> None:
+        c = Candidate(
+            text="412", span=CharSpan(0, 3), context="412",
+            section_hint=SECTION_TABLE, cell_header="Table 2 n column 1",
+        )
+        assert rejected(c).cause == CAUSE_NO_NAMED_METRIC
+
+    def test_a_sample_size_column_is_still_not_a_metric(self) -> None:
+        c = Candidate(
+            text="412", span=CharSpan(0, 3), context="412",
+            section_hint=SECTION_TABLE, cell_header="Table 2 Treatment N",
+        )
+        assert rejected(c).cause == CAUSE_NO_NAMED_METRIC
