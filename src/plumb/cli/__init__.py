@@ -22,12 +22,14 @@ the record readers (`parse_trace`, `parse_claims`) is `RECORD_INVALID`; anything
 else is `SPINE_ERROR` — a bug, not a user error, and never a traceback.
 
 **The seams.** `run_live` and `replay_record` are the dispatch targets of `verify`
-(live and `--from-record` modes); `render_verdicts` is the rendering seam the other
-two compose. They take the parsed `args` namespace (and, for rendering, the
-`VerdictSet`) and return the exit code — the shell trusts the seams' verdict-level
-decision, because only the spine can see the verdicts. In this aspect the seams are
-stubs raising `SpineError`; the later aspects replace them without touching the
-shell. The shell guarantees, before dispatch: live mode has a `<paper>` and a
+(live and `--from-record` modes); `render_verdicts` is the pure rendering seam the
+other two compose — it takes a `VerdictSet` and returns bytes (`plumb.cli.render`),
+never deciding an exit code. `run_live` and `replay_record` take the parsed `args`
+namespace and return the exit code — the shell trusts the seams' verdict-level
+decision, because only the spine can see the verdicts. In the cli-core aspect the
+seams were stubs raising `SpineError`; the render aspect replaced `render_verdicts`
+without touching the shell, and the replay and live aspects replace the remaining two.
+The shell guarantees, before dispatch: live mode has a `<paper>` and a
 `<repo>` and a `--bindings` file, the paper path is a readable `.md`/`.pdf`, a
 `--out` bundle has an existing signer key, and `--from-record` carries none of the
 live-mode arguments.
@@ -50,6 +52,7 @@ from plumb.run.causes import (
     EntryPointAmbiguous,
     EntryPointMissing,
 )
+from plumb.cli.render import render_verdicts
 from plumb.verify.causes import ENV_BUILD_FAILED, BindingInvalid
 
 __all__ = [
@@ -311,14 +314,6 @@ def replay_record(args: argparse.Namespace) -> int:
     which the failure contract renders as `RECORD_INVALID`.
     """
     raise SpineError("record replay is not implemented yet (replay_record)")
-
-
-def render_verdicts(verdicts, *, json_output: bool) -> int:
-    """Rendering seam: verdict table (or canonical JSON) to stdout, byte-identical.
-
-    Consumed by `run_live` and `replay_record`; returns the exit code.
-    """
-    raise SpineError("verdict rendering is not implemented yet (render_verdicts)")
 
 
 if __name__ == "__main__":
