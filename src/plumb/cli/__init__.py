@@ -29,11 +29,12 @@ namespace and return the exit code — the shell trusts the seams' verdict-level
 decision, because only the spine can see the verdicts. In the cli-core aspect the
 seams were stubs raising `SpineError`; the render aspect replaced `render_verdicts`
 without touching the shell, the replay aspect replaced `replay_record`
-(`plumb.cli.replay`), and the live aspect replaces the remaining one.
+(`plumb.cli.replay`), and the live aspect replaced the remaining one (`plumb.cli.live`).
 The shell guarantees, before dispatch: live mode has a `<paper>` and a
-`<repo>` and a `--bindings` file, the paper path is a readable `.md`/`.pdf`, a
-`--out` bundle has an existing signer key, and `--from-record` carries none of the
-live-mode arguments.
+`<repo>` and a `--bindings` file, the paper path is a readable `.md`/`.pdf`, the
+repo is a known kind (local directory, git URL with `--rev`, or archive — anything
+else is a usage error), a `--out` bundle has an existing signer key, and
+`--from-record` carries none of the live-mode arguments.
 """
 
 from __future__ import annotations
@@ -149,12 +150,18 @@ def build_parser() -> argparse.ArgumentParser:
             "from its own code and data, and decide each claim against the value the "
             "run actually produced. <paper> is a .md or .pdf path; <repo> is a local "
             "directory, an https git URL (with --rev), or an archive path.\n\n"
+            "Live runs happen under a per-inputs work area (~/.plumb-runs): the "
+            "checkout, the run and its captured objects are named deterministically "
+            "from the inputs and replaced on re-run; only the signed bundle (--out) "
+            "is evidence.\n\n"
             "Flags:\n"
             "  --rev REV            git revision for a git-URL <repo>\n"
             "  --bindings FILE      JSON bindings file (required in live mode)\n"
             "  --out DIR            write a signed, replayable bundle to DIR\n"
             "  --from-record DIR    replay a committed record instead of running live\n"
-            "  --no-env-build       skip the real environment build (offline stub)\n"
+            "  --no-env-build       skip the real environment build (offline stub);\n"
+            "                       the real uv sync runs only without this flag, at\n"
+            "                       dev time on your own compute\n"
             "  --signer-key PATH    SSH private key for bundle signing\n"
             "                       (default: ~/.ssh/plumb_bundle_ed25519)\n"
             "  --no-paper           omit the paper from the bundle\n"
@@ -248,6 +255,13 @@ def cmd_verify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int
     _check_paper(args.paper)
     if args.out is not None:
         _check_signer_key(args.signer_key)
+    kind = repo_kind(args.repo)
+    if kind is None:
+        parser.error(
+            f"<repo> {args.repo!r} is not a local directory, a git URL, or an archive"
+        )
+    if kind != "git" and args.rev is not None:
+        parser.error("--rev applies only to a git-URL <repo>")
     return run_live(args)
 
 
@@ -298,14 +312,7 @@ def _map_cause(exc: Exception) -> tuple[str, str]:
     return SPINE_ERROR, str(exc)
 
 
-def run_live(args: argparse.Namespace) -> int:
-    """Live spine seam: intake -> run -> verify -> render (implemented by a later aspect).
-
-    The shell has already validated the paper path, the bindings flag and the signer
-    key. Raises the engine's named exceptions on failure; returns the exit code (0,
-    or 1 when any claim is `UNVERIFIED`).
-    """
-    raise SpineError("the live spine is not implemented yet (run_live)")
+from plumb.cli.live import repo_kind, run_live  # noqa: E402  (seam import; no cycle)
 
 
 if __name__ == "__main__":

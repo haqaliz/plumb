@@ -10,10 +10,13 @@ Two shapes of test, per the plan: the entry-point-facing paths (`--help`, usage
 errors) run `uv run plumb` as a subprocess — `subprocess` is deliberately outside
 `conftest.py`'s in-process network blocker (`tests/conftest.py:14-17`), and the
 child is a fresh interpreter with no sockets of its own — and everything else
-drives `main(argv=...)` in-process with the seams monkeypatched. The seams
-(`run_live`, `replay_record`) are stubs that raise `SpineError`; a test that needs
-a later aspect's trigger replaces the stub with one that raises the engine
-exception, which is exactly what the later aspect will do.
+drives `main(argv=...)` in-process with the seams monkeypatched. The seams are
+real (`run_live` in `plumb.cli.live`, `replay_record` in `plumb.cli.replay`);
+a test that needs a later aspect's trigger replaces the seam with one that
+raises the engine exception, which is exactly what the aspect's own path does.
+The live-mode tests pass an existing directory as `<repo>` — the shell validates
+the repo kind before dispatch — and a `--bindings` file whose existence the
+seam, not the shell, checks.
 """
 
 from __future__ import annotations
@@ -44,6 +47,7 @@ from plumb.cli import (
     UNSUPPORTED_ARCHIVE,
     USAGE_ERROR,
     WONT_RUN,
+    SpineError,
     main,
     _map_cause,
 )
@@ -108,6 +112,14 @@ def paper(tmp_path: Path) -> Path:
 def bindings(tmp_path: Path) -> Path:
     path = tmp_path / "bindings.json"
     path.write_text('{"bindings": []}\n', encoding="utf-8")
+    return path
+
+
+@pytest.fixture
+def repo(tmp_path: Path) -> Path:
+    """An existing directory: the shell's repo-kind check must let it through."""
+    path = tmp_path / "proj"
+    path.mkdir()
     return path
 
 
@@ -293,10 +305,10 @@ class TestEveryNamedCauseIsEmitted:
         ),
     )
     def test_engine_exceptions_through_the_dispatcher(
-        self, paper: Path, monkeypatch, capsys, cause: str, exc: Exception
+        self, paper: Path, repo: Path, monkeypatch, capsys, cause: str, exc: Exception
     ) -> None:
         monkeypatch.setattr("plumb.cli.run_live", _raising(exc))
-        code = main(["verify", str(paper), "repo", "--bindings", "b.json"])
+        code = main(["verify", str(paper), str(repo), "--bindings", "b.json"])
         assert code == 1
         captured = capsys.readouterr()
         assert captured.out == ""
@@ -308,10 +320,10 @@ class TestEveryNamedCauseIsEmitted:
         ids=("wont-run", "timeout", "no-artifact", "stale-artifact"),
     )
     def test_recorded_run_causes_through_the_dispatcher(
-        self, paper: Path, monkeypatch, capsys, cause: str
+        self, paper: Path, repo: Path, monkeypatch, capsys, cause: str
     ) -> None:
         monkeypatch.setattr("plumb.cli.run_live", _raising(_CausedError(cause, "detail")))
-        code = main(["verify", str(paper), "repo", "--bindings", "b.json"])
+        code = main(["verify", str(paper), str(repo), "--bindings", "b.json"])
         assert code == 1
         captured = capsys.readouterr()
         assert captured.err.startswith(f"plumb verify: {cause}: detail")
@@ -328,9 +340,12 @@ class TestEveryNamedCauseIsEmitted:
         captured = capsys.readouterr()
         assert captured.err.startswith(f"plumb verify: {RECORD_INVALID}: ")
 
-    def test_spine_error_from_the_unbuilt_seam(self, paper: Path, capsys) -> None:
-        """The seam stubs are SPINE_ERROR until the later aspects replace them."""
-        code = main(["verify", str(paper), "repo", "--bindings", "b.json"])
+    def test_an_unexpected_spine_failure_is_still_spine_error(
+        self, paper: Path, repo: Path, monkeypatch, capsys
+    ) -> None:
+        """SPINE_ERROR names a harness bug; the live seam is real now, not a stub."""
+        monkeypatch.setattr("plumb.cli.run_live", _raising(RuntimeError("a harness bug")))
+        code = main(["verify", str(paper), str(repo), "--bindings", "b.json"])
         assert code == 1
         captured = capsys.readouterr()
         assert captured.err.startswith(f"plumb verify: {SPINE_ERROR}: ")
@@ -400,9 +415,9 @@ class TestFailureRendering:
         for line in lines:
             assert self._PREFIX.match(line), f"bad cause line: {line!r}"
 
-    def test_engine_cause_lines(self, paper: Path, monkeypatch, capsys) -> None:
+    def test_engine_cause_lines(self, paper: Path, repo: Path, monkeypatch, capsys) -> None:
         monkeypatch.setattr("plumb.cli.run_live", _raising(SourceNotFound("gone")))
-        main(["verify", str(paper), "repo", "--bindings", "b.json"])
+        main(["verify", str(paper), str(repo), "--bindings", "b.json"])
         self._assert_cause_rendering(capsys.readouterr())
 
     def test_paper_cause_lines(self, capsys) -> None:
@@ -418,8 +433,9 @@ class TestFailureRendering:
         )
         self._assert_cause_rendering(capsys.readouterr())
 
-    def test_spine_cause_lines(self, paper: Path, capsys) -> None:
-        main(["verify", str(paper), "repo", "--bindings", "b.json"])
+    def test_spine_cause_lines(self, paper: Path, repo: Path, monkeypatch, capsys) -> None:
+        monkeypatch.setattr("plumb.cli.run_live", _raising(SpineError("a harness bug")))
+        main(["verify", str(paper), str(repo), "--bindings", "b.json"])
         self._assert_cause_rendering(capsys.readouterr())
 
     def test_usage_errors_print_no_stdout(self, capsys) -> None:

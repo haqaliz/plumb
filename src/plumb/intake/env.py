@@ -84,6 +84,21 @@ class EnvDescriptor:
     tool_versions: tuple[tuple[str, str], ...]  # sorted (tool, version) pairs
     manifests: ManifestScan
 
+    def to_text(self) -> str:
+        """The descriptor as one canonical line — the bundle's `environment.txt`.
+
+        Same shape as the gate record's header (`tools/gate_run.py`): the policy
+        and its detail, the python pin and its source, the isolation posture,
+        and the probed tool versions. No paths, no clock — a pure rendering of
+        the recorded fields, so the same checkout describes identically twice.
+        """
+        tools = ", ".join(f"{tool}={version}" for tool, version in self.tool_versions)
+        return (
+            f"# resolved by {self.policy!r} ({self.policy_detail}) on python pin "
+            f"{self.python_pin!r} ({self.python_pin_source}); isolation: "
+            f"{self.isolation_posture}; tools: {tools}"
+        )
+
 
 @dataclass(frozen=True)
 class EnvBuild:

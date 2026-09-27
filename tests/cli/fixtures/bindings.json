@@ -1,0 +1,10 @@
+{"bindings": [
+  {"claim_id": "b3b87b2b43490a529cf2ad7662321e46c3b916aaa0ca6ab74f887d31db2b8000",
+   "artifact": "results.json",
+   "locator": {"kind": "json_pointer", "pointer": "/metrics/accuracy"},
+   "float_repr": true},
+  {"claim_id": "3e137a2e267b131b53702683f7e6f2a85625377ddd67a3dcc6d8d3edc1721de5",
+   "artifact": "results.json",
+   "locator": {"kind": "json_pointer", "pointer": "/metrics/precision"},
+   "float_repr": true}
+]}
