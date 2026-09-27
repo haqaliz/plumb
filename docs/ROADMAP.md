@@ -38,6 +38,12 @@ Ship the self-hostable CLI: C1–C4 hardened + C6 (signed replayable bundle). `p
 <paper> <repo>` returns a per-claim verdict table and a bundle. BYOK LLM assist is opt-in and
 off by default. Publish the method.
 
+- **Status (2026-09-27):** the CLI's first slice is built (`verify-cli` — see
+  `docs/technical/CAPABILITY_ROADMAP.md` C4): live spine + `--from-record` replay, verdict
+  table / `--json`, signed bundle with `--out`. Remaining for this phase: harden against real
+  repos (R1 — cross-paper coverage is still unmeasured), the should-have `--timeout-seconds` /
+  `--run-dir` knobs, and the method write-up.
+
 ## Phase 2 — Corpus + benchmark + no-code path (months 2–3)
 
 - C5: bank every (claim, re-derived value, verdict) into the discrepancy corpus; publish a

@@ -25,7 +25,18 @@ extraction, and the admission gate that is the sole constructor of a `Claim`. On
 runtime dependency — pypdf (pure-Python, no transitive deps), powering the PDF→Markdown
 converter in `src/plumb/pdf/`; no network reachable from any test.
 
-**Not built:** C5, C7, C8, and C4/C6 beyond their first slices. **C4 binding & verdict, first slice, is
+**Not built:** C5, C7, C8, and C4/C6 beyond their first slices. **The `plumb verify` CLI is built** (2026-09-27): `src/plumb/cli/` is the
+Phase 1 headline — `plumb verify <paper> <repo> [--rev REV] [--bindings FILE] [--out DIR]
+[--from-record DIR] [--no-env-build] [--signer-key PATH] [--no-paper] [--json]` runs the
+C1→C2→C3→C4→C6 spine live (local dir / git URL with `--rev` / archive; real env build by
+default, offline stub with `--no-env-build`) or replays a committed record (`--from-record`:
+byte-identical re-derivation, cross-checked against the record's `verdicts.json`), renders a
+fixed-layout verdict table or canonical JSON (byte-identical across invocations), and writes a
+signed bundle with `--out` that `verify_bundle` accepts. Exit 0 iff every claim decided; 1 on
+any `UNVERIFIED` or named cause (`RECORD_INVALID`, `KEY_MISSING`, `BUNDLE_REFUSED`, ...); 2 on
+usage; never a traceback, never `DIVERGED` on a harness failure. The AgroDesign record replays
+through the CLI: 86 claims, 85 `REPRODUCED`, 1 `DIVERGED`, `--json` byte-identical to the
+committed `verdicts.json`. **C4 binding & verdict, first slice, is
 built** (2026-09-25): `src/plumb/verify/` takes C1 claims, a **user-written** bindings file
 (no proposer) and a C3 run, locates exactly one value per claim through a JSON pointer, a
 stdout regex or a CSV cell — read only through the object store by hash, never a stale

@@ -21,7 +21,13 @@ uv sync && uv run pytest        # 1489 tests, no network, one pinned runtime dep
 | | |
 |---|---|
 | **Built** | Typed claim records · paper hashing · byte-identical serialization · dedup · Markdown table parsing · candidate extraction · the admission gate · claim selection (M3 rule) · PDF→Markdown conversion (single- and two-column layouts; all five fixtures at the recovery floor — see `fixtures/papers/README.md`) · **artifact intake** (tree hash via plumb bytes framing or the repo's `HEAD^{tree}`; local/git/archive resolution; environment descriptor; offline-tested, real `uv sync` dev-time only) · **execution & capture** (entry-point resolution; runs in a working copy under the run area; content-addressed stdout/JSON/CSV; freshness guard — stale outputs are never read) · **signed bundle** (C6: a hash-listed, `ssh-keygen -Y`-signed directory; offline verification re-admits every claim against the paper and re-derives the verdicts; `tools/bundle_replay.py` re-runs from a clean clone — see `bundles/README.md`) · **binding & verdict, first slice** (user-written bindings; JSON-pointer / stdout-regex / CSV-cell locators; `Point`/`Bound` compared against the paper's written precision or an explicit tolerance; a closed `UNVERIFIED` cause vocabulary; no harness failure can become `DIVERGED`, mutation-checked) |
-| **Not built** | binding proposer · other value kinds (±, CI, range, ~) · notebook capture · `plumb verify` CLI · corpus · bundle · hosted layer |
+| **Not built** | binding proposer · other value kinds (±, CI, range, ~) · notebook capture · corpus · hosted layer |
+
+**The CLI.** `plumb verify <paper> <repo> [--rev REV] [--bindings FILE] [--out DIR]` runs the
+whole spine live and prints a per-claim verdict table (or canonical `--json`); `--from-record
+<dir>` replays a committed record offline, byte-identical; `--out` writes the signed bundle.
+Exit 0 only when every claim is decided — any `UNVERIFIED`, harness failure, or usage error is
+a non-zero exit with a named cause, never a traceback, never a harness-side `DIVERGED`.
 
 **The first real paper.** *AgroDesign* (arXiv:2603.09041, CC BY 4.0) was run through intake →
 run → verify on its own code at a pinned tag: of 86 rule-defined claims (every numeric cell of
