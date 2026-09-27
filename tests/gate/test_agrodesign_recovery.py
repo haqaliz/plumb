@@ -85,3 +85,18 @@ def test_no_claim_is_read_from_behind_an_ot1_comparator(run) -> None:
         c for c in claims if text[: c.location.start].rstrip()[-1:] in {"¡", "¿"}
     ]
     assert behind == []
+
+
+def test_distinct_cells_have_distinct_ids(run) -> None:
+    # C4 binds by claim; an id naming two cells (a row's MS and its F) is ambiguous.
+    # Before claim-recovery's whitespace-tables aspect, 86 claims carried 79 ids.
+    text, claims, _ = run
+    by_id: dict[str, list[Claim]] = {}
+    for c in claims:
+        by_id.setdefault(c.id, []).append(c)
+    shared = {
+        key: [(text[c.location.start:c.location.end], c.metric) for c in group]
+        for key, group in by_id.items()
+        if len({c.location for c in group}) > 1
+    }
+    assert shared == {}
