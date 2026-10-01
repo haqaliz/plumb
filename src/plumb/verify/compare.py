@@ -6,12 +6,12 @@ called only once a single value has been located in a fresh artifact of a run
 that succeeded; everything that can go wrong before that is a cause decided
 elsewhere.
 
-**The order is the contract** (`docs/planning/binding-verdict/prd.md` D1–D7).
+**The order is the contract** (`docs/planning/binding-verdict/prd.md` D1–D7;
+`docs/planning/value-kinds-compare/prd.md` D9–D13).
 
-1. *Kind gate (D3).* Only `Point` and `Bound` are compared. `PlusMinus`,
-   `Interval`, `Range` and `Approximate` are `UNSUPPORTED_VALUE_KIND`: what their
-   margin or endpoints must match is not stated by the notation, and guessing it
-   is how a harness manufactures a `DIVERGED`.
+1. *Dispatch.* Every kind compares — `Point`, `Bound`, `PlusMinus`, `Interval`,
+   `Range`, `Approximate`. D9–D13 supersede D3's refusal of the band kinds and
+   `Approximate`. Any other `ClaimValue` is a harness bug and raises.
 2. *Scale gate (D4).* A percent claim must declare the artifact's scale, or it is
    `UNIT_UNDECLARED` — `87%` against a run's `0.87` is a unit question, not a
    contradiction. The re-derived value is `located × scale`; the artifact's own
@@ -42,6 +42,43 @@ elsewhere.
    `p <= 0.05` may have been `0.0504`); the operator holds → `REPRODUCED`; the operator
    holds against a threshold widened by the tolerance → `WITHIN-TOLERANCE`;
    otherwise `DIVERGED`.
+
+5. For a `PlusMinus` (D9): the claim is `center ± margin`, decided on the closed
+   band `[center − margin − hc − hm, center + margin + hc + hm]`, where `hc`/`hm`
+   are the half-units of centre and margin — the margin is itself a written
+   decimal and gets D1's half-unit treatment. D1a applies to the centre (a
+   trailing-zero-integer centre without a tolerance is `PRECISION_AMBIGUOUS`);
+   the margin is a width, not a claim value, so D1a never applies to it. A zero
+   margin degenerates to the D1 `Point` band. Inside the band → `REPRODUCED`;
+   inside the band widened by an explicit tolerance (D2) → `WITHIN-TOLERANCE`;
+   outside both → `DIVERGED`. A value outside the band is first checked by D13
+   (item 8).
+
+6. For an `Interval`/`Range` (D10): one policy for both kinds, decided on the
+   closed band `[low − hl, high + hh]` with `hl`/`hh` the endpoints' half-units.
+   D1a does **not** apply to endpoints: their rounding is the band's fuzz (the
+   paper wrote `20`, so `20.4` is inside its rounding of the boundary), not an
+   ambiguous claim value. Tolerance and verdicts as D9, with the D13 check
+   (item 8) for a value outside the band. The delta is measured
+   from the midpoint of the reported endpoints; a relative tolerance is
+   relative to that midpoint.
+
+7. For an `Approximate` (D11): the tilde is prose — the claim is a `Point`
+   whose text carries the `~` (already in the record). D1 band, D2 tolerance,
+   and the D7 point rule in full, inside or outside the band.
+
+8. *D13 — coarse artifact at a band boundary.* A `PlusMinus`/`Interval`/`Range`
+   located **outside** its decision band whose artifact wrote fewer digits than
+   the nearest boundary's written precision, and whose own rounding still
+   reaches that boundary (`|re − boundary| ≤ a`), is
+   `UNVERIFIED: ARTIFACT_PRECISION_COARSER` — the artifact cannot resolve which
+   side of the paper's band it is on. It precedes the tolerance check, in D7's
+   position. **Inside the band, no coarseness check applies for band kinds:**
+   the band is the claim's resolution. The boundary's written precision is the
+   coarser of the written components that define it (the endpoint's for an
+   `Interval`/`Range`; the centre's or the margin's for a `PlusMinus`), and the
+   artifact's half-unit is `located_half_unit × scale`, never the scaled
+   product's exponent (D4/D7 parity).
 """
 
 from __future__ import annotations
@@ -50,13 +87,20 @@ from dataclasses import dataclass
 from decimal import Decimal
 import operator
 
-from plumb.extract.value import Bound, ClaimValue, Point
+from plumb.extract.value import (
+    Approximate,
+    Bound,
+    ClaimValue,
+    Interval,
+    PlusMinus,
+    Point,
+    Range,
+)
 from plumb.verify.causes import (
     ARTIFACT_PRECISION_COARSER,
     NO_TOLERANCE,
     PRECISION_AMBIGUOUS,
     UNIT_UNDECLARED,
-    UNSUPPORTED_VALUE_KIND,
 )
 from plumb.verify.numbers import CONTEXT, Tolerance, half_unit
 
@@ -112,16 +156,20 @@ def decide(
     if tolerance is not None and not isinstance(tolerance, Tolerance):
         raise TypeError(f"tolerance must be a Tolerance, got {type(tolerance).__name__}")
 
-    if not isinstance(reported, (Point, Bound)):
-        return _unverified(UNSUPPORTED_VALUE_KIND)
+    if not isinstance(reported, (Point, Bound, PlusMinus, Interval, Range, Approximate)):
+        raise TypeError(f"unexpected value kind: {type(reported).__name__}")
     if scale is None and (units == "%" or "%" in reported.text):
         return _unverified(UNIT_UNDECLARED)
 
     factor = Decimal(1) if scale is None else scale
     rederived = CONTEXT.multiply(located, factor)
     artifact_half = CONTEXT.multiply(located_half_unit, factor)
-    if isinstance(reported, Point):
+    if isinstance(reported, (Point, Approximate)):
         return _point(reported.value, rederived, artifact_half, tolerance)
+    if isinstance(reported, PlusMinus):
+        return _plus_minus(reported, rederived, artifact_half, tolerance)
+    if isinstance(reported, (Interval, Range)):
+        return _interval_range(reported, rederived, artifact_half, tolerance)
     return _bound(reported, rederived, artifact_half, tolerance)
 
 
@@ -175,8 +223,97 @@ def _bound(reported: Bound, re: Decimal, a: Decimal, tolerance: Tolerance | None
     return result(DIVERGED)
 
 
+def _plus_minus(
+    reported: PlusMinus, re: Decimal, a: Decimal, tolerance: Tolerance | None
+) -> Decision:
+    """D9: `center ± margin` on the closed band widened by both half-units."""
+    center, margin = reported.center, reported.margin
+    delta = CONTEXT.subtract(re, center)
+
+    def result(verdict: str, cause: str | None = None, band=None, tolerance_band=None):
+        return Decision(verdict, cause, re, band, tolerance_band, None, None, delta)
+
+    if margin == 0:
+        # D9 degeneracy: a zero margin is the claim `center` — the D1 Point band.
+        return _point(center, re, a, tolerance)
+    if tolerance is None and _round_integer(center):
+        return result(UNVERIFIED, PRECISION_AMBIGUOUS)
+
+    width = CONTEXT.add(CONTEXT.add(margin, half_unit(center)), half_unit(margin))
+    band = _around(center, width)
+    if _inside(re, band):
+        return result(REPRODUCED, band=band)
+    # D13: outside the band, the artifact must resolve the nearest boundary —
+    # its written precision is the coarser of the written components that
+    # define it (D7 generalized from a point to a band edge).
+    boundary_h = max(half_unit(center), half_unit(margin))
+    if _d13(re, a, band, boundary_h):
+        return result(UNVERIFIED, ARTIFACT_PRECISION_COARSER, band=band)
+    if tolerance is not None:
+        twidth = _width(tolerance, center)
+        if twidth is None:
+            return result(UNVERIFIED, NO_TOLERANCE, band=band)
+        tolerance_band = _around(center, CONTEXT.add(width, twidth))
+        if _inside(re, tolerance_band):
+            return result(WITHIN_TOLERANCE, band=band, tolerance_band=tolerance_band)
+        return result(DIVERGED, band=band, tolerance_band=tolerance_band)
+    return result(DIVERGED, band=band)
+
+
+def _interval_range(
+    reported: Interval | Range, re: Decimal, a: Decimal, tolerance: Tolerance | None
+) -> Decision:
+    """D10: `[low, high]` on the closed band `[low − hl, high + hh]`, both kinds.
+
+    D1a never applies to endpoints: their rounding is the band's fuzz, not an
+    ambiguous claim value. The delta and a relative tolerance reference the
+    midpoint of the reported endpoints.
+    """
+    low, high = reported.low, reported.high
+    mid = CONTEXT.divide(CONTEXT.add(low, high), Decimal(2))
+    delta = CONTEXT.subtract(re, mid)
+
+    def result(verdict: str, cause: str | None = None, band=None, tolerance_band=None):
+        return Decision(verdict, cause, re, band, tolerance_band, None, None, delta)
+
+    band = (CONTEXT.subtract(low, half_unit(low)), CONTEXT.add(high, half_unit(high)))
+    if _inside(re, band):
+        return result(REPRODUCED, band=band)
+    # D13: the nearest boundary's written precision is its endpoint's.
+    if _d13(re, a, band, half_unit(low) if re < band[0] else half_unit(high)):
+        return result(UNVERIFIED, ARTIFACT_PRECISION_COARSER, band=band)
+    if tolerance is not None:
+        twidth = _width(tolerance, mid)
+        if twidth is None:
+            return result(UNVERIFIED, NO_TOLERANCE, band=band)
+        tolerance_band = (CONTEXT.subtract(band[0], twidth), CONTEXT.add(band[1], twidth))
+        if _inside(re, tolerance_band):
+            return result(WITHIN_TOLERANCE, band=band, tolerance_band=tolerance_band)
+        return result(DIVERGED, band=band, tolerance_band=tolerance_band)
+    return result(DIVERGED, band=band)
+
+
 def _unverified(cause: str) -> Decision:
     return Decision(UNVERIFIED, cause, None, None, None, None, None, None)
+
+
+def _d13(re: Decimal, a: Decimal, band: Band, boundary_h: Decimal) -> bool:
+    """D13: outside the band, can the artifact resolve the nearest boundary?
+
+    An artifact that wrote fewer digits than the nearest boundary's written
+    precision (`a > boundary_h`) and whose own rounding still reaches that
+    boundary (`|re − boundary| ≤ a`) cannot decide which side of the paper's
+    band it is on. `re` is guaranteed outside `band` by the caller.
+    """
+    if a <= boundary_h:
+        return False
+    boundary = band[0] if re < band[0] else band[1]
+    return _within_reach(boundary, re, a)
+
+
+def _within_reach(boundary: Decimal, re: Decimal, a: Decimal) -> bool:
+    """The artifact's own rounding contains the boundary (D13's reach check)."""
+    return _inside(boundary, _around(re, a))
 
 
 def _round_integer(v: Decimal) -> bool:

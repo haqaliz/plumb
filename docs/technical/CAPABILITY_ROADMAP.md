@@ -175,7 +175,8 @@ summary derived from the records, serialized canonically (byte-identical across 
   precision** (closed half-unit band) or an explicit tolerance; a `Bound` by its operator. A run
   that wrote fewer digits than the paper is `ARTIFACT_PRECISION_COARSER` — checked first, so it
   is never a false `REPRODUCED`; round integers are `PRECISION_AMBIGUOUS`; percent claims need a
-  declared scale (`UNIT_UNDECLARED`); `±`/CI/range/`~` are `UNSUPPORTED_VALUE_KIND`.
+  declared scale (`UNIT_UNDECLARED`); all six value kinds compare (`Point`, `Bound`,
+  `PlusMinus`, `Interval`, `Range`, `Approximate` — `±`/CI/range/`~` included, D9–D13).
 - **Run causes govern first** (no run → the run's failure → `NO_ARTIFACT`), so **no harness
   failure becomes `DIVERGED`** — pinned by `tests/verify/test_false_diverged_guard.py`, which is
   mutation-checked in-suite; every `DIVERGED` carries `review_required`. A catalogue test

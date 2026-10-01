@@ -43,7 +43,8 @@ stdout regex or a CSV cell — read only through the object store by hash, never
 output — and decides it in pinned `Decimal` arithmetic: a `Point` against the paper's
 **written precision** (`0.87` is `[0.865, 0.875]`) or an explicit tolerance, a `Bound` by its
 operator. A run that wrote fewer digits than the paper is `ARTIFACT_PRECISION_COARSER`, never
-`REPRODUCED`; `±`/CI/range/`~` values are `UNSUPPORTED_VALUE_KIND`; percent claims must
+`REPRODUCED`; all six value kinds compare (`Point`, `Bound`, `PlusMinus`, `Interval`,
+`Range`, `Approximate` — `±`/CI/range/`~` included, D9–D13); percent claims must
 declare a scale. Run causes govern every claim first, so **no harness failure can become
 `DIVERGED`** — pinned by a mutation-checked guard — and every `DIVERGED` carries
 `review_required`. Decisions D1–D8 in `docs/planning/binding-verdict/prd.md`. **C3 execution & capture is built** (2026-09-23): `src/plumb/run/`

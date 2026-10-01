@@ -10,10 +10,21 @@ that a number the run agrees with is never reported as `DIVERGED`:
   `PRECISION_AMBIGUOUS` unless the binding gives a tolerance.
 - **D2** outside the band, only an explicit tolerance makes `WITHIN-TOLERANCE`;
   otherwise the paper's own precision was the tolerance, and it is `DIVERGED`.
-- **D3** only `Point` and `Bound` are compared.
+- **D3** the kind gate is gone (D9–D13 supersede it): all six kinds dispatch.
+- **D9** `center ± margin` decides on the closed band
+  `[center − margin − hc − hm, center + margin + hc + hm]` (`hc`/`hm` the
+  half-units of centre and margin); D1a applies to the centre, never the margin;
+  a zero margin is the D1 `Point` band.
+- **D10** an `Interval`/`Range` decides on the closed band `[low − hl, high + hh]`,
+  one policy for both kinds; D1a never applies to endpoints.
 - **D4** a percent claim must declare the artifact's scale.
 - **D7** an artifact that wrote fewer digits than the paper, and agrees at its
   own precision, cannot decide the claim → `ARTIFACT_PRECISION_COARSER`.
+- **D11** an `Approximate` is a `Point` whose text carries the `~`: D1 band,
+  D2 tolerance, and the D7 point rule in full.
+- **D13** a band kind located outside its band whose artifact wrote fewer
+  digits than the nearest boundary and still reaches it within its own rounding
+  is `ARTIFACT_PRECISION_COARSER`; inside the band no coarseness check applies.
 
 Reported values are built with C1's own `parse_value`, so they carry real
 paper-shaped text and exponents.
@@ -65,14 +76,6 @@ def verdict(decision: Decision) -> str:
 
 
 class TestGates:
-    @pytest.mark.parametrize(
-        "reported", ["0.85 ± 0.03", "95% CI [0.81, 0.89]", "12–15%", "~10,000"]
-    )
-    def test_value_kinds_this_slice_does_not_compare(self, reported: str) -> None:
-        decision = run(reported, "0.85")
-        assert decision.verdict == UNVERIFIED
-        assert decision.cause == causes.UNSUPPORTED_VALUE_KIND
-
     def test_a_percent_in_the_text_without_a_scale_is_unit_undeclared(self) -> None:
         assert verdict(run("87%", "0.87")) == causes.UNIT_UNDECLARED
 
@@ -97,6 +100,61 @@ class TestGates:
         with pytest.raises(TypeError):
             decide(parse_value("0.87"), None, args["located"], args["half_unit"], None,
                    args["scale"])
+
+
+class TestApproximate:
+    """D11: `~` is prose — the claim is a `Point` whose text carries the tilde."""
+
+    def test_an_approximate_is_decided_on_the_d1_band(self) -> None:
+        decision = run("~0.87", "0.87")
+        assert decision.verdict == REPRODUCED
+        assert decision.cause is None
+        assert decision.delta == 0
+        assert decision.band == (D("0.865"), D("0.875"))
+
+    def test_a_value_inside_the_band_is_reproduced(self) -> None:
+        decision = run("~0.87", "0.8712")
+        assert decision.verdict == REPRODUCED
+        assert decision.band == (D("0.865"), D("0.875"))
+        assert decision.delta == D("0.0012")
+
+    def test_the_band_is_closed_at_the_boundary(self) -> None:
+        assert run("~0.87", "0.875").verdict == REPRODUCED
+        assert run("~0.87", "0.865").verdict == REPRODUCED
+
+    def test_just_outside_the_band_is_diverged(self) -> None:
+        decision = run("~0.87", "0.8751")
+        assert decision.verdict == DIVERGED
+        assert decision.delta == D("0.0051")
+
+    def test_a_tolerance_widens_the_band(self) -> None:
+        decision = run("~0.87", "0.89", tolerance=("abs", "0.05"))
+        assert decision.verdict == WITHIN_TOLERANCE
+        assert decision.tolerance_band == (D("0.82"), D("0.92"))
+        assert decision.band == (D("0.865"), D("0.875"))
+
+    def test_outside_both_the_band_and_the_tolerance_is_diverged(self) -> None:
+        assert run("~0.87", "0.93", tolerance=("abs", "0.05")).verdict == DIVERGED
+
+    def test_a_coarse_artifact_inside_the_band_is_never_reproduced(self) -> None:
+        # D7 applies in full: 0.87 wrote two digits against the paper's three.
+        # That it sits inside the band for ~0.870 proves nothing (D7).
+        decision = run("~0.870", "0.87")
+        assert decision.verdict == UNVERIFIED
+        assert decision.cause == causes.ARTIFACT_PRECISION_COARSER
+        assert decision.band == (D("0.8695"), D("0.8705"))
+
+    def test_a_coarse_artifact_outside_the_band_is_diverged(self) -> None:
+        assert run("~0.870", "0.89").verdict == DIVERGED
+
+    def test_a_round_integer_approximate_without_tolerance_is_ambiguous(self) -> None:
+        # D1a parity: "~10,000" may be exact or rounded to the thousand.
+        decision = run("~10,000", "10213")
+        assert decision.verdict == UNVERIFIED
+        assert decision.cause == causes.PRECISION_AMBIGUOUS
+
+    def test_with_a_tolerance_the_ambiguous_approximate_is_decided(self) -> None:
+        assert run("~10,000", "10213", tolerance=("abs", "500")).verdict == WITHIN_TOLERANCE
 
 
 class TestPointBand:
@@ -264,6 +322,161 @@ class TestBound:
         assert run("p < 0.001", "0.0004").delta == D("-0.0006")
 
 
+class TestPlusMinus:
+    def test_inside_the_closed_band_is_reproduced_with_the_band(self) -> None:
+        decision = run("0.85 ± 0.03", "0.86")
+        assert decision.verdict == REPRODUCED
+        assert decision.cause is None
+        assert decision.band == (D("0.81"), D("0.89"))
+        assert decision.delta == D("0.01")
+
+    def test_the_band_is_closed_at_both_boundaries(self) -> None:
+        assert run("0.85 ± 0.03", "0.81").verdict == REPRODUCED
+        assert run("0.85 ± 0.03", "0.89").verdict == REPRODUCED
+
+    def test_just_outside_the_band_is_diverged(self) -> None:
+        decision = run("0.85 ± 0.03", "0.891")
+        assert decision.verdict == DIVERGED
+        assert decision.band == (D("0.81"), D("0.89"))
+        assert decision.delta == D("0.041")
+
+    def test_a_tolerance_widens_the_band(self) -> None:
+        decision = run("0.85 ± 0.03", "0.895", tolerance=("abs", "0.01"))
+        assert decision.verdict == WITHIN_TOLERANCE
+        assert decision.band == (D("0.81"), D("0.89"))
+        assert decision.tolerance_band == (D("0.80"), D("0.90"))
+
+    def test_outside_both_the_band_and_the_tolerance_is_diverged(self) -> None:
+        decision = run("0.85 ± 0.03", "0.905", tolerance=("abs", "0.01"))
+        assert decision.verdict == DIVERGED
+        assert decision.tolerance_band == (D("0.80"), D("0.90"))
+
+    def test_a_zero_margin_degenerates_to_the_point_band(self) -> None:
+        decision = run("0.87 ± 0", "0.875")
+        assert decision.verdict == REPRODUCED
+        assert decision.band == (D("0.865"), D("0.875"))
+        assert run("0.87 ± 0", "0.8751").verdict == DIVERGED
+
+    def test_a_trailing_zero_integer_centre_without_tolerance_is_ambiguous(self) -> None:
+        decision = run("10 ± 1", "10.4")
+        assert decision.verdict == UNVERIFIED
+        assert decision.cause == causes.PRECISION_AMBIGUOUS
+        assert decision.rederived == D("10.4")
+
+    def test_with_a_tolerance_the_ambiguous_centre_is_decided(self) -> None:
+        assert run("10 ± 1", "10.4", tolerance=("abs", "1")).verdict == REPRODUCED
+
+    def test_a_coarse_artifact_just_outside_the_band_is_coarser(self) -> None:
+        # D13: 0.9 wrote one digit against a three-digit boundary (0.819/0.881);
+        # its own rounding [0.85, 0.95] still reaches the boundary, so the run
+        # cannot resolve which side of the claim's band it is on.
+        decision = run("0.850 ± 0.030", "0.9")
+        assert decision.verdict == UNVERIFIED
+        assert decision.cause == causes.ARTIFACT_PRECISION_COARSER
+        assert decision.band == (D("0.819"), D("0.881"))
+
+    def test_a_coarse_artifact_beyond_its_own_reach_is_diverged(self) -> None:
+        # 0.94 is coarser than the boundary (0.005 > 0.001) but its rounding
+        # [0.935, 0.945] cannot reach 0.881 — the run resolves the boundary.
+        decision = run("0.850 ± 0.030", "0.94")
+        assert decision.verdict == DIVERGED
+        assert decision.band == (D("0.819"), D("0.881"))
+
+    def test_a_coarse_artifact_inside_the_band_is_reproduced(self) -> None:
+        # D13: inside the band there is no coarseness check — the band is the
+        # claim's resolution, and 0.86 is within the paper's own written fuzz.
+        assert run("0.850 ± 0.030", "0.86").verdict == REPRODUCED
+
+
+class TestIntervalRange:
+    @pytest.mark.parametrize("reported", ["CI [0.81, 0.89]", "0.81–0.89"])
+    def test_inside_the_closed_band_is_reproduced(self, reported: str) -> None:
+        decision = run(reported, "0.85")
+        assert decision.verdict == REPRODUCED
+        assert decision.cause is None
+        assert decision.band == (D("0.805"), D("0.895"))
+
+    @pytest.mark.parametrize("reported", ["CI [0.81, 0.89]", "0.81–0.89"])
+    def test_the_band_is_closed_at_both_endpoints(self, reported: str) -> None:
+        assert run(reported, "0.805").verdict == REPRODUCED
+        assert run(reported, "0.895").verdict == REPRODUCED
+
+    @pytest.mark.parametrize("reported", ["CI [0.81, 0.89]", "0.81–0.89"])
+    def test_just_outside_the_band_is_diverged(self, reported: str) -> None:
+        decision = run(reported, "0.896")
+        assert decision.verdict == DIVERGED
+        assert decision.band == (D("0.805"), D("0.895"))
+
+    @pytest.mark.parametrize("reported", ["CI [0.81, 0.89]", "0.81–0.89"])
+    def test_a_tolerance_widens_the_band(self, reported: str) -> None:
+        decision = run(reported, "0.90", tolerance=("abs", "0.01"))
+        assert decision.verdict == WITHIN_TOLERANCE
+        assert decision.band == (D("0.805"), D("0.895"))
+        assert decision.tolerance_band == (D("0.795"), D("0.905"))
+
+    def test_endpoint_precision_does_not_trip_precision_ambiguous(self) -> None:
+        # D10: a round-integer endpoint is the band's fuzz (10 is 10 ± 0.5),
+        # not an ambiguous claim value — D1a never applies to endpoints.
+        decision = run("CI [10, 20]", "14")
+        assert decision.verdict == REPRODUCED
+        assert decision.band == (D("9.5"), D("20.5"))
+
+    @pytest.mark.parametrize("reported", ["CI [0.810, 0.890]", "0.810–0.890"])
+    def test_a_coarse_artifact_just_outside_the_band_is_coarser(
+        self, reported: str
+    ) -> None:
+        # D13: a one-digit artifact against a three-digit boundary (0.8095/0.8905);
+        # its own rounding [0.85, 0.95] still reaches 0.8905.
+        decision = run(reported, "0.9")
+        assert decision.verdict == UNVERIFIED
+        assert decision.cause == causes.ARTIFACT_PRECISION_COARSER
+        assert decision.band == (D("0.8095"), D("0.8905"))
+
+    @pytest.mark.parametrize("reported", ["CI [0.810, 0.890]", "0.810–0.890"])
+    def test_a_coarse_artifact_beyond_its_own_reach_is_diverged(
+        self, reported: str
+    ) -> None:
+        # 0.94 is coarser than the endpoint (0.005 > 0.0005) but its rounding
+        # [0.935, 0.945] cannot reach 0.8905 — the run resolves the boundary.
+        decision = run(reported, "0.94")
+        assert decision.verdict == DIVERGED
+        assert decision.band == (D("0.8095"), D("0.8905"))
+
+    @pytest.mark.parametrize("reported", ["CI [0.810, 0.890]", "0.810–0.890"])
+    def test_a_coarse_artifact_inside_the_band_is_reproduced(self, reported: str) -> None:
+        # D13: inside the band no coarseness check applies for band kinds.
+        assert run(reported, "0.86").verdict == REPRODUCED
+
+
+class TestBandPercentScale:
+    def test_a_range_claim_with_a_scale_decides_on_the_scaled_value(self) -> None:
+        decision = run("12–15%", "0.14", scale="100")
+        assert decision.verdict == REPRODUCED
+        assert decision.rederived == D("14.00")
+        assert decision.band == (D("11.5"), D("15.5"))
+        assert run("12–15%", "0.16", scale="100").verdict == DIVERGED
+
+    def test_the_scaled_half_unit_trap_applies_to_band_kinds(self) -> None:
+        # The artifact's half-unit is half_unit × scale — 0.14 wrote two fraction
+        # places, so whole percent: half-unit 0.5 — never the scaled product's
+        # exponent (0.14 × 100 is 14.00, which would claim 0.005). decide() must
+        # scale the located value's half-unit (D7's trap, which D13 leans on).
+        assert run("12–15%", "0.14", scale="100").verdict == REPRODUCED
+        assert run("12–15%", "0.159", scale="100").verdict == DIVERGED
+        assert run("12–15%", "0.10", scale="100").verdict == DIVERGED
+
+    def test_d13_at_a_scaled_boundary_uses_the_scaled_half_unit(self) -> None:
+        # D13 at the D4 scale: 0.2's half-unit is 0.05 × 100 = 5.0 (whole
+        # percents), so its rounding [15.0, 25.0] reaches the 15.5 boundary and
+        # the run cannot resolve 16+ against a claim written to whole percents.
+        # Reading the half-unit off the scaled product (20.00 → 0.005) would
+        # wrongly DIVERGE — the D7 trap, at a band boundary.
+        decision = run("12–15%", "0.2", scale="100")
+        assert decision.verdict == UNVERIFIED
+        assert decision.cause == causes.ARTIFACT_PRECISION_COARSER
+        assert decision.band == (D("11.5"), D("15.5"))
+
+
 class TestPinnedContext:
     CASES = [
         ("0.87", "0.8712", None, None),
@@ -272,6 +485,10 @@ class TestPinnedContext:
         ("87.12%", "0.87", None, "100"),
         ("-40.0", "-41.5", ("rel", "0.05"), None),
         ("p < 0.001", "0.0012", ("abs", "0.0005"), None),
+        ("0.85 ± 0.03", "0.86", None, None),
+        ("0.85 ± 0.03", "0.905", ("abs", "0.01"), None),
+        ("CI [0.81, 0.89]", "0.85", None, None),
+        ("12–15%", "0.14", None, "100"),
     ]
 
     def test_decisions_ignore_a_hostile_ambient_context(self) -> None:

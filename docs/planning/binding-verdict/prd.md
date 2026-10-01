@@ -82,6 +82,8 @@ failing test first. Real-paper coverage is the gate paper's job (out of scope, s
   tolerance widens the threshold (satisfied only via the widening → `WITHIN-TOLERANCE`);
   otherwise `DIVERGED`. `PlusMinus`, `Interval`, `Range` and `Approximate` →
   `UNVERIFIED: UNSUPPORTED_VALUE_KIND` — recorded and counted, never guessed at.
+  **Superseded (2026-10-01) by D9–D13** (`docs/planning/value-kinds-compare/prd.md`): all six
+  value kinds now compare; `UNSUPPORTED_VALUE_KIND` is removed from the closed vocabulary.
 - **D4 — Percent claims must declare scale.** A claim whose `units` is `%` or whose reported
   text contains `%` must have `scale` on its binding (`"1"` or `"100"`), else
   `UNVERIFIED: UNIT_UNDECLARED`. The re-derived value is multiplied by `scale` in `Decimal`
@@ -152,7 +154,7 @@ text is kept on the record.
 **M5 — Closed cause vocabulary.** C3's `WONT_RUN`, `TIMEOUT`, `NO_ARTIFACT`,
 `STALE_ARTIFACT`, `ENTRYPOINT_MISSING`, `ENTRYPOINT_AMBIGUOUS`, `ENV_BUILD_FAILED`, plus C4's
 `NO_BINDING`, `AMBIGUOUS_BINDING`, `BINDING_INVALID`, `UNPARSEABLE_VALUE`, `NO_TOLERANCE`,
-`UNSUPPORTED_VALUE_KIND`, `UNIT_UNDECLARED`, `PRECISION_AMBIGUOUS`,
+`UNIT_UNDECLARED`, `PRECISION_AMBIGUOUS`,
 `ARTIFACT_PRECISION_COARSER`. `PROPOSER_UNGROUNDED` and
 `MODEL_ONLY_SIGNAL` (`ARCHITECTURE.md`) stay reserved and unemitted — no proposer exists. Every
 cause has a test; any emitted cause outside the vocabulary fails a test.
@@ -233,7 +235,6 @@ step 2 removed; stale target treated as capturable) fails the suite.
 ## Out of Scope
 
 - A model or heuristic binding proposer; any use of `artifact_hint` beyond carrying it.
-- `PlusMinus`, `Interval`, `Range`, `Approximate` comparison (→ `UNSUPPORTED_VALUE_KIND`).
 - Notebook-cell locators (C3 notebook capture is itself a follow-on).
 - The `plumb verify` CLI (no CLI exists yet; Phase 1).
 - Choosing or running the gate paper; the C5 corpus; C6 bundling and signing.

@@ -15,7 +15,10 @@ asserts it *fails*:
   run's captured output is read and diverges;
 - with C4's stale check removed (`locate._stale_target` → `False`) and a stale
   output leaked into the capture as if C3's freshness guard had been loosened,
-  the committed value is read and diverges.
+  the committed value is read and diverges;
+- with the D13 reach rule removed (`compare._within_reach` → `False`), a band
+  claim whose coarse artifact sits just outside the boundary is no longer
+  rescued and becomes `DIVERGED`.
 
 The leaked case is also part of the guard itself: a relpath the capture records
 as stale is refused even if an artifact of the same path is present, so C4's
@@ -42,12 +45,20 @@ from plumb.verify import causes
 from verify_helpers import OLD, bindings_json, claim, prints, run_full, writes
 
 locate_module = importlib.import_module("plumb.verify.locate")
+compare_module = importlib.import_module("plumb.verify.compare")
 
 PAPER = claim("0.87", "AUC")
 DIVERGING = '{"auc": 0.95}'
 BINDING = load_bindings(
     bindings_json((PAPER, "results.json", {"kind": "json_pointer", "pointer": "/auc"})),
     [PAPER.id],
+)
+
+PM = claim("0.850 ± 0.030")
+NEAR_BOUNDARY = '{"auc": 0.9}'
+PM_BINDING = load_bindings(
+    bindings_json((PM, "results.json", {"kind": "json_pointer", "pointer": "/auc"})),
+    [PM.id],
 )
 
 
@@ -120,6 +131,25 @@ def test_no_run_failure_is_ever_diverged(tmp_path: Path) -> None:
     assert assert_guard(tmp_path) == {cause for _, cause, _ in SCENARIOS}
 
 
+def assert_d13(tmp_path: Path) -> str:
+    """A coarse artifact just outside a band's boundary is never DIVERGED (D13).
+
+    All checks run before anything is asserted, so a mutation failure names the
+    DIVERGED rather than whichever check happened to run first.
+    """
+    run = _completed(tmp_path, writes("results.json", NEAR_BOUNDARY))
+    (verdict,) = verify.verify_claims([PM], PM_BINDING, run).verdicts
+    assert verdict.verdict != DIVERGED, "a coarse near-boundary artifact became DIVERGED"
+    assert (verdict.verdict, verdict.cause) == (
+        UNVERIFIED, causes.ARTIFACT_PRECISION_COARSER,
+    )
+    return verdict.cause
+
+
+def test_a_coarse_near_boundary_band_value_is_never_diverged(tmp_path: Path) -> None:
+    assert assert_d13(tmp_path) == causes.ARTIFACT_PRECISION_COARSER
+
+
 def test_the_same_binding_does_diverge_on_a_healthy_run(tmp_path: Path) -> None:
     # The control: the guard's binding is not inert — against a clean run it bites.
     run = _completed(tmp_path, writes("results.json", DIVERGING))
@@ -141,6 +171,13 @@ class TestMutations:
         monkeypatch.setattr(locate_module, "_stale_target", lambda binding, capture: False)
         with pytest.raises(AssertionError, match="became DIVERGED"):
             assert_guard(tmp_path)
+
+    def test_removing_the_d13_reach_check_breaks_the_guard(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(compare_module, "_within_reach", lambda boundary, re, a: False)
+        with pytest.raises(AssertionError, match="became DIVERGED"):
+            assert_d13(tmp_path)
 
 
 def test_the_leaked_output_really_is_back_dated(tmp_path: Path) -> None:

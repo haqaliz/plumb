@@ -191,14 +191,14 @@ def _to_decimal(raw: str) -> Decimal | None:
 
 def _interval(text: str, match: re.Match[str]) -> ClaimValue | None:
     low, high = _to_decimal(match[1]), _to_decimal(match[2])
-    if low is None or high is None:
+    if low is None or high is None or low > high:
         return None
     return Interval(text=text, low=low, high=high)
 
 
 def _plus_minus(text: str, match: re.Match[str]) -> ClaimValue | None:
     center, margin = _to_decimal(match[1]), _to_decimal(match[2])
-    if center is None or margin is None:
+    if center is None or margin is None or margin < 0:
         return None
     return PlusMinus(text=text, center=center, margin=margin)
 
@@ -212,7 +212,7 @@ def _bound(text: str, match: re.Match[str]) -> ClaimValue | None:
 
 def _range(text: str, match: re.Match[str]) -> ClaimValue | None:
     low, high = _to_decimal(match[1]), _to_decimal(match[2])
-    if low is None or high is None:
+    if low is None or high is None or low > high:
         return None
     return Range(text=text, low=low, high=high)
 

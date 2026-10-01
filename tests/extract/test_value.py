@@ -129,6 +129,20 @@ def test_plus_minus_accepts_the_ascii_spelling() -> None:
     assert value.text == "0.85 +/- 0.03"
 
 
+def test_plus_minus_refuses_a_negative_margin() -> None:
+    """`0.87 ± -0.02` is not a band the paper could mean: a negative margin is a
+    parser invention, not a value. The caller decides what the miss means."""
+    assert parse_value("0.87 ± -0.02") is None
+
+
+def test_plus_minus_accepts_a_zero_margin() -> None:
+    """D9: a zero margin is legal — it degenerates to a Point band."""
+    value = parse_value("0.87 ± 0")
+    assert value == PlusMinus(
+        text="0.87 ± 0", center=Decimal("0.87"), margin=Decimal("0")
+    )
+
+
 def test_interval_treats_the_leading_percent_as_a_confidence_level() -> None:
     """In `95% CI [0.81, 0.89]` the 95 is the confidence LEVEL, not the value
     (plan §6). It must not leak into `low`, `high`, or a Point."""
@@ -137,6 +151,12 @@ def test_interval_treats_the_leading_percent_as_a_confidence_level() -> None:
         text="95% CI [0.81, 0.89]", low=Decimal("0.81"), high=Decimal("0.89")
     )
     assert Decimal("95") not in (value.low, value.high)
+
+
+def test_interval_refuses_low_greater_than_high() -> None:
+    """`CI [0.93, 0.81]` names no interval: low > high is not a claim the paper
+    could mean, so it parses to nothing rather than a band that flips sign."""
+    assert parse_value("CI [0.93, 0.81]") is None
 
 
 def test_interval_without_a_confidence_prefix() -> None:
