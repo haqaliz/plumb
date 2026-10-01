@@ -6,12 +6,13 @@ failure and never a silent acceptance. `CASE_CONFLICT` names a re-bank whose
 different record hashing identically) — the existing case is untouched;
 `CASE_TAMPERED` names a read-back whose stored member bytes no longer match
 their manifest hashes — forged bytes are never returned; `CASE_INVALID` names
-a malformed manifest or member set.
+a malformed manifest or member set. `CorpusRefused` carries the one cause a
+bank or a read refused with.
 """
 
 from __future__ import annotations
 
-__all__ = ["CAUSES", "CASE_CONFLICT", "CASE_INVALID", "CASE_TAMPERED"]
+__all__ = ["CAUSES", "CASE_CONFLICT", "CASE_INVALID", "CASE_TAMPERED", "CorpusRefused"]
 
 #: Same case_id, different bytes: the existing case is refused, never overwritten.
 CASE_CONFLICT = "CASE_CONFLICT"
@@ -21,3 +22,11 @@ CASE_TAMPERED = "CASE_TAMPERED"
 CASE_INVALID = "CASE_INVALID"
 
 CAUSES = frozenset({CASE_CONFLICT, CASE_TAMPERED, CASE_INVALID})
+
+
+class CorpusRefused(ValueError):
+    """A bank or a read refused with a named cause; nothing was written or read."""
+
+    def __init__(self, message: str, cause: str) -> None:
+        super().__init__(message)
+        self.cause = cause
