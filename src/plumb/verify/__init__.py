@@ -38,7 +38,6 @@ prove the suite would notice.
 | `AMBIGUOUS_BINDING` | locate | the locator matched more than one value |
 | `BINDING_INVALID` | locate | the binding entry's locator is unusable |
 | `UNPARSEABLE_VALUE` | locate | the located text is not a plain number |
-| `UNSUPPORTED_VALUE_KIND` | compare | `PlusMinus`, `Interval`, `Range`, `Approximate` |
 | `UNIT_UNDECLARED` | compare | a percent claim whose binding declares no scale |
 | `PRECISION_AMBIGUOUS` | compare | a round integer with no tolerance |
 | `ARTIFACT_PRECISION_COARSER` | compare | the run wrote fewer digits, and agrees at its own precision |

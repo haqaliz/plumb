@@ -40,7 +40,6 @@ CASES = {
     causes.BINDING_INVALID: (claim("0.87", "bad pointer"), ("results.json", ptr("auc"))),
     causes.UNPARSEABLE_VALUE: (claim("0.5", "text"), ("results.json", ptr("/text"))),
     causes.STALE_ARTIFACT: (claim("0.5", "old"), ("old.json", ptr("/auc"))),
-    causes.UNSUPPORTED_VALUE_KIND: (claim("~0.85", "pm"), ("results.json", ptr("/auc"))),
     causes.UNIT_UNDECLARED: (claim("87%", "pct"), ("results.json", ptr("/auc"))),
     causes.PRECISION_AMBIGUOUS: (claim("10,000", "n"), ("results.json", ptr("/n"))),
     causes.ARTIFACT_PRECISION_COARSER: (claim("0.8712", "fine"), ("results.json", ptr("/auc"))),

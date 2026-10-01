@@ -115,7 +115,7 @@ def test_an_unverified_without_evidence_is_fine_and_unbound() -> None:
 
 
 def test_bound_means_a_value_was_located() -> None:
-    assert unverified(causes.UNSUPPORTED_VALUE_KIND, located_text="0.85").bound
+    assert unverified(causes.NO_TOLERANCE, located_text="0.85").bound
 
 
 @pytest.mark.parametrize("field", ["rederived", "delta", "band"])

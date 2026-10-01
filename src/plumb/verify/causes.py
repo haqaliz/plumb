@@ -13,8 +13,8 @@ silent pass and never `DIVERGED`). The vocabulary is the union of:
   value of this run: `NO_BINDING`, `AMBIGUOUS_BINDING`, `BINDING_INVALID`,
   `UNPARSEABLE_VALUE`.
 - **Comparison-side causes** — a value was located but the claim cannot be
-  decided against it: `NO_TOLERANCE`, `UNSUPPORTED_VALUE_KIND`,
-  `UNIT_UNDECLARED`, `PRECISION_AMBIGUOUS`, `ARTIFACT_PRECISION_COARSER`.
+  decided against it: `NO_TOLERANCE`, `UNIT_UNDECLARED`,
+  `PRECISION_AMBIGUOUS`, `ARTIFACT_PRECISION_COARSER`.
 
 `PROPOSER_UNGROUNDED` and `MODEL_ONLY_SIGNAL` (`ARCHITECTURE.md`) are
 **reserved**: they belong to a binding proposer that does not exist, so nothing
@@ -49,7 +49,6 @@ __all__ = [
     "TIMEOUT",
     "UNIT_UNDECLARED",
     "UNPARSEABLE_VALUE",
-    "UNSUPPORTED_VALUE_KIND",
     "WONT_RUN",
     "BindingInvalid",
 ]
@@ -70,8 +69,6 @@ UNPARSEABLE_VALUE = "UNPARSEABLE_VALUE"
 
 #: No defensible tolerance: none given and none readable from the claim.
 NO_TOLERANCE = "NO_TOLERANCE"
-#: A value kind this slice does not compare (`PlusMinus`, `Interval`, ...).
-UNSUPPORTED_VALUE_KIND = "UNSUPPORTED_VALUE_KIND"
 #: A percent claim whose binding does not declare the artifact's scale.
 UNIT_UNDECLARED = "UNIT_UNDECLARED"
 #: A round integer (`10,000`) whose written precision cannot be read.
@@ -93,7 +90,6 @@ CAUSES = frozenset(
         BINDING_INVALID,
         UNPARSEABLE_VALUE,
         NO_TOLERANCE,
-        UNSUPPORTED_VALUE_KIND,
         UNIT_UNDECLARED,
         PRECISION_AMBIGUOUS,
         ARTIFACT_PRECISION_COARSER,

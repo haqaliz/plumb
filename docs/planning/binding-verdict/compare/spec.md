@@ -10,8 +10,9 @@ tolerance?, scale?)` → `Decision(verdict, cause?, band?, tolerance_used?, delt
 
 ## In scope
 
-- **Kind gate (D3):** `Point`, `Bound` proceed; `PlusMinus`, `Interval`, `Range`,
-  `Approximate` → `UNSUPPORTED_VALUE_KIND`.
+- **Kind dispatch (D9–D13, `docs/planning/value-kinds-compare/`):** every kind compares —
+  `Point`, `Bound`, `PlusMinus`, `Interval`, `Range`, `Approximate`; D3's refusal of the band
+  kinds and `Approximate` is superseded. Any other `ClaimValue` is a harness bug and raises.
 - **Scale gate (D4):** percent claim (`units == "%"` or `%` in reported text) with no `scale`
   → `UNIT_UNDECLARED`. With `scale`, re-derived = located × scale; the artifact half-unit =
   written half-unit × scale (never the product's exponent — `0.87 × 100 = 87.00`).
@@ -50,7 +51,10 @@ Locating values, run causes, record construction and serialization, per-kind def
 8. `p < 0.001` vs `0.0004` → `REPRODUCED`; vs `0.0012` → `DIVERGED`; vs `0.001` →
    `ARTIFACT_PRECISION_COARSER` (the run's rounding straddles the threshold); vs `0.0012` with
    `abs 0.0005` → `WITHIN-TOLERANCE`; each `op` covered.
-9. Each unsupported kind → `UNSUPPORTED_VALUE_KIND`.
+9. All six kinds decide (D9–D13): `PlusMinus`/`Interval`/`Range`/`Approximate` reproduce
+   inside their closed bands, widen by an explicit tolerance → `WITHIN-TOLERANCE`, and are
+   `ARTIFACT_PRECISION_COARSER` at a band boundary the artifact cannot resolve — never
+   `UNSUPPORTED_VALUE_KIND`.
 10. A `float` passed anywhere raises `TypeError` (no silent coercion).
 11. Results are identical under a hostile ambient `decimal` context (precision 3, rounding
     `ROUND_FLOOR`) — the pinned local context is load-bearing.
