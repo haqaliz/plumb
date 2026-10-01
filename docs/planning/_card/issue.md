@@ -1,35 +1,30 @@
-# Brief: value-kinds-compare
+# Brief — discrepancy-corpus (C5, first slice)
 
-Source: inline brief (plumb-next handoff, 2026-10-01). No GitHub issue — id is a slug.
-Owner: aliz. Branch: feat/value-kinds-compare/aliz.
+Source: `pbf feat discrepancy-corpus` handoff from `plumb-next` (2026-10-01). No GitHub
+issue exists for this work; the id lives in the branch and PR.
 
 ## Brief
 
-Extend C4's compare so PlusMinus, Interval, Range and Approximate claims (already
-extracted and serialized by C1; src/plumb/extract/value.py) are decided instead of
-refused as UNSUPPORTED_VALUE_KIND (src/plumb/verify/compare.py:11-12). Pin the
-semantics in new D-decisions in the D1-D8 style: a PlusMinus is compared by its
-centre within the paper's written precision plus its stated margin, Interval/Range
-by closed-band membership, Approximate by a pinned policy (written-precision band
-or explicit-tolerance-required); every decision conservative, never a false
-REPRODUCED. Tests first: each new kind decides on synthetic runs, band-edge and
-harness-failure cases stay UNVERIFIED and never DIVERGED (extend the
-mutation-checked guard), verdicts serialize byte-identically, and the catalogue
-test still proves every cause in the closed vocabulary is emitted. Caveat: the
-band-vs-precision semantics are R2-sensitive and un-pinned today — pin them before
-implementing, and record the decision in docs/planning/binding-verdict/prd.md.
+Build C5's first slice, test-first: the discrepancy-corpus store under `src/plumb/corpus/`
+per `docs/technical/ARCHITECTURE.md:148-154` — every `(claim, re-derived value, verdict,
+locator, cause)` from a verify run banks as a self-contained, replayable, human-labelable
+case under gitignored `corpus/local/`, with canonical serialization, and a `--json`-stable
+bank command or seam to fold the existing AgroDesign record in as case #1 without re-running
+it. The benchmark scaffold measures precision/recall/coverage against human labels, excludes
+`UNVERIFIED` from precision, and never lets the engine label its own cases — with the
+coverage number honestly reported as the R1 measurement (first real numbers may be ugly;
+`UNVERIFIED` is the honest default). Acceptance tests, written first: banking a committed
+AgroDesign record round-trips byte-identically; a case re-derives its verdict from its own
+stored trace; labeled-precision math excludes `UNVERIFIED`; and the store never mutates an
+existing case.
 
-## Background from plumb-next (why this slice)
+## Design anchor
 
-- C4 is the moat and the critical path (docs/technical/CAPABILITY_ROADMAP.md:147;
-  docs/ROADMAP.md R1/R2 are High/High). The first slice deferred ±/CI/range/~ to
-  UNSUPPORTED_VALUE_KIND (docs/planning/binding-verdict/prd.md:236); the record
-  layer already extracts and serializes all four kinds (src/plumb/extract/value.py:
-  101-146, serialize.py:180-183), so only comparison is missing.
-- It is the R1 mitigation a real paper will hit: the Phase 0 gate is met on one
-  paper (docs/ROADMAP.md:29-33) and Phase 1's remaining work is "harden against
-  real repos (R1 — cross-paper coverage is still unmeasured)" (docs/ROADMAP.md:
-  41-45). Real papers write ±/CI/range; today every such claim is refused before
-  comparison.
-- It sets up C5's corpus (docs/technical/ARCHITECTURE.md:146-152) to hold
-  uncertainty-valued claims.
+- `docs/technical/ARCHITECTURE.md:148-154` — C5: discrepancy corpus (`src/plumb/corpus/`),
+  cases under gitignored `corpus/local/`, precision/recall/coverage measured against human
+  labels, `UNVERIFIED` excluded from precision, engine never labels its own cases.
+- `docs/technical/CAPABILITY_ROADMAP.md:209-217` — C5: accumulate every (claim, re-derived
+  value, verdict, locator, cause); publish a precision/recall benchmark over a public paper
+  corpus. "Precision on `DIVERGED` is the number the whole reputation rests on."
+- `docs/ROADMAP.md:68` (R1), `:32-33` — cross-paper coverage is unmeasured; C5 is the
+  instrument that measures it.
