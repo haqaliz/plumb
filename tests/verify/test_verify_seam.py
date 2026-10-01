@@ -14,6 +14,7 @@ completed run (`Completed(trace, capture)`) or the reason nothing ran
 
 from __future__ import annotations
 
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -94,13 +95,25 @@ class TestOnePerClaim:
         assert verdict.locator is not None
         assert not verdict.bound
 
-    def test_a_gated_claim_is_bound_but_unverified(self, tmp_path: Path) -> None:
+    def test_a_plus_minus_claim_is_decided_through_the_seam(self, tmp_path: Path) -> None:
         pm = claim("0.85 ± 0.03")
-        run = completed(tmp_path, writes("results.json", '{"auc": 0.85}'))
+        run = completed(tmp_path, writes("results.json", '{"auc": 0.86}'))
         bindings = load_bindings(bindings_json((pm, "results.json", ptr("/auc"))), [pm.id])
         (verdict,) = verify_claims([pm], bindings, run).verdicts
-        assert verdict.cause == causes.UNSUPPORTED_VALUE_KIND
-        assert verdict.bound and verdict.located_text == "0.85"
+        assert verdict.verdict == REPRODUCED
+        assert verdict.cause is None
+        assert verdict.band == (Decimal("0.81"), Decimal("0.89"))
+        assert verdict.bound and verdict.located_text == "0.86"
+        assert not verdict.review_required
+
+    def test_a_diverged_band_claim_requires_review(self, tmp_path: Path) -> None:
+        pm = claim("0.85 ± 0.03")
+        run = completed(tmp_path, writes("results.json", '{"auc": 0.92}'))
+        bindings = load_bindings(bindings_json((pm, "results.json", ptr("/auc"))), [pm.id])
+        (verdict,) = verify_claims([pm], bindings, run).verdicts
+        assert verdict.verdict == DIVERGED
+        assert verdict.review_required
+        assert verdict.band == (Decimal("0.81"), Decimal("0.89"))
 
     def test_an_empty_claim_set_is_an_empty_verdict_set(self, tmp_path: Path) -> None:
         run = completed(tmp_path, writes("results.json", "{}"))
