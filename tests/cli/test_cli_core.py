@@ -28,10 +28,12 @@ import subprocess
 import pytest
 
 from plumb.bundle.causes import BundleRefused
+from plumb.corpus.causes import CorpusRefused
 from plumb.cli import (
     BINDING_INVALID,
     BUNDLE_REFUSED,
     CLI_CAUSES,
+    CORPUS_REFUSED,
     ENTRYPOINT_AMBIGUOUS,
     ENTRYPOINT_MISSING,
     ENV_BUILD_FAILED,
@@ -235,7 +237,8 @@ class TestEveryNamedCauseIsEmitted:
             USAGE_ERROR, PAPER_UNREADABLE, SOURCE_NOT_FOUND, REV_NOT_FOUND,
             UNSUPPORTED_ARCHIVE, ENV_BUILD_FAILED, ENTRYPOINT_MISSING,
             ENTRYPOINT_AMBIGUOUS, WONT_RUN, TIMEOUT, NO_ARTIFACT, STALE_ARTIFACT,
-            BINDING_INVALID, RECORD_INVALID, KEY_MISSING, BUNDLE_REFUSED, SPINE_ERROR,
+            BINDING_INVALID, RECORD_INVALID, KEY_MISSING, BUNDLE_REFUSED,
+            CORPUS_REFUSED, SPINE_ERROR,
         }
         assert CLI_CAUSES == expected
         assert cli.WONT_RUN is RUN_WONT_RUN
@@ -396,6 +399,7 @@ class TestExitCodeContract:
             (BindingInvalid("bindings file refused"), BINDING_INVALID),
             (PdfInputError("cannot read the PDF"), PAPER_UNREADABLE),
             (BundleRefused("bundle would not verify"), BUNDLE_REFUSED),
+            (CorpusRefused("case conflict", "CASE_CONFLICT"), CORPUS_REFUSED),
         ]
         for exc, cause in cases:
             mapped_cause, detail = _map_cause(exc)

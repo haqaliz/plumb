@@ -55,7 +55,7 @@ from plumb.verify import (
     verify_claims,
 )
 
-__all__ = ["replay_record"]
+__all__ = ["cross_check", "read_record", "replay_record"]
 
 _PRINCIPAL = "plumb-bundle"
 
@@ -82,10 +82,10 @@ def replay_record(args) -> int:
 
 
 def _replay(record_dir: Path, args) -> VerdictSet:
-    claims, bindings_bytes, trace, capture, paper, paper_format = _read_record(record_dir)
+    claims, bindings_bytes, trace, capture, paper, paper_format = read_record(record_dir)
     bindings = load_bindings(bindings_bytes, [c.id for c in claims])
     verdicts = verify_claims(claims, bindings, Completed(trace, capture))
-    _cross_check(record_dir, verdicts)
+    cross_check(record_dir, verdicts)
     if args.out is not None:
         _rebuild_bundle(
             record_dir, args, claims, paper, paper_format, bindings_bytes, trace, capture,
@@ -93,7 +93,7 @@ def _replay(record_dir: Path, args) -> VerdictSet:
     return verdicts
 
 
-def _read_record(record_dir: Path):
+def read_record(record_dir: Path):
     """The record's members, read strictly; missing members are `RECORD_INVALID`."""
     def member(name: str, *, directory: bool = False) -> Path:
         path = record_dir / name
@@ -169,7 +169,7 @@ def _admit_record_claims(path: Path, record_dir: Path, paper_path: Path, paper_f
     return tuple(claims)
 
 
-def _cross_check(record_dir: Path, verdicts) -> None:
+def cross_check(record_dir: Path, verdicts) -> None:
     """The re-derivation must be byte-identical to the record's committed verdicts."""
     committed = record_dir / "verdicts.json"
     if not committed.is_file():
