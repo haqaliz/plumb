@@ -115,6 +115,18 @@ class TestOnePerClaim:
         assert verdict.review_required
         assert verdict.band == (Decimal("0.81"), Decimal("0.89"))
 
+    def test_an_approximate_claim_is_decided_through_the_seam(self, tmp_path: Path) -> None:
+        ap = claim("~0.87")
+        run = completed(tmp_path, writes("results.json", '{"auc": 0.8712}'))
+        bindings = load_bindings(bindings_json((ap, "results.json", ptr("/auc"))), [ap.id])
+        (verdict,) = verify_claims([ap], bindings, run).verdicts
+        assert verdict.verdict == REPRODUCED
+        assert verdict.cause is None
+        assert verdict.band == (Decimal("0.865"), Decimal("0.875"))
+        assert verdict.bound and verdict.located_text == "0.8712"
+        assert verdict.reported_text == "~0.87"
+        assert not verdict.review_required
+
     def test_an_empty_claim_set_is_an_empty_verdict_set(self, tmp_path: Path) -> None:
         run = completed(tmp_path, writes("results.json", "{}"))
         result = verify_claims([], load_bindings(b'{"bindings": []}', []), run)
