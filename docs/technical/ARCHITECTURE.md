@@ -126,8 +126,10 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   run-side `ENTRYPOINT_MISSING`, `ENTRYPOINT_AMBIGUOUS`, `ENV_BUILD_FAILED`, `WONT_RUN`,
   `TIMEOUT`, `NO_ARTIFACT`, `STALE_ARTIFACT`; binding-side `NO_BINDING`, `AMBIGUOUS_BINDING`,
   `BINDING_INVALID`, `UNPARSEABLE_VALUE`; comparison-side `NO_TOLERANCE`,
-  `UNSUPPORTED_VALUE_KIND`, `UNIT_UNDECLARED`, `PRECISION_AMBIGUOUS`,
-  `ARTIFACT_PRECISION_COARSER`. `PROPOSER_UNGROUNDED` and `MODEL_ONLY_SIGNAL` are reserved
+  `UNIT_UNDECLARED`, `PRECISION_AMBIGUOUS`,
+  `ARTIFACT_PRECISION_COARSER` (`UNSUPPORTED_VALUE_KIND` was removed 2026-10-01 —
+  all six value kinds now compare, D9–D13 in `docs/planning/value-kinds-compare/prd.md`).
+  `PROPOSER_UNGROUNDED` and `MODEL_ONLY_SIGNAL` are reserved
   for a proposer that does not exist yet and are never emitted. Any failure to decide resolves
   here — never `DIVERGED` by default, never a silent `REPRODUCED`.
 - **`DIVERGED` is conservative by construction:** it requires the artifact's *own* run to
