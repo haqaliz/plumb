@@ -235,12 +235,14 @@ def test_duplicate_object_bytes_collapse_in_the_store(tmp_path: Path) -> None:
 def test_no_labels_banks_with_has_labels_false(tmp_path: Path) -> None:
     case = bank_case(record_dir(tmp_path), tmp_path / "store")
     assert case.has_labels is False
+    assert case.labels_hash is None
     assert not (tmp_path / "store" / case.case_id / "labels.json").exists()
     document = json.loads((tmp_path / "store" / case.case_id / "case.json").read_bytes())
     assert document["has_labels"] is False
+    assert document["labels_hash"] is None
 
 
-def test_labels_never_enter_the_case_id(tmp_path: Path) -> None:
+def test_a_stray_labels_file_in_the_record_dir_is_inert(tmp_path: Path) -> None:
     record = record_dir(tmp_path)
     labeled = tmp_path / "labeled"
     shutil.copytree(record, labeled)
@@ -250,6 +252,92 @@ def test_labels_never_enter_the_case_id(tmp_path: Path) -> None:
     assert plain.case_id == with_labels.case_id
     assert plain.has_labels is False and with_labels.has_labels is False
     assert not (tmp_path / "s2" / with_labels.case_id / "labels.json").exists()
+
+
+# -----------------------------------------------------------------------------
+# Label transport (Phase 1): canonical labels.json, manifest labels_hash
+# -----------------------------------------------------------------------------
+
+
+def test_labels_are_written_canonically_and_hashed(tmp_path: Path) -> None:
+    record = record_dir(tmp_path)
+    labels = {"z-claim": "confirmed", "a-claim": "refuted"}
+    case = bank_case(record, tmp_path / "store", labels=labels)
+    case_dir = tmp_path / "store" / case.case_id
+    canonical = b'{"a-claim":"refuted","z-claim":"confirmed"}\n'
+    assert (case_dir / "labels.json").read_bytes() == canonical
+    assert case.has_labels is True
+    assert case.labels_hash == hashlib.sha256(canonical).hexdigest()
+    document = json.loads((case_dir / "case.json").read_bytes())
+    assert document["has_labels"] is True
+    assert document["labels_hash"] == case.labels_hash
+
+
+def test_labels_never_enter_the_case_id(tmp_path: Path) -> None:
+    record = record_dir(tmp_path)
+    labels_a = {"c1": "confirmed"}
+    labels_b = {"c1": "refuted"}
+    case_a = bank_case(record, tmp_path / "s1", labels=labels_a)
+    case_b = bank_case(record, tmp_path / "s2", labels=labels_b)
+    assert case_a.case_id == case_b.case_id
+    with pytest.raises(CorpusRefused) as exc:
+        bank_case(record, tmp_path / "s1", labels=labels_b)
+    assert exc.value.cause == CASE_CONFLICT
+    assert read_case(tmp_path / "s1" / case_a.case_id).labels == labels_a
+
+
+def test_rebanking_with_the_same_labels_is_a_noop(tmp_path: Path) -> None:
+    record = record_dir(tmp_path)
+    store = tmp_path / "store"
+    labels = {"c1": "confirmed"}
+    first = bank_case(record, store, labels=labels)
+    snapshot = _tree_bytes(store)
+    again = bank_case(record, store, labels=labels)
+    assert again == first
+    assert again.case_id == first.case_id
+    assert _tree_bytes(store) == snapshot
+
+
+def test_a_tampered_stored_labels_file_is_refused_on_read(tmp_path: Path) -> None:
+    case = bank_case(record_dir(tmp_path), tmp_path / "store", labels={"c1": "confirmed"})
+    (tmp_path / "store" / case.case_id / "labels.json").write_bytes(b'{"c1": "refuted"}\n')
+    with pytest.raises(CorpusRefused) as exc:
+        read_case(tmp_path / "store" / case.case_id)
+    assert exc.value.cause == CASE_TAMPERED
+
+
+def test_case_read_labels_round_trip(tmp_path: Path) -> None:
+    labels = {"c1": "confirmed", "c2": "refuted"}
+    case = bank_case(record_dir(tmp_path), tmp_path / "store", labels=labels)
+    got = read_case(tmp_path / "store" / case.case_id)
+    assert got.labels == labels
+    plain = bank_case(record_dir(tmp_path / "plain"), tmp_path / "plain-store")
+    assert read_case(tmp_path / "plain-store" / plain.case_id).labels is None
+
+
+def _rewrite_manifest(case_dir: Path, document: object) -> None:
+    (case_dir / "case.json").write_bytes(
+        (json.dumps(document, **_JSON) + "\n").encode("utf-8")
+    )
+
+
+@pytest.mark.parametrize(
+    "tweak",
+    [
+        lambda doc: {**doc, "has_labels": True, "labels_hash": None},
+        lambda doc: {**doc, "has_labels": False},
+    ],
+)
+def test_manifest_has_labels_labels_hash_disagreement_is_invalid(
+    tmp_path: Path, tweak
+) -> None:
+    case = bank_case(record_dir(tmp_path), tmp_path / "store", labels={"c1": "confirmed"})
+    case_dir = tmp_path / "store" / case.case_id
+    document = json.loads((case_dir / "case.json").read_bytes())
+    _rewrite_manifest(case_dir, tweak(document))
+    with pytest.raises(CorpusRefused) as exc:
+        read_case(case_dir)
+    assert exc.value.cause == CASE_INVALID
 
 
 # -----------------------------------------------------------------------------

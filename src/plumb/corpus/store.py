@@ -13,13 +13,17 @@ verification is cleaned up — it was never a case.
 (`CASE_CONFLICT`): the existing case is never touched. `read_case(case_dir)`
 returns the manifest and every member's bytes only after verifying each one
 against its manifest hash — a mismatch is `CASE_TAMPERED`, never forged bytes
-returned. Labels are human annotations outside the identity and never written
-by this aspect; `has_labels` is always `false`.
+returned. Labels are human annotations outside the identity: a canonical
+`labels.json` (and its `labels_hash` in the manifest) is written only when
+`bank_case` is given a `labels` mapping — never auto-read from the record —
+and `read_case` verifies its bytes like any other member.
 """
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+import json
 from pathlib import Path
 import shutil
 
@@ -40,6 +44,13 @@ __all__ = ["CaseRead", "bank_case", "read_case"]
 
 _PAPER_FILES = ("paper.pdf", "paper.md")
 
+_LABELS_JSON = {
+    "sort_keys": True,
+    "ensure_ascii": False,
+    "separators": (",", ":"),
+    "allow_nan": False,
+}
+
 
 @dataclass(frozen=True)
 class CaseRead:
@@ -49,26 +60,35 @@ class CaseRead:
     members: dict[str, bytes]  # bare member keys ("claims", ...), as the manifest lists
     objects: dict[str, bytes]  # sha256 -> bytes, one entry per stored object
     paper: bytes | None
+    labels: dict[str, str] | None
 
 
-def bank_case(record_dir: Path | str, store_dir: Path | str) -> Case:
+def bank_case(
+    record_dir: Path | str,
+    store_dir: Path | str,
+    labels: Mapping[str, str] | None = None,
+) -> Case:
     """Bank the record at `record_dir` under `store_dir`, write-once.
 
-    Returns the fresh `Case`. A re-bank of the identical record is a no-op; a
-    re-bank whose `case_id` exists but whose stored bytes do not match the
-    record is `CASE_CONFLICT`, and the existing case is never touched. A
-    malformed record, or a new case whose write fails, is `CASE_INVALID`.
+    `labels`, when given, is written as a canonical `labels.json` in the case
+    and its SHA-256 lands in the manifest's `labels_hash`; it never enters
+    `case_id`. Returns the fresh `Case`. A re-bank of the identical record
+    (same labels too) is a no-op; a re-bank whose `case_id` exists but whose
+    stored bytes do not match the record is `CASE_CONFLICT`, and the existing
+    case is never touched. A malformed record, or a new case whose write
+    fails, is `CASE_INVALID`.
     """
     record = Path(record_dir)
     members = _record_members(record)
     objects = _record_objects(record)
     paper = _record_paper(record)
-    case = _derive_case(members, objects, paper)
+    labels_bytes = _canonical_labels(labels) if labels is not None else None
+    case = _derive_case(members, objects, paper, labels_bytes)
     case_dir = Path(store_dir) / case.case_id
     if case_dir.exists():
         _reject_conflict(case_dir, case)
         return case
-    _write_new_case(case_dir, members, objects, paper, case)
+    _write_new_case(case_dir, members, objects, paper, labels_bytes, case)
     return case
 
 
@@ -106,6 +126,7 @@ def read_case(case_dir: Path | str) -> CaseRead:
         members=members,
         objects=_case_objects(case_dir, case),
         paper=_case_paper(case_dir, case),
+        labels=_case_labels(case_dir, case),
     )
 
 
@@ -136,6 +157,7 @@ def _write_new_case(
     members: dict[str, bytes],
     objects: dict[str, bytes],
     paper: tuple[str, bytes] | None,
+    labels_bytes: bytes | None,
     case: Case,
 ) -> None:
     """Write the case, verify the write, and clean up anything partial on failure."""
@@ -146,6 +168,8 @@ def _write_new_case(
             _write_member(case_dir / "objects" / digest, data)
         if paper is not None:
             _write_member(case_dir / paper[0], paper[1])
+        if labels_bytes is not None:
+            _write_member(case_dir / "labels.json", labels_bytes)
         _write_member(case_dir / "case.json", serialize_case(case))
         read_case(case_dir)
     except Exception as exc:
@@ -202,8 +226,16 @@ def _record_paper(record: Path) -> tuple[str, bytes] | None:
     return None
 
 
+def _canonical_labels(labels: Mapping[str, str]) -> bytes:
+    """The labels as one canonical JSON line, sorted keys, newline-terminated."""
+    return (json.dumps(dict(labels), **_LABELS_JSON) + "\n").encode("utf-8")
+
+
 def _derive_case(
-    members: dict[str, bytes], objects: dict[str, bytes], paper: tuple[str, bytes] | None
+    members: dict[str, bytes],
+    objects: dict[str, bytes],
+    paper: tuple[str, bytes] | None,
+    labels_bytes: bytes | None,
 ) -> Case:
     """The fresh case: every identity field derived from the record's own bytes."""
     try:
@@ -220,7 +252,8 @@ def _derive_case(
         run_id=run_id,
         member_hashes=member_hashes,
         objects_tree_hash=tree,
-        has_labels=False,
+        has_labels=labels_bytes is not None,
+        labels_hash=None if labels_bytes is None else hash_bytes(labels_bytes),
     )
 
 
@@ -269,3 +302,36 @@ def _case_paper(case_dir: Path, case: Case) -> bytes | None:
             f"case {case.case_id} paper does not match its manifest hash", CASE_TAMPERED
         )
     return data
+
+
+def _case_labels(case_dir: Path, case: Case) -> dict[str, str] | None:
+    """The case's labels, verified; a labels.json a manifest does not hash is refused."""
+    path = case_dir / "labels.json"
+    if case.labels_hash is None:
+        if path.exists():
+            raise CorpusRefused(
+                f"case {case.case_id} carries labels.json its manifest does not hash",
+                CASE_INVALID,
+            )
+        return None
+    try:
+        data = path.read_bytes()
+    except OSError:
+        raise CorpusRefused(f"case {case.case_id} is missing labels.json", CASE_INVALID) from None
+    if hash_bytes(data) != case.labels_hash:
+        raise CorpusRefused(
+            f"case {case.case_id} labels.json does not match its manifest hash", CASE_TAMPERED
+        )
+    try:
+        labels = json.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise CorpusRefused(
+            f"case {case.case_id} labels.json does not parse: {exc}", CASE_INVALID
+        ) from None
+    if not isinstance(labels, dict) or not all(
+        isinstance(key, str) and isinstance(value, str) for key, value in labels.items()
+    ):
+        raise CorpusRefused(
+            f"case {case.case_id} labels.json is not a str-to-str mapping", CASE_INVALID
+        )
+    return labels

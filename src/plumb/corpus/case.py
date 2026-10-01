@@ -65,6 +65,7 @@ class Case:
     member_hashes: dict[str, str]
     objects_tree_hash: str
     has_labels: bool
+    labels_hash: str | None
 
 
 def hash_bytes(data: bytes) -> str:
@@ -103,6 +104,10 @@ def serialize_case(case: Case) -> bytes:
 
 
 def _document(case: Case) -> dict[str, Any]:
+    has_labels = _bool(case.has_labels, "has_labels")
+    labels_hash = _hex64_or_none(case.labels_hash, "labels_hash")
+    if has_labels != (labels_hash is not None):
+        raise ValueError("has_labels disagrees with labels_hash")
     return {
         "format": _str(case.format, "format"),
         "case_id": _str(case.case_id, "case_id"),
@@ -110,7 +115,8 @@ def _document(case: Case) -> dict[str, Any]:
         "run_id": _str(case.run_id, "run_id"),
         "member_hashes": _checked_members(case.member_hashes),
         "objects_tree_hash": _hex64(case.objects_tree_hash, "objects_tree_hash"),
-        "has_labels": _bool(case.has_labels, "has_labels"),
+        "has_labels": has_labels,
+        "labels_hash": labels_hash,
     }
 
 
@@ -126,11 +132,14 @@ def parse_case(data: bytes) -> Case:
             member_hashes=_checked_members(doc["member_hashes"]),
             objects_tree_hash=_hex64(doc["objects_tree_hash"], "objects_tree_hash"),
             has_labels=_typed(doc["has_labels"], bool),
+            labels_hash=_hex64_or_none(doc["labels_hash"], "labels_hash"),
         )
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
         raise ValueError(f"not a serialized Case: {exc!r}") from None
     if case.format != FORMAT:
         raise ValueError(f"unsupported case format: {case.format!r}")
+    if case.has_labels != (case.labels_hash is not None):
+        raise ValueError("has_labels disagrees with labels_hash")
     if (
         derive_case_id(case.paper_hash, case.run_id, case.member_hashes, case.objects_tree_hash)
         != case.case_id

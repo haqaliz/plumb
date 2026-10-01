@@ -52,6 +52,7 @@ import sys
 import pytest
 
 from plumb.corpus import bank_case
+from plumb.corpus.case import parse_case
 from plumb.extract.hashing import PaperHash
 from plumb.extract.serialize import serialize_claims
 from plumb.run.trace import serialize_trace
@@ -71,6 +72,13 @@ _PACKAGE = _SRC / "plumb" / "corpus"
 #: artifact `mtime_ns` are recorded for diagnosis, never for identity
 #: (`run/trace.py`), so two runs of one program differ only here.
 _FIXED_NS = 1_700_000_000_000_000_000
+
+_JSON = {
+    "sort_keys": True,
+    "ensure_ascii": False,
+    "separators": (",", ":"),
+    "allow_nan": False,
+}
 
 PAPER = DEFAULT_PAPER
 
@@ -357,6 +365,7 @@ MANIFEST_SCHEMA = frozenset(
         "case_id",
         "format",
         "has_labels",
+        "labels_hash",
         "member_hashes",
         "member_hashes.bindings",
         "member_hashes.claims",
@@ -386,10 +395,12 @@ class TestTheManifestSchemaIsClosed:
             "plain": record_dir(tmp_path / "plain"),
             "nonclaims": record_dir(tmp_path / "nonclaims", nonclaims=nonclaims_json()),
             "paperless": record_dir(tmp_path / "paperless", paper=None),
+            "labeled": record_dir(tmp_path / "labeled"),
         }
         documents = {}
         for name, record in fixtures.items():
-            case = bank_case(record, tmp_path / "store" / name)
+            labels = {"c1": "confirmed"} if name == "labeled" else None
+            case = bank_case(record, tmp_path / "store" / name, labels=labels)
             raw = (tmp_path / "store" / name / case.case_id / "case.json").read_bytes()
             parsed = json.loads(raw.decode("utf-8"))
             assert isinstance(parsed, dict)
@@ -442,6 +453,17 @@ class TestTheManifestSchemaIsClosed:
         moved = {**document, "member_hashes": {"case_id": document["case_id"]}}
         assert "member_hashes.case_id" in json_key_paths(moved)
         assert "member_hashes.case_id" not in MANIFEST_SCHEMA
+
+    def test_a_manifest_without_labels_hash_is_refused(self, tmp_path: Path) -> None:
+        # `labels_hash` is in the manifest contract from Phase 1 on; a manifest
+        # that predates it (or dropped it) must not parse into a Case.
+        case = bank_case(record_dir(tmp_path / "record"), tmp_path / "store")
+        case_dir = tmp_path / "store" / case.case_id
+        document = json.loads((case_dir / "case.json").read_bytes())
+        del document["labels_hash"]
+        forged = (json.dumps(document, **_JSON) + "\n").encode("utf-8")
+        with pytest.raises(ValueError, match="labels_hash"):
+            parse_case(forged)
 
 
 # --------------------------------------------------------------------------------

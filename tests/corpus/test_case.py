@@ -58,6 +58,7 @@ def make_case(
     member_hashes: dict[str, str] | None = None,
     objects_tree_hash: str = h64("objects"),
     has_labels: bool = False,
+    labels_hash: str | None = None,
 ) -> Case:
     member_hashes = members() if member_hashes is None else member_hashes
     return Case(
@@ -68,6 +69,7 @@ def make_case(
         member_hashes=member_hashes,
         objects_tree_hash=objects_tree_hash,
         has_labels=has_labels,
+        labels_hash=labels_hash,
     )
 
 
@@ -108,13 +110,15 @@ def test_nonclaims_presence_and_value_are_identity() -> None:
 
 def test_labels_never_affect_case_id() -> None:
     unlabeled = make_case(has_labels=False)
-    labeled = make_case(has_labels=True)
+    labeled = make_case(has_labels=True, labels_hash=h64("labels"))
     assert unlabeled.case_id == labeled.case_id
     assert serialize_case(unlabeled) != serialize_case(labeled)
     a = json.loads(serialize_case(unlabeled))
     b = json.loads(serialize_case(labeled))
     a.pop("has_labels")
+    a.pop("labels_hash")
     b.pop("has_labels")
+    b.pop("labels_hash")
     assert a == b
 
 
@@ -153,6 +157,7 @@ def test_manifest_key_set_is_exact_and_sorted() -> None:
         "case_id",
         "format",
         "has_labels",
+        "labels_hash",
         "member_hashes",
         "objects_tree_hash",
         "paper_hash",
@@ -200,6 +205,7 @@ def test_serialize_parse_round_trip() -> None:
         make_case(),
         make_case(paper_hash=None),
         make_case(member_hashes=members(nonclaims=h64("nonclaims"))),
+        make_case(has_labels=True, labels_hash=h64("labels")),
     ):
         assert parse_case(serialize_case(candidate)) == candidate
 
@@ -222,6 +228,8 @@ def test_parse_refuses_a_case_id_that_does_not_match_its_members() -> None:
         lambda doc: doc.update(objects_tree_hash="zz"),
         lambda doc: doc.update(has_labels="yes"),
         lambda doc: doc.update(has_labels=1),
+        lambda doc: doc.update(labels_hash="short"),
+        lambda doc: doc.update(labels_hash=7),
         lambda doc: doc["member_hashes"].pop("claims"),
         lambda doc: doc["member_hashes"].update(labels=h64("labels")),
         lambda doc: doc["member_hashes"].update(claims=0.0),
@@ -254,6 +262,7 @@ def test_serialize_refuses_foreign_types() -> None:
                 member_hashes={**c.member_hashes, "claims": 0.0},
                 objects_tree_hash=c.objects_tree_hash,
                 has_labels=False,
+                labels_hash=None,
             )
         )
     with pytest.raises(TypeError):
@@ -266,6 +275,7 @@ def test_serialize_refuses_foreign_types() -> None:
                 member_hashes={**c.member_hashes, "claims": Decimal("1")},
                 objects_tree_hash=c.objects_tree_hash,
                 has_labels=False,
+                labels_hash=None,
             )
         )
     with pytest.raises(TypeError):
@@ -278,6 +288,7 @@ def test_serialize_refuses_foreign_types() -> None:
                 member_hashes=c.member_hashes,
                 objects_tree_hash=c.objects_tree_hash,
                 has_labels=1,
+                labels_hash=None,
             )
         )
     with pytest.raises(TypeError):
@@ -290,5 +301,49 @@ def test_serialize_refuses_foreign_types() -> None:
                 member_hashes=c.member_hashes,
                 objects_tree_hash=c.objects_tree_hash,
                 has_labels=False,
+                labels_hash=None,
+            )
+        )
+    with pytest.raises(ValueError):
+        serialize_case(
+            Case(
+                format=FORMAT,
+                case_id=c.case_id,
+                paper_hash=None,
+                run_id=c.run_id,
+                member_hashes=c.member_hashes,
+                objects_tree_hash=c.objects_tree_hash,
+                has_labels=False,
+                labels_hash="short",
+            )
+        )
+
+
+def test_serialize_refuses_a_has_labels_labels_hash_disagreement() -> None:
+    c = make_case()
+    with pytest.raises(ValueError, match="has_labels"):
+        serialize_case(
+            Case(
+                format=FORMAT,
+                case_id=c.case_id,
+                paper_hash=c.paper_hash,
+                run_id=c.run_id,
+                member_hashes=c.member_hashes,
+                objects_tree_hash=c.objects_tree_hash,
+                has_labels=True,
+                labels_hash=None,
+            )
+        )
+    with pytest.raises(ValueError, match="has_labels"):
+        serialize_case(
+            Case(
+                format=FORMAT,
+                case_id=c.case_id,
+                paper_hash=c.paper_hash,
+                run_id=c.run_id,
+                member_hashes=c.member_hashes,
+                objects_tree_hash=c.objects_tree_hash,
+                has_labels=False,
+                labels_hash=h64("labels"),
             )
         )
