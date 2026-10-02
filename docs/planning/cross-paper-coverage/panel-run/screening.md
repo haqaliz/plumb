@@ -193,3 +193,55 @@ are the package's own printed outputs, so its claims are near-circular by design
 pooled coverage number will state the claim mix per paper rather than flattering the
 figure. A paper that fails its dev-time probe (env build, seeding, runtime) is a
 documented selection miss, not forced through — per the rule.
+
+## Paper 1 dev-time probe — Pingouin: documented selection miss (2026-10-02)
+
+Probed by the per-paper agent at dev time (Step A of `plan_20261002.md`), before any
+fixture, spec, run or binding. Outcome: **Pingouin fails the selection rule — a documented
+selection miss, not forced through.** The floor falls to Perrin et al. (panel rank 2).
+
+### Evidence
+
+- **The published paper contains no quantitative claims.** The JOSS paper
+  (doi:10.21105/joss.01026, CC BY 4.0, fetched from
+  `https://joss.theoj.org/papers/10.21105/joss.01026.pdf`) is a **one-page, summary-only
+  software paper**. `pdf_to_markdown` and pypdf's raw text both give 1 page / ~2.6 KB of
+  prose. The only decimal numbers in the entire PDF are `10.21105` (the DOI) and `4.0`
+  (the CC-BY license version). There are **no code blocks, no printed outputs, no results
+  tables, no reported statistics** — nothing the C4 locators (`json_pointer`,
+  `csv_cell`, `stdout_regex`) could reach. PDF SHA-256 (probe copy):
+  `9ed4293e0cd7e38259dc35ab06a9cb6ce89f9b1b9f734e769f9a4c9be394d218`.
+- **The paper-era repo matches the published text, with no examples.** The repo
+  (`github.com/raphaelvallat/pingouin`) at tag **v0.2.1** (= `94fa2414b5f2cab0033da25eab33138912fdc63a`,
+  tagged 2018-11-19, the paper's published date — the paper-era release) carries
+  `JOSS/paper.md` whose Summary matches the published PDF nearly verbatim; its history (4
+  commits, Oct 2018) never added an examples section.
+- **The screening's criterion-4 basis is falsified.** The screening recorded
+  "pingouin, tableone: printed in the paper itself" (§4, headline-number reachability).
+  For Pingouin that was wrong: the printed-output examples the screening relied on live in
+  the repo's **README** ("10 minutes to Pingouin": `pg.ttest(x, y)` → `T=-3.401, p=0.001,
+  dof=58, cohen-d=0.878, power=0.917, BF10=26.155`, etc.), **not in the paper**. README
+  examples are not the paper's claims: criterion 6 grounds every claim verbatim at a span
+  in the paper text, and the paper has no such spans. Verifying README numbers would be
+  verifying the README, not the paper — the anti-inflation guard exists precisely to
+  refuse this.
+
+### Failing criteria
+
+- **4 (machine-readable headline numbers)** — the paper makes no quantitative claims at
+  all; there is nothing to bind.
+- **6 (claims rule fixed before binding)** — the rule "all numeric values printed in the
+  paper's code-block outputs" is vacuous: the paper has no code blocks; there are no spans
+  to find.
+
+The environment build was not attempted: the claims-level blocker precedes any run, and
+an env outcome could not change it (even a perfect 2018-era build leaves zero claims).
+The JOSS review thread and HTML page were checked; both confirm the summary-only text.
+
+### Consequence
+
+- Pingouin is **not** a panel paper. No fixture, spec, record or tests will be committed
+  for it. The panel is now: Perrin et al. (next up), tableone and Tensorpac (stretch);
+  the pooled R1 number is computed over what actually banks (`spec.md:36-39`). The
+  screening-level "all 7 met" for a paper that fails at the probe is exactly what §4's
+  honest note ("verified only at the level of…") reserved for dev time.
