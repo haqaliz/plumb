@@ -73,17 +73,23 @@ _SOURCE_FIELDS = {
 
 
 def replay_record(args) -> int:
-    """The replay seam: re-derive from the record, render, and decide the exit code.
+    """The replay seam: re-derive from the record, render, bank, decide the exit code.
 
     The shell has already rejected the live-mode arguments and checked the signer
     key for `--out`. Raises the engine's named exceptions on failure; returns 0 iff
-    every claim is decided.
+    every claim is decided and (with `--bank`) the bank succeeded.
     """
     record_dir = Path(args.from_record)
     verdicts = _replay(record_dir, args)
     sys.stdout.buffer.write(render_verdicts(verdicts, json=args.json))
     sys.stdout.buffer.flush()
-    return 0 if all(v.verdict != UNVERIFIED for v in verdicts.verdicts) else 1
+    banked = True
+    if args.bank:
+        from plumb.cli.corpus import bank_for_verify
+
+        banked = bank_for_verify(record_dir)
+    decided = all(v.verdict != UNVERIFIED for v in verdicts.verdicts)
+    return 0 if decided and banked else 1
 
 
 def _replay(record_dir: Path, args) -> VerdictSet:

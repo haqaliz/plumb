@@ -63,10 +63,13 @@ from plumb.corpus.metrics import (
 )
 from plumb.verify import Completed, load_bindings, verify_claims
 
-__all__ = ["bank_record", "cmd_corpus_bank", "cmd_corpus_report"]
+__all__ = ["bank_for_verify", "bank_record", "cmd_corpus_bank", "cmd_corpus_report"]
 
 #: The label values a human-authored review may carry; anything else is malformed.
 _LABEL_VALUES = frozenset({"confirmed", "refuted"})
+
+#: The default store: the same `corpus bank`/`corpus report` default (cli/__init__.py).
+DEFAULT_STORE = "corpus/local"
 
 #: The member lanes `bank_case` reads of a record, in the order the record carries them.
 _MEMBER_FILES = ("claims.json", "bindings.json", "trace.json", "verdicts.json")
@@ -82,6 +85,30 @@ def cmd_corpus_bank(args, parser) -> int:
     case_id, already = bank_record(record_dir, Path(args.store))
     print(f"already banked: {case_id}" if already else f"banked {case_id}")
     return 0
+
+
+def bank_for_verify(record_dir: Path) -> bool:
+    """Bank `record_dir` into the default store, shell-style; return whether it banked.
+
+    The verify shell's two modes call this after the verdicts have rendered:
+    success prints `banked <case_id>` (or `already banked: <case_id>`) on
+    stdout; a refusal prints one named-cause line on stderr — `CORPUS_REFUSED`
+    for a store that refuses, `RECORD_INVALID` for a record that does not
+    replay — and returns False. The verdicts have already rendered; this is
+    the bank's own outcome.
+    """
+    from plumb.cli import CORPUS_REFUSED, RECORD_INVALID
+
+    try:
+        case_id, already = bank_record(record_dir, Path(DEFAULT_STORE))
+    except CorpusRefused as exc:
+        print(f"plumb verify: {CORPUS_REFUSED}: {exc}", file=sys.stderr)
+        return False
+    except ValueError as exc:
+        print(f"plumb verify: {RECORD_INVALID}: {exc}", file=sys.stderr)
+        return False
+    print(f"already banked: {case_id}" if already else f"banked {case_id}")
+    return True
 
 
 def bank_record(record_dir: Path, store_dir: Path) -> tuple[str, bool]:

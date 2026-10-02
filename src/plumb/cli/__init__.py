@@ -171,6 +171,8 @@ def build_parser() -> argparse.ArgumentParser:
             "  --rev REV            git revision for a git-URL <repo>\n"
             "  --bindings FILE      JSON bindings file (required in live mode)\n"
             "  --out DIR            write a signed, replayable bundle to DIR\n"
+            "  --bank               bank the run's record into the write-once\n"
+            "                       discrepancy corpus (default store: corpus/local)\n"
             "  --from-record DIR    replay a committed record instead of running live\n"
             "  --no-env-build       skip the real environment build (offline stub);\n"
             "                       the real uv sync runs only without this flag, at\n"
@@ -216,6 +218,9 @@ def build_parser() -> argparse.ArgumentParser:
                         help="JSON bindings file (required in live mode)")
     verify.add_argument("--out", metavar="DIR",
                         help="write a signed, replayable bundle to DIR")
+    verify.add_argument("--bank", action="store_true",
+                        help="bank the run's record into the discrepancy corpus "
+                             "(default store: corpus/local)")
     verify.add_argument("--from-record", metavar="DIR",
                         help="replay a committed record instead of running live")
     verify.add_argument("--no-env-build", action="store_true",
