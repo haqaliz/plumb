@@ -1,30 +1,39 @@
-# Brief — discrepancy-corpus (C5, first slice)
+# Brief — cross-paper-coverage (C5, next slice)
 
-Source: `pbf feat discrepancy-corpus` handoff from `plumb-next` (2026-10-01). No GitHub
+Source: `pbf feat cross-paper-coverage` handoff from `plumb-next` (2026-10-02). No GitHub
 issue exists for this work; the id lives in the branch and PR.
 
 ## Brief
 
-Build C5's first slice, test-first: the discrepancy-corpus store under `src/plumb/corpus/`
-per `docs/technical/ARCHITECTURE.md:148-154` — every `(claim, re-derived value, verdict,
-locator, cause)` from a verify run banks as a self-contained, replayable, human-labelable
-case under gitignored `corpus/local/`, with canonical serialization, and a `--json`-stable
-bank command or seam to fold the existing AgroDesign record in as case #1 without re-running
-it. The benchmark scaffold measures precision/recall/coverage against human labels, excludes
-`UNVERIFIED` from precision, and never lets the engine label its own cases — with the
-coverage number honestly reported as the R1 measurement (first real numbers may be ugly;
-`UNVERIFIED` is the honest default). Acceptance tests, written first: banking a committed
-AgroDesign record round-trips byte-identically; a case re-derives its verdict from its own
-stored trace; labeled-precision math excludes `UNVERIFIED`; and the store never mutates an
-existing case.
+Build C5's next slice test-first: **the R1 measurement** (cross-paper binding coverage,
+`docs/ROADMAP.md:41-45, 68` — the last unmeasured High/High risk).
 
-## Design anchor
+**First slice — `plumb verify --bank`:** the live spine persists its record dir
+(`claims.json` + `bindings.json` + `trace.json` + `objects/` + `verdicts.json`, the replay
+shape) and banks it through the existing `corpus bank` replay chain, no-op on re-bank
+(N2, `docs/planning/discrepancy-corpus/prd.md:113-114`; the bank seam at
+`src/plumb/cli/corpus.py` already validates by re-derivation). Today the live spine writes
+no record dir — `--out` writes only the signed bundle (`src/plumb/cli/live.py:154-157`).
 
-- `docs/technical/ARCHITECTURE.md:148-154` — C5: discrepancy corpus (`src/plumb/corpus/`),
-  cases under gitignored `corpus/local/`, precision/recall/coverage measured against human
-  labels, `UNVERIFIED` excluded from precision, engine never labels its own cases.
-- `docs/technical/CAPABILITY_ROADMAP.md:209-217` — C5: accumulate every (claim, re-derived
-  value, verdict, locator, cause); publish a precision/recall benchmark over a public paper
-  corpus. "Precision on `DIVERGED` is the number the whole reputation rests on."
-- `docs/ROADMAP.md:68` (R1), `:32-33` — cross-paper coverage is unmeasured; C5 is the
-  instrument that measures it.
+**Then the campaign:** run a small panel (3–5) of runnable Python/R data-analysis papers
+through the live spine at dev time — a **fixed selection rule**, committed fixtures per the
+AgroDesign precedent (`fixtures/gate/agrodesign/`) — bank each case, and publish the first
+honest multi-paper coverage/precision/recall figure via `plumb corpus report`, every number
+with its denominator and label-authority marker, updating R1's status in `docs/ROADMAP.md`.
+
+**Caveat:** the number may be ugly (R1 High/High — most repos don't run or never expose the
+headline number machine-readably). Report it honestly; `UNVERIFIED` is the honest default.
+Real env builds stay dev-time-only (the `tools/demo_env_build.py` precedent,
+`docs/technical/CAPABILITY_ROADMAP.md:109-111`), never in tests or CI. C1 recovery on new
+papers is unmeasured — expect claim-recovery tuning per paper
+(`docs/technical/CAPABILITY_ROADMAP.md:85-87`).
+
+**Acceptance tests, written first:**
+1. A synthetic live run with `--bank` writes a record that re-derives byte-identically and
+   banks; re-bank is a no-op (append-only store, never mutates).
+2. A second paper's committed record banks and re-derives from its stored trace matching
+   its `verdicts.json`.
+3. `plumb corpus report` pools ≥ 2 cases with per-case and pooled denominators and
+   label-authority markers.
+4. The suite stays network-free under the autouse blocker (`tests/conftest.py:56-60`);
+   env builds never run in tests/CI.
