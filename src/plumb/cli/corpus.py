@@ -22,6 +22,19 @@ record's bytes only — the temp path never reaches the case. The case id is
 content-addressed; a re-bank of the identical record is a no-op, a conflicting
 re-bank is `CorpusRefused` (`CASE_CONFLICT`), and the existing case is never
 touched.
+
+**The report reads the store back.** `cmd_corpus_report` implements
+`plumb corpus report [--store DIR] [--authority owner|third-party] [--json]`:
+every `<case_id>/` directory carrying a `case.json` manifest is a case
+(anything else is not a case), each case is read through the store's
+hash-verified path — a tampered or unreadable case refuses the whole report
+with `CorpusRefused` naming the case, never a silent drop — and the metrics
+are computed over the verdicts and verified labels. The label authority is a
+reporting-time declaration, carried next to every precision/recall figure.
+The table is fixed-layout and deterministic: per-case rows (case_id, claims,
+bound, by-verdict counts, labeled `DIVERGED`s, confirmed) and a totals row,
+then coverage and the two rates with their denominators, `n/n (authority)` —
+or `no labeled DIVERGEDs` / `no labeled claims` when no such figure exists.
 """
 
 from __future__ import annotations
@@ -29,13 +42,28 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import shutil
+import sys
 import tempfile
 
 from plumb.cli.replay import cross_check, read_record
-from plumb.corpus import bank_case
+from plumb.corpus import bank_case, read_case
+from plumb.corpus.causes import CASE_INVALID, CorpusRefused
+from plumb.corpus.metrics import (
+    DIVERGED,
+    REPRODUCED,
+    UNVERIFIED,
+    WITHIN_TOLERANCE,
+    CaseMetrics,
+    Metrics,
+    Rate,
+    Totals,
+    read_verdict_rows,
+    serialize_metrics,
+    store_metrics,
+)
 from plumb.verify import Completed, load_bindings, verify_claims
 
-__all__ = ["bank_record", "cmd_corpus_bank"]
+__all__ = ["bank_record", "cmd_corpus_bank", "cmd_corpus_report"]
 
 #: The label values a human-authored review may carry; anything else is malformed.
 _LABEL_VALUES = frozenset({"confirmed", "refuted"})
@@ -130,3 +158,151 @@ def _stage(record_dir: Path, staged: Path) -> Path:
     if unrepresentable.is_file():
         (staged / "nonclaims.json").write_bytes(unrepresentable.read_bytes())
     return staged
+
+
+def cmd_corpus_report(args, parser) -> int:
+    """`plumb corpus report [--store DIR] [--authority ...] [--json]`: report, exit 0.
+
+    Every `<case_id>/` subdirectory of the store that carries a `case.json`
+    manifest is a case, read through the store's hash-verified path in sorted
+    `case_id` order. A missing store directory, a tampered member, or a case
+    that does not read back is `CorpusRefused` — the report is all or nothing,
+    never a silent skip.
+    """
+    store_dir = Path(args.store)
+    if not store_dir.is_dir():
+        raise CorpusRefused(f"store {store_dir} is not a directory", CASE_INVALID)
+    cases = [
+        read_case(entry)
+        for entry in sorted(store_dir.iterdir())
+        if entry.is_dir() and (entry / "case.json").is_file()
+    ]
+    for case in cases:
+        try:
+            read_verdict_rows(case.members["verdicts"])
+        except ValueError as exc:
+            raise CorpusRefused(
+                f"case {case.case.case_id}: {exc}", CASE_INVALID
+            ) from None
+    try:
+        metrics = store_metrics(cases)
+    except ValueError as exc:
+        raise CorpusRefused(str(exc), CASE_INVALID) from None
+    if args.json:
+        sys.stdout.buffer.write(serialize_metrics(metrics, args.authority))
+    else:
+        sys.stdout.buffer.write(_render_report_table(metrics, args.authority))
+    sys.stdout.buffer.flush()
+    return 0
+
+
+#: The fixed column layout of the report table: header label and cell width.
+_COLUMNS = (
+    ("CASE", 24),
+    ("CLAIMS", 6),
+    ("BOUND", 5),
+    ("REPRODUCED", 10),
+    ("WITHIN-TOLERANCE", 16),
+    ("DIVERGED", 8),
+    ("UNVERIFIED", 10),
+    ("LABELED", 7),
+    ("CONFIRMED", 9),
+)
+
+#: The by-verdict cells, in the metrics' pinned C4 order, with their widths.
+_VERDICT_WIDTHS = ((REPRODUCED, 10), (WITHIN_TOLERANCE, 16), (DIVERGED, 8), (UNVERIFIED, 10))
+
+_TRUNCATE = 24
+_ELLIPSIS = "…"
+
+
+def _render_report_table(metrics: Metrics, authority: str) -> bytes:
+    """The report as a fixed-layout table: header, per-case rows, totals, rates.
+
+    Every row is one line; nothing from the machine (no clock, no cwd) enters
+    the bytes. The `LABELED` column counts the case's labeled `DIVERGED`s
+    (confirmed + refuted); `CONFIRMED` is the confirmed subset. Below the
+    totals row, coverage and the two rates carry their denominators, and the
+    label-authority declaration is rendered next to every figure.
+    """
+    lines = [_header(), _separator()]
+    lines.extend(_case_row(case_metrics) for case_metrics in metrics.cases)
+    lines.append(_totals_row(metrics.totals))
+    lines.append("")
+    lines.append(_rate_lines(metrics.totals, authority))
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def _header() -> str:
+    return " | ".join(name.ljust(width) for name, width in _COLUMNS)
+
+
+def _separator() -> str:
+    width = sum(width for _, width in _COLUMNS) + 3 * (len(_COLUMNS) - 1)
+    return "-" * width
+
+
+def _case_row(case_metrics: CaseMetrics) -> str:
+    coverage = case_metrics.coverage
+    cells = [
+        (_truncate(case_metrics.case_id), 24),
+        (str(coverage.claims), 6),
+        (str(coverage.bound), 5),
+    ]
+    cells.extend(
+        (str(count), width)
+        for (_, count), (_, width) in zip(coverage.by_verdict, _VERDICT_WIDTHS)
+    )
+    cells.extend(
+        (
+            (str(case_metrics.confirmed + case_metrics.refuted), 7),
+            (str(case_metrics.confirmed), 9),
+        )
+    )
+    return _render_row(cells)
+
+
+def _totals_row(totals: Totals) -> str:
+    noun = "case" if totals.cases == 1 else "cases"
+    coverage = totals.coverage
+    cells = [
+        (f"total ({totals.cases} {noun})", 24),
+        (str(coverage.claims), 6),
+        (str(coverage.bound), 5),
+    ]
+    cells.extend(
+        (str(count), width)
+        for (_, count), (_, width) in zip(coverage.by_verdict, _VERDICT_WIDTHS)
+    )
+    cells.extend(
+        (
+            (str(totals.confirmed + totals.refuted), 7),
+            (str(totals.confirmed), 9),
+        )
+    )
+    return _render_row(cells)
+
+
+def _render_row(cells: list[tuple[str, int]]) -> str:
+    return " | ".join(text.ljust(width) for text, width in cells)
+
+
+def _rate_lines(totals: Totals, authority: str) -> str:
+    """Coverage and the two rates, every figure with its denominator."""
+    lines = [f"  coverage: {totals.coverage.bound}/{totals.coverage.claims} bound"]
+    lines.append(_rate_line("precision", totals.precision, authority, "no labeled DIVERGEDs"))
+    lines.append(_rate_line("recall", totals.recall, authority, "no labeled claims"))
+    return "\n".join(lines)
+
+
+def _rate_line(kind: str, rate: Rate | None, authority: str, none_text: str) -> str:
+    if rate is None:
+        return f"  {kind}: {none_text}"
+    return f"  {kind}: {rate.confirmed}/{rate.flagged} ({authority})"
+
+
+def _truncate(text: str) -> str:
+    """Truncate to `_TRUNCATE` code points, ending in `…` when anything was cut."""
+    if len(text) <= _TRUNCATE:
+        return text
+    return text[: _TRUNCATE - 1] + _ELLIPSIS
