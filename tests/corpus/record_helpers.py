@@ -11,10 +11,12 @@ record directory is the shape the corpus bank and `--from-record` read
 `unrepresentable.json` (the gate record's non-claim document, which the bank
 stages as the case's `nonclaims.json` verbatim), and a human-authored
 `labels.json` the bank transports. The two hand-shaped documents are
-`claims.json` — in the gate record's curated shape, which the corpus bank and
-`--from-record` re-admit through the admission gate — and `nonclaims_json`,
-whose serialized form the bank aspect owns, mirrored from the committed gate
-record's `unrepresentable.json`.
+`claims.json` — in the gate record's curated shape by default, which the
+corpus bank and `--from-record` re-admit through the admission gate, or in
+the serialized C1 form when `form="c1"`, which `--from-record` reads back
+through `parse_claims` and re-admits through `readmit` — and
+`nonclaims_json`, whose serialized form the bank aspect owns, mirrored from
+the committed gate record's `unrepresentable.json`.
 """
 
 from __future__ import annotations
@@ -26,7 +28,11 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "verify"))
 from verify_helpers import bindings_json, claim, run_full, writes  # noqa: E402
 
-from plumb.extract.location import normalize_text
+from plumb.extract.claim import Claim
+from plumb.extract.hashing import hash_paper
+from plumb.extract.location import CharSpan, normalize_text
+from plumb.extract.serialize import serialize_claims
+from plumb.extract.value import parse_value
 from plumb.run.trace import serialize_trace
 from plumb.verify import Completed, serialize_verdicts, verify_claims
 from plumb.verify.bindings import load_bindings
@@ -48,6 +54,7 @@ def record_dir(
     root: Path,
     *,
     paper: bytes | None = DEFAULT_PAPER,
+    form: str = "curated",
     nonclaims: bytes | None = None,
     unrepresentable: bytes | None = None,
     labels: bytes | None = None,
@@ -55,7 +62,14 @@ def record_dir(
     """A real record under `root/record`, from one real run of a JSON-writing program.
 
     `paper=None` writes no paper file, so the case banks with `paper_hash:
-    null`; `nonclaims`, when given, adds the `nonclaims.json` lane — the case
+    null` (curated form only — the C1 form hashes the paper, so it requires
+    one). `form` selects the claims lane's shape: `"curated"` (default) is
+    the gate record's six-field form, which the corpus bank and
+    `--from-record` re-admit through the admission gate; `"c1"` is the bytes
+    `serialize_claims` writes — the claim at its real span in the record's
+    paper, under `hash_paper` of that same paper, which `--from-record`
+    reads back through `parse_claims` and re-admits through `readmit`.
+    `nonclaims`, when given, adds the `nonclaims.json` lane — the case
     member the store reads directly. `unrepresentable`, when given, adds the
     record-side `unrepresentable.json` — the gate record's non-claim document,
     which the bank stages as the case's `nonclaims.json` verbatim. `labels`,
@@ -65,6 +79,10 @@ def record_dir(
     and tamper tests exercise exactly the bytes a `plumb verify` record would
     carry.
     """
+    if form not in ("curated", "c1"):
+        raise ValueError(f"form must be 'curated' or 'c1', got {form!r}")
+    if form == "c1" and paper is None:
+        raise ValueError("the C1 form requires paper: serialize_claims hashes the paper")
     paper_claim = claim("0.87")
     _, _result, capture, trace = run_full(root, writes("results.json", '{"auc": 0.8712}'))
     bindings_bytes = bindings_json(
@@ -77,7 +95,10 @@ def record_dir(
     (record / "objects").mkdir(parents=True)
     for path in capture.store.iterdir():
         (record / "objects" / path.name).write_bytes(path.read_bytes())
-    (record / "claims.json").write_bytes(_curated_claims(paper))
+    if form == "c1":
+        (record / "claims.json").write_bytes(_c1_claims(paper))
+    else:
+        (record / "claims.json").write_bytes(_curated_claims(paper))
     (record / "bindings.json").write_bytes(bindings_bytes)
     (record / "trace.json").write_bytes(serialize_trace(trace))
     (record / "verdicts.json").write_bytes(serialize_verdicts(verdicts))
@@ -120,6 +141,34 @@ def _curated_claims(paper: bytes | None) -> bytes:
         ]
     }
     return (json.dumps(document, **_JSON) + "\n").encode("utf-8")
+
+
+def _c1_claims(paper: bytes) -> bytes:
+    """The claims lane in the serialized C1 form, grounded in the record's paper.
+
+    `serialize_claims` writes the claim at its recorded span under the
+    `hash_paper` of the record's own paper text; `--from-record` reads the
+    document back through `parse_claims` and re-admits it against the record's
+    paper through `readmit` — so the span must be the real one in the
+    normalized paper (the same span `_curated_claims` finds) and the digest
+    must be over that same text, or the record refuses. The re-admitted claim
+    derives the same id as `claim("0.87")` (the id covers text, metric and
+    units only), which is the id the bindings and verdicts were derived under.
+    """
+    raw = paper.decode("utf-8")
+    normalized = normalize_text(raw)
+    start = normalized.index("0.87")
+    value = parse_value("0.87")
+    assert value is not None
+    claim = Claim(
+        reported_value=value,
+        units=None,
+        metric="AUC",
+        location=CharSpan(start, start + len("0.87")),
+        artifact_hint=None,
+        tolerance_hint=None,
+    )
+    return serialize_claims((claim,), paper_hash=hash_paper(raw))
 
 
 def nonclaims_json() -> bytes:
