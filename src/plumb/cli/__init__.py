@@ -14,17 +14,23 @@ cause and rendered as `plumb verify: <CAUSE>: <detail>` on stderr.
 **The named-cause vocabulary.** Closed, one name per failure class from the PRD's
 failure table. The engine's raised exceptions (`SourceNotFound`, `RevNotFound`,
 `UnsupportedArchive`, `EnvBuildFailed`, `EntryPointMissing`/`Ambiguous`,
-`BindingInvalid`, `PdfInputError`, `BundleRefused`) map by type in `_CAUSE_MAP`; the
-run package's *recorded* causes (`WONT_RUN`, `TIMEOUT`, `NO_ARTIFACT`,
-`STALE_ARTIFACT`) normally flow through verdicts rather than exceptions, but an
-exception carrying a `cause` attribute that names one maps too. `ValueError` from
-the record readers (`parse_trace`, `parse_claims`) is `RECORD_INVALID`; anything
-else is `SPINE_ERROR` — a bug, not a user error, and never a traceback.
+`BindingInvalid`, `PdfInputError`, `BundleRefused`, `CorpusRefused`) map by type
+in `_CAUSE_MAP`; the run package's *recorded* causes (`WONT_RUN`, `TIMEOUT`,
+`NO_ARTIFACT`, `STALE_ARTIFACT`) normally flow through verdicts rather than
+exceptions, but an exception carrying a `cause` attribute that names one maps
+too. `ValueError` from the record readers (`parse_trace`, `parse_claims`) is
+`RECORD_INVALID`; anything else is `SPINE_ERROR` — a bug, not a user error, and
+never a traceback.
 
 **The seams.** `run_live` and `replay_record` are the dispatch targets of `verify`
-(live and `--from-record` modes); `render_verdicts` is the pure rendering seam the
-other two compose — it takes a `VerdictSet` and returns bytes (`plumb.cli.render`),
-never deciding an exit code. `run_live` and `replay_record` take the parsed `args`
+(live and `--from-record` modes); `cmd_corpus_bank` is the dispatch target of
+`corpus bank`, which banks a verify record into the discrepancy corpus through
+the same replay chain `replay_record` reads it by, and `cmd_corpus_report` is the
+dispatch target of `corpus report`, which reads the store back and reports
+coverage, precision and recall over the banked cases (`plumb.cli.corpus`).
+`render_verdicts` is the pure rendering seam the other two compose — it takes a
+`VerdictSet` and returns bytes (`plumb.cli.render`), never deciding an exit
+code. `run_live` and `replay_record` take the parsed `args`
 namespace and return the exit code — the shell trusts the seams' verdict-level
 decision, because only the spine can see the verdicts. In the cli-core aspect the
 seams were stubs raising `SpineError`; the render aspect replaced `render_verdicts`
@@ -44,6 +50,7 @@ from pathlib import Path
 import sys
 
 from plumb.bundle.causes import BundleRefused
+from plumb.corpus.causes import CorpusRefused
 from plumb.intake.causes import EnvBuildFailed, RevNotFound, SourceNotFound, UnsupportedArchive
 from plumb.pdf import PdfInputError
 from plumb.run.causes import (
@@ -54,6 +61,7 @@ from plumb.run.causes import (
     EntryPointAmbiguous,
     EntryPointMissing,
 )
+from plumb.cli.corpus import cmd_corpus_bank, cmd_corpus_report
 from plumb.cli.render import render_verdicts
 from plumb.cli.replay import replay_record
 from plumb.verify.causes import ENV_BUILD_FAILED, BindingInvalid
@@ -62,6 +70,7 @@ __all__ = [
     "BINDING_INVALID",
     "BUNDLE_REFUSED",
     "CLI_CAUSES",
+    "CORPUS_REFUSED",
     "ENTRYPOINT_AMBIGUOUS",
     "ENTRYPOINT_MISSING",
     "ENV_BUILD_FAILED",
@@ -78,6 +87,8 @@ __all__ = [
     "USAGE_ERROR",
     "WONT_RUN",
     "build_parser",
+    "cmd_corpus_bank",
+    "cmd_corpus_report",
     "cmd_verify",
     "main",
     "replay_record",
@@ -98,6 +109,7 @@ BINDING_INVALID = "BINDING_INVALID"
 RECORD_INVALID = "RECORD_INVALID"
 KEY_MISSING = "KEY_MISSING"
 BUNDLE_REFUSED = "BUNDLE_REFUSED"
+CORPUS_REFUSED = "CORPUS_REFUSED"
 SPINE_ERROR = "SPINE_ERROR"
 
 #: The closed CLI vocabulary, from the PRD's failure table.
@@ -119,6 +131,7 @@ CLI_CAUSES = frozenset(
         RECORD_INVALID,
         KEY_MISSING,
         BUNDLE_REFUSED,
+        CORPUS_REFUSED,
         SPINE_ERROR,
     }
 )
@@ -173,7 +186,12 @@ def build_parser() -> argparse.ArgumentParser:
             "  1  any UNVERIFIED verdict, spine failure, or named cause\n"
             "  2  usage error\n\n"
             "--bindings FILE is required in live mode; --from-record carries its own "
-            "record and takes no <paper>, <repo>, --bindings, --rev or --no-env-build."
+            "record and takes no <paper>, <repo>, --bindings, --rev or --no-env-build.\n\n"
+            "corpus bank <record-dir> [--store DIR] folds a verify record into the "
+            "write-once discrepancy corpus; a record that would not replay does not "
+            "bank. corpus report [--store DIR] reports coverage, precision and "
+            "recall over the banked cases, every figure with its denominator and "
+            "its label authority."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -210,6 +228,62 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--json", action="store_true",
                         help="emit canonical JSON instead of the verdict table")
     verify.set_defaults(handler=cmd_verify)
+    corpus = subcommands.add_parser(
+        "corpus",
+        help="bank a verify record into, or report over, the discrepancy corpus",
+        description=(
+            "Fold a committed verify record into the write-once, content-addressed "
+            "discrepancy corpus, or report coverage, precision and recall over the "
+            "banked cases. A banked record is re-validated through the replay "
+            "chain — its claims re-admitted against its own paper, its verdicts "
+            "re-derived from the stored trace and cross-checked against the "
+            "committed verdicts.json — and refused with a named cause if it does "
+            "not replay. A human-authored labels.json beside the record is "
+            "transported into the case, never invented. A report reads every "
+            "case back through the store's hash-verified path; a tampered or "
+            "unreadable case refuses the whole report."
+        ),
+    )
+    corpus_commands = corpus.add_subparsers(required=True, metavar="SUBCOMMAND")
+    bank = corpus_commands.add_parser(
+        "bank",
+        help="bank <record-dir> as a case",
+        description=(
+            "Bank the record at <record-dir> under <store-dir>/<case-id>/, "
+            "write-once. A re-bank of the identical record is a no-op; a "
+            "conflicting re-bank is refused and the existing case is untouched."
+        ),
+    )
+    bank.add_argument("record_dir", metavar="<record-dir>",
+                      help="a verify record directory (claims, bindings, trace, "
+                           "objects, paper)")
+    bank.add_argument("--store", metavar="DIR", default="corpus/local",
+                      help="the corpus store directory (default: corpus/local)")
+    bank.set_defaults(handler=cmd_corpus_bank)
+    report = corpus_commands.add_parser(
+        "report",
+        help="report coverage, precision and recall over the store",
+        description=(
+            "Read every <case-id>/ directory under <store-dir>/ that carries a "
+            "case.json manifest, and report per case and pooled: coverage "
+            "(bound/claims by the C4 bound definition), precision over the "
+            "labeled DIVERGEDs (confirmed / confirmed+refuted), and recall over "
+            "the labeled claims — every figure with its denominator, and the "
+            "label-authority declaration next to each rate. An unlabeled "
+            "DIVERGED is in neither side of precision; UNVERIFIED claims are "
+            "never bound and never folded into a rate. A tampered or unreadable "
+            "case refuses the whole report with a named cause; an empty store "
+            "reports zeros."
+        ),
+    )
+    report.add_argument("--store", metavar="DIR", default="corpus/local",
+                        help="the corpus store directory (default: corpus/local)")
+    report.add_argument("--authority", choices=("owner", "third-party"),
+                        default="owner",
+                        help="whose labels the report measures (default: owner)")
+    report.add_argument("--json", action="store_true",
+                        help="emit canonical JSON instead of the report table")
+    report.set_defaults(handler=cmd_corpus_report)
     return parser
 
 
@@ -293,6 +367,7 @@ _CAUSE_MAP: tuple[tuple[type[Exception], str], ...] = (
     (BindingInvalid, BINDING_INVALID),
     (PdfInputError, PAPER_UNREADABLE),
     (BundleRefused, BUNDLE_REFUSED),
+    (CorpusRefused, CORPUS_REFUSED),
     (PaperUnreadable, PAPER_UNREADABLE),
     (KeyMissing, KEY_MISSING),
     (SpineError, SPINE_ERROR),
