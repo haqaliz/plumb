@@ -245,3 +245,26 @@ The JOSS review thread and HTML page were checked; both confirm the summary-only
   the pooled R1 number is computed over what actually banks (`spec.md:36-39`). The
   screening-level "all 7 met" for a paper that fails at the probe is exactly what §4's
   honest note ("verified only at the level of…") reserved for dev time.
+
+## Probe results (2026-10-02, dev-time, evidence on record)
+
+- **Pingouin (JOSS 3(31):1026)** — selection miss (criteria 4+6): the published paper is a
+  one-page software announcement with NO quantitative claims; its printed outputs live in
+  the repo README, not the paper (anti-inflation refuses README-verification). PDF:
+  1 page, ~2.6 KB text, only decimals are the DOI and the license version. Tag v0.2.1
+  (94fa2414, 2018-11-19) is the paper-date rev.
+- **Perrin et al. (arXiv:2401.11842)** — selection miss (criterion 2): env infeasible on
+  macOS ARM64 in any honest resolution. License CC BY 4.0 confirmed; data generation
+  seeded (`default_rng(seed=42)`, hte/data/generation.py:179); headline numbers ARE
+  machine-readable (Tables 1-4, pipe tables, main text); code at github.com/owkin/hte,
+  paper-date rev 76ce145, poetry-only project (python >=3.8,<3.11). Blocker: fresh
+  resolution breaks lifelines 0.27.7 (scipy>=1.14 removed `integrate.trapz`);
+  era-bounded resolution (--exclude-newer 2024-01-23) fails building qdldl 0.1.7.post0
+  from sdist (no macOS-arm64 wheel ever; sdist needs a submodule header). Both are
+  machine/era incompatibilities, not paper errors.
+- **Engine gap discovered (not built):** `uv sync` on a poetry-only project
+  (no `[project]`, no uv.lock) resolves an EMPTY venv with exit 0 — the engine's
+  best-effort policy would record EnvBuild ok=True, then WONT_RUN at import. `uv pip
+  install -e .` (poetry-core backend) works. Candidate for a follow-on C2 aspect
+  (poetry env policy + python-pin from `[tool.poetry]`), test-first, verified against a
+  synthetic poetry repo via the demo_env_build pattern.
