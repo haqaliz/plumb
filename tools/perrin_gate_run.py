@@ -56,7 +56,7 @@ REPO = "https://github.com/owkin/hte.git"
 REV = "76ce145f42fd37a91b389d8c8762de167647f82f"
 EXCLUDE_NEWER = "2024-06-18T00:00:00Z"  # earliest boundary buildable on this machine
 PYTHON_PIN = "3.10"
-TIMEOUT_SECONDS = 4 * 3600  # p=20 (~2.1 h) + p=100 (~47 min) at 1000 repetitions
+TIMEOUT_SECONDS = 12 * 3600  # measured: p=20 alone exceeded 3.6 h wall (probe estimate was optimistic)
 
 
 def load_claims() -> list[Claim]:
