@@ -221,18 +221,21 @@ model cannot hand you for free.
 (`src/plumb/corpus/`, `plumb corpus bank|report`) — every verify run banks as a
 content-addressed, write-once, replay-validated case under gitignored `corpus/local/`;
 `plumb verify --bank` (2026-10-02, `cross-paper-coverage`) closes the live loop. The
-**R1 measurement exists (2026-10-02) and is honest**: the bank holds case #1 (AgroDesign,
-86/86 bound, 85 `REPRODUCED`, 1 `DIVERGED`, precision/recall 1/1 `(owner)`); a
-fixed-rule panel search probed 4 candidates end-to-end and found **1 additional runnable
-paper** (Perrin, arXiv:2401.11842 — 16 claims; 3 documented misses: software papers
-without numbers, figure-dominant results; evidence in
+**R1 measurement exists (2026-10-02)**: the bank holds **2 cases, 102 claims, 102 bound,
+88 `REPRODUCED`, 14 `DIVERGED`, 0 `UNVERIFIED`** — AgroDesign (86: 85/1) and **Perrin**
+(arXiv:2401.11842, 16: 3/13 — the paper's own code at the pinned rev contradicts 13 of
+the 16 verified Table 1 type-I-error rates; `review_required` on all 13, owner review
+pending; precision/recall 1/1 `(owner)` on the one confirmed case). A fixed-rule panel
+search probed 4 candidates and found 1 additional runnable paper (3 documented misses:
+software papers without numbers, figure-dominant results — evidence in
+`fixtures/gate/perrin/README.md` and
 `docs/planning/cross-paper-coverage/panel-run/screening.md`). Perrin's environment
-required recorded drift (earliest buildable `--exclude-newer` boundary) — the M4a
-cross-check governs env-sensitive verdicts. Growing the corpus is blocked by named
-engine gaps, in order: notebook-cell capture (C3), a poetry env policy (C2's best-effort
-`uv sync` silently produces an empty venv for poetry-only projects), and
-figure-with-data locators. The precision/recall benchmark over a public corpus stays
-Phase 2.
+required recorded drift (earliest buildable `--exclude-newer` boundary; the M4a
+cross-check was inconclusive by construction — no second runnable env exists on this
+machine). Growing the corpus is blocked by named engine gaps, in order: notebook-cell
+capture (C3), a poetry env policy (C2's best-effort `uv sync` silently produces an empty
+venv for poetry-only projects), and figure-with-data locators. The precision/recall
+benchmark over a public corpus stays Phase 2.
 
 ## C6. Signed, replayable reproduction bundle
 

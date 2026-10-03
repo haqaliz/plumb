@@ -104,11 +104,13 @@ returns records, never a second door to `Claim`), and the re-derived verdicts, w
 The AgroDesign bundle (`bundles/agrodesign/`) verifies, and `tools/bundle_replay.py` re-ran it
 from a clean clone byte-identical. **The Phase 0 gate is met** (2026-09-27): the one
 `DIVERGED` was reviewed by the owner and confirmed as a genuine reporting discrepancy. Met on one
-paper — **cross-paper coverage (R1) is now measured and it is thin** (2026-10-02: a fixed-rule
-panel search probed 4 candidates end-to-end; 1 qualified — Perrin, arXiv:2401.11842, with
-recorded env drift — and 3 documented misses; evidence in
-`docs/planning/cross-paper-coverage/panel-run/screening.md`), and C1's 86/86 there is
-conformance to a curated rule on one paper. Details:
+paper — **cross-paper coverage (R1) is now measured (2026-10-02)**: the corpus holds 2
+cases, 102 claims, 102 bound, 88 `REPRODUCED`, **14 `DIVERGED`** — AgroDesign (85/1) and
+**Perrin, arXiv:2401.11842** (3/13: the paper's own code contradicts 13 of its 16 verified
+Table 1 rates; all `review_required`, owner review pending, drift cross-check inconclusive
+by construction on this machine). A fixed-rule panel search probed 4 candidates and found
+1 additional runnable paper; evidence in `docs/planning/cross-paper-coverage/panel-run/screening.md`.
+C1's 86/86 on AgroDesign remains conformance to a curated rule on one paper. Details:
 `fixtures/gate/agrodesign/README.md`.
 
 When in doubt, verify against the code and `git log` rather than this prose. Two assumptions in
