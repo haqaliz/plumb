@@ -43,6 +43,20 @@ off by default. Publish the method.
   table / `--json`, signed bundle with `--out`. Remaining for this phase: harden against real
   repos (R1 — cross-paper coverage is still unmeasured), the should-have `--timeout-seconds` /
   `--run-dir` knobs, and the method write-up.
+- **Status (2026-10-02):** the R1 measurement exists, and it is ugly. `plumb verify --bank`
+  closes the verify→corpus loop (`cross-paper-coverage`); the corpus holds case #1
+  (AgroDesign: 86/86 bound, 85 `REPRODUCED`, 1 `DIVERGED`, precision/recall 1/1
+  `(owner)`). The panel search — a fixed rule written before selection, 4 candidates probed
+  end-to-end (Pingouin, Perrin, tableone, Tensorpac) — produced **0 additional runnable
+  papers**: software papers carry no numbers in the paper (Pingouin, tableone), a
+  methodology paper's env is infeasible on this machine in any honest resolution (Perrin:
+  lifelines/scipy era break + qdldl has no ARM wheel), and figure/notebook-dominant results
+  (Tensorpac, the JAMIA demo) are unreachable by the locator types. Evidence:
+  `docs/planning/cross-paper-coverage/panel-run/screening.md`. **The finding is the number
+  itself**: the runnable-paper space is thin (consistent with ~3.2% notebook reproduction),
+  and growing the panel is blocked by named engine gaps — notebook-cell capture (C3), a
+  poetry env policy (C2), figure-with-data locators — each a prerequisite for more papers.
+  Remaining: `--timeout-seconds` / `--run-dir` knobs and the method write-up.
 
 ## Phase 2 — Corpus + benchmark + no-code path (months 2–3)
 
