@@ -105,8 +105,8 @@ The AgroDesign bundle (`bundles/agrodesign/`) verifies, and `tools/bundle_replay
 from a clean clone byte-identical. **The Phase 0 gate is met** (2026-09-27): the one
 `DIVERGED` was reviewed by the owner and confirmed as a genuine reporting discrepancy. Met on one
 paper — **cross-paper coverage (R1) is now measured and it is thin** (2026-10-02: a fixed-rule
-panel search probed 4 candidates end-to-end, 0 qualified — software papers without numbers,
-an env-infeasible methodology paper, figure-dominant results; evidence in
+panel search probed 4 candidates end-to-end; 1 qualified — Perrin, arXiv:2401.11842, with
+recorded env drift — and 3 documented misses; evidence in
 `docs/planning/cross-paper-coverage/panel-run/screening.md`), and C1's 86/86 there is
 conformance to a curated rule on one paper. Details:
 `fixtures/gate/agrodesign/README.md`.

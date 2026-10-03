@@ -221,15 +221,17 @@ model cannot hand you for free.
 (`src/plumb/corpus/`, `plumb corpus bank|report`) — every verify run banks as a
 content-addressed, write-once, replay-validated case under gitignored `corpus/local/`;
 `plumb verify --bank` (2026-10-02, `cross-paper-coverage`) closes the live loop. The
-**R1 measurement exists (2026-10-02) and is honest**: the bank holds one case (AgroDesign,
-86/86 bound, 85 `REPRODUCED`, 1 `DIVERGED`, precision/recall 1/1 `(owner)`), and a
-fixed-rule panel search probed 4 more candidates end-to-end with **0 qualifying papers**
-(software papers without numbers; a methodology paper whose env is infeasible on this
-machine; figure-dominant results — evidence in
-`docs/planning/cross-paper-coverage/panel-run/screening.md`). Growing the corpus is
-blocked by named engine gaps, in order: notebook-cell capture (C3), a poetry env policy
-(C2's best-effort `uv sync` silently produces an empty venv for poetry-only projects),
-and figure-with-data locators. The precision/recall benchmark over a public corpus stays
+**R1 measurement exists (2026-10-02) and is honest**: the bank holds case #1 (AgroDesign,
+86/86 bound, 85 `REPRODUCED`, 1 `DIVERGED`, precision/recall 1/1 `(owner)`); a
+fixed-rule panel search probed 4 candidates end-to-end and found **1 additional runnable
+paper** (Perrin, arXiv:2401.11842 — 16 claims; 3 documented misses: software papers
+without numbers, figure-dominant results; evidence in
+`docs/planning/cross-paper-coverage/panel-run/screening.md`). Perrin's environment
+required recorded drift (earliest buildable `--exclude-newer` boundary) — the M4a
+cross-check governs env-sensitive verdicts. Growing the corpus is blocked by named
+engine gaps, in order: notebook-cell capture (C3), a poetry env policy (C2's best-effort
+`uv sync` silently produces an empty venv for poetry-only projects), and
+figure-with-data locators. The precision/recall benchmark over a public corpus stays
 Phase 2.
 
 ## C6. Signed, replayable reproduction bundle

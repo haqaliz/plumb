@@ -253,47 +253,44 @@ The JOSS review thread and HTML page were checked; both confirm the summary-only
   the repo README, not the paper (anti-inflation refuses README-verification). PDF:
   1 page, ~2.6 KB text, only decimals are the DOI and the license version. Tag v0.2.1
   (94fa2414, 2018-11-19) is the paper-date rev.
-- **Perrin et al. (arXiv:2401.11842)** — selection miss (criterion 2): env infeasible on
-  macOS ARM64 in any honest resolution. License CC BY 4.0 confirmed; data generation
-  seeded (`default_rng(seed=42)`, hte/data/generation.py:179); headline numbers ARE
-  machine-readable (Tables 1-4, pipe tables, main text); code at github.com/owkin/hte,
-  paper-date rev 76ce145, poetry-only project (python >=3.8,<3.11). Blocker: fresh
-  resolution breaks lifelines 0.27.7 (scipy>=1.14 removed `integrate.trapz`);
-  era-bounded resolution (--exclude-newer 2024-01-23) fails building qdldl 0.1.7.post0
-  from sdist (no macOS-arm64 wheel ever; sdist needs a submodule header). Both are
-  machine/era incompatibilities, not paper errors.
-- **Engine gap discovered (not built):** `uv sync` on a poetry-only project
-  (no `[project]`, no uv.lock) resolves an EMPTY venv with exit 0 — the engine's
-  best-effort policy would record EnvBuild ok=True, then WONT_RUN at import. `uv pip
-  install -e .` (poetry-core backend) works. Candidate for a follow-on C2 aspect
-  (poetry env policy + python-pin from `[tool.poetry]`), test-first, verified against a
-  synthetic poetry repo via the demo_env_build pattern.
-
-## Probe results (2026-10-02, continued)
-
+- **Perrin et al. (arXiv:2401.11842)** — **QUALIFIES (all 7 criteria)** with the recorded
+  drift disclosed below. License CC BY 4.0; code github.com/owkin/hte at the paper-date
+  rev 76ce145 (last commit before the 2024-01-22 submission); data fully synthetic or
+  bundled (DGP + committed ARR grids + committed semi-synthetic pool — nothing
+  downloaded at run time); headline numbers ARE machine-readable (Tables 1-4, pipe
+  tables, main text); seeding confirmed (`np.random.seed(42)` at launch and import;
+  per-repetition seeds from the seeded parent RNG); deterministic across five probe runs
+  on this 14-core machine (draw order inside joblib workers may differ by core count —
+  recorded limit). **Env drift (recorded, not assumed away):** poetry project, modern uv
+  cannot read poetry.lock (empty `uv sync` — engine gap, below); the paper-era boundary
+  (2024-01-23) cannot build qdldl 0.1.7.post0 (osqp ← scikit-survival: no arm64 wheel,
+  sdist needs a generated header). The run therefore builds at the **earliest buildable
+  boundary, 2024-06-18** (qdldl 0.1.7.post3, first arm64-wheel release 2024-06-17),
+  Python 3.10 — with the M4a drift cross-check (a current-resolve second run; an
+  env-sensitive verdict becomes `UNVERIFIED`, never `DIVERGED`). Runtime gating: Table 1
+  p=20 (2.1 h) and p=100 (47 min) cells are claims (16); p=1000 and Tables 2-4 are
+  cluster-scale on this machine (24/21 CPU-hours) and are **recorded non-claims with the
+  measured reason** (217). Probe finding: the repo's committed type-I-error CSVs already
+  disagree with the printed Table 1 on several cells (e.g. p=20 Univariate t-test 0.043
+  committed vs 0.035 printed) — the verdicts decide; the committed CSVs are never read
+  (stale, constraint #5).
 - **tableone (Pollard et al., JAMIA Open 1(1):26-31, 2018, DOI 10.1093/jamiaopen/ooy012,
-  PMC6951995)** — selection miss (criteria 4+6): the paper is a software announcement
-  with NO quantitative claims — the Results section is "The tableone software package
-  automatically compiles summary statistics into publishable formats…" (Europe PMC
-  fullTextXML); the demo application lives in a Jupyter notebook, not the paper. The
-  bundled demo data (pn2012_demo.csv) and modern pins (scipy 1.13.1, trapz intact;
-  requirements.txt → engine policy "declared") are all buildable — the blocker is the
-  absence of claims, identical to Pingouin's mechanism.
+  PMC6951995)** — selection miss (criteria 4+6): software announcement with NO
+  quantitative claims (Europe PMC fullTextXML); the demo lives in a notebook, not the
+  paper.
 - **Tensorpac (Combrisson & Jerbi, PLOS Comput Biol 2020, DOI 10.1371/journal.pcbi.1008302)**
-  — selection miss (criterion 4): the Results section is methodology prose + figures; no
-  numeric findings stated (no result tables, no reported statistics in text) — the
-  screening's figure-dominance prediction confirmed. Unseeded surrogate estimation was
-  mooted by criterion 4.
+  — selection miss (criterion 4): Results = methodology prose + figures; no numeric
+  findings stated.
 
 ## Panel outcome (2026-10-02)
 
-**4 candidates probed end-to-end, 4 documented selection misses.** Combined with the
-ReScience screening (13/13 failed, `gate-paper/survey.md:23-38`), the wider-literature
-yield is **0 additional runnable papers** beyond AgroDesign. Failure mechanisms,
-now evidenced twice over: software papers carry no numbers in the paper (Pingouin,
-tableone); methodology papers with code fail env build on a 2026 ARM Mac (Perrin);
-figure/notebook-dominant results (Tensorpac, the JAMIA demo). Per the PRD's fallback
-(`cross-paper-coverage/prd.md` R4), the survey IS the R1 evidence. **Follow-ons the panel
-names (unbuilt):** C3 notebook-cell capture (a named follow-on since 2026-09-23), a C2
-poetry env policy (engine gap discovered in the Perrin probe), and figure-with-data
-locators — each is a prerequisite for growing the panel.
+**3 documented misses (Pingouin, tableone, Tensorpac) + 1 qualified paper (Perrin) whose
+dev-time run is in flight** (16 claims, ~3 h on this machine). Combined with the ReScience
+screening (13/13 failed, `gate-paper/survey.md:23-38`), the wider-literature yield is
+**1 additional runnable paper**. Failure mechanisms, evidenced: software papers carry no
+numbers in the paper (Pingouin, tableone); figure/notebook-dominant results (Tensorpac,
+the JAMIA demo); and era-infeasible environments are survivable via recorded drift when
+the earliest buildable boundary is used (Perrin). **Engine gaps the probes named
+(unbuilt):** C3 notebook-cell capture (a named follow-on since 2026-09-23), a C2 poetry
+env policy (`uv sync` silently yields an empty venv for poetry-only projects — a silent
+success that must not pass for a built env), and figure-with-data locators.
