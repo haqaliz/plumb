@@ -268,3 +268,32 @@ The JOSS review thread and HTML page were checked; both confirm the summary-only
   install -e .` (poetry-core backend) works. Candidate for a follow-on C2 aspect
   (poetry env policy + python-pin from `[tool.poetry]`), test-first, verified against a
   synthetic poetry repo via the demo_env_build pattern.
+
+## Probe results (2026-10-02, continued)
+
+- **tableone (Pollard et al., JAMIA Open 1(1):26-31, 2018, DOI 10.1093/jamiaopen/ooy012,
+  PMC6951995)** — selection miss (criteria 4+6): the paper is a software announcement
+  with NO quantitative claims — the Results section is "The tableone software package
+  automatically compiles summary statistics into publishable formats…" (Europe PMC
+  fullTextXML); the demo application lives in a Jupyter notebook, not the paper. The
+  bundled demo data (pn2012_demo.csv) and modern pins (scipy 1.13.1, trapz intact;
+  requirements.txt → engine policy "declared") are all buildable — the blocker is the
+  absence of claims, identical to Pingouin's mechanism.
+- **Tensorpac (Combrisson & Jerbi, PLOS Comput Biol 2020, DOI 10.1371/journal.pcbi.1008302)**
+  — selection miss (criterion 4): the Results section is methodology prose + figures; no
+  numeric findings stated (no result tables, no reported statistics in text) — the
+  screening's figure-dominance prediction confirmed. Unseeded surrogate estimation was
+  mooted by criterion 4.
+
+## Panel outcome (2026-10-02)
+
+**4 candidates probed end-to-end, 4 documented selection misses.** Combined with the
+ReScience screening (13/13 failed, `gate-paper/survey.md:23-38`), the wider-literature
+yield is **0 additional runnable papers** beyond AgroDesign. Failure mechanisms,
+now evidenced twice over: software papers carry no numbers in the paper (Pingouin,
+tableone); methodology papers with code fail env build on a 2026 ARM Mac (Perrin);
+figure/notebook-dominant results (Tensorpac, the JAMIA demo). Per the PRD's fallback
+(`cross-paper-coverage/prd.md` R4), the survey IS the R1 evidence. **Follow-ons the panel
+names (unbuilt):** C3 notebook-cell capture (a named follow-on since 2026-09-23), a C2
+poetry env policy (engine gap discovered in the Perrin probe), and figure-with-data
+locators — each is a prerequisite for growing the panel.
