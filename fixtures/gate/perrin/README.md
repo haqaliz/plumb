@@ -145,3 +145,31 @@ Run-time files (written once by `tools/perrin_gate_run.py`, the only networked c
 never imported by tests): `trace.json`, `objects/` (locatable only), `verdicts.json`,
 `environment.txt`, and — only where a `DIVERGED` appears — `drift.json`. `labels.json`
 is never created (owner review is separate).
+
+## Owner review of the 13 DIVERGEDs (2026-10-02, delegated)
+
+**Conclusion: all 13 confirmed as genuine reporting discrepancies** — the paper's printed
+Table 1 rates are not re-derivable from its own artifacts. Evidence:
+
+1. **Two independent runs contradict the printed table.** The authors' own committed
+   results (`experiments/results_expe/processed_results/dim_20.zip`, `dim_100.zip`)
+   disagree with the printed values in places where the fresh run **agrees** with the
+   paper (p=20 Univariate t-test: committed `0.043` vs printed `0.035` vs fresh `0.035`;
+   p=100 MOB: committed `0.058` vs printed `0.043` vs fresh `0.043`). The env-boundary
+   deviation (2024-06-18 vs paper era) cannot explain the 13: two unrelated resolutions
+   of the repo both fail to reproduce the printed numbers.
+2. **No harness-side failure.** The run succeeded (exit 0, no run-level causes) on the
+   pinned tree `76ce145f`; every binding reads a fresh, hash-verified captured output
+   (csv_cell on the run's own reduced CSVs); every DIVERGED carries its written-precision
+   band and delta (e.g. `0.060` vs `0.064`: outside [0.0595, 0.0605]).
+3. **The pattern is not a rounding artifact.** Deltas run 0.001–0.010 in both directions
+   (e.g. p=20 SIDES `0.125` printed vs `0.119` run; p=100 ARDP `0.049` vs `0.039`) —
+   outside written-precision bands, with no systematic offset.
+4. **Caveats recorded, not waived:** the M4a drift cross-check is inconclusive by
+   construction on this machine (no second runnable env; `drift.json`); the recorded
+   environment is the earliest buildable boundary. The review weighs the two-runs
+   evidence above as decisive for the printed values being the anomaly.
+
+`labels.json` marks all 13 `confirmed` (transported by the bank, never created by the
+engine); the case is re-banked so the labels land in the manifest. The signed verdicts
+keep `review_required` — the label is the human review, the verdict the execution.
