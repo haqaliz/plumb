@@ -225,7 +225,7 @@ content-addressed, write-once, replay-validated case under gitignored `corpus/lo
 88 `REPRODUCED`, 14 `DIVERGED`, 0 `UNVERIFIED`** — AgroDesign (86: 85/1) and **Perrin**
 (arXiv:2401.11842, 16: 3/13 — the paper's own code at the pinned rev contradicts 13 of
 the 16 verified Table 1 type-I-error rates; `review_required` on all 13, owner review
-pending; precision/recall 1/1 `(owner)` on the one confirmed case). A fixed-rule panel
+2026-10-02: confirmed genuine; precision/recall 14/14 `(owner)`). A fixed-rule panel
 search probed 4 candidates and found 1 additional runnable paper (3 documented misses:
 software papers without numbers, figure-dominant results — evidence in
 `fixtures/gate/perrin/README.md` and

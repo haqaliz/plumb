@@ -49,8 +49,9 @@ off by default. Publish the method.
   AgroDesign (86: 85/1) and **Perrin, arXiv:2401.11842** (16: 3/13 — the paper's own
   code at the pinned rev contradicts 13 of the 16 verified Table 1 type-I-error rates;
   drift cross-check inconclusive by construction on this machine, all 13
-  `review_required`, owner review pending; precision/recall 1/1 `(owner)` on the one
-  confirmed case). The panel search — a fixed rule written before selection, 4
+  `review_required`, **owner review 2026-10-02: all 13 confirmed genuine**
+  (`fixtures/gate/perrin/README.md`); precision/recall 14/14 `(owner)` on the two
+  confirmed cases). The panel search — a fixed rule written before selection, 4
   candidates probed end-to-end — produced **1 additional runnable paper** and 3
   documented misses: software papers carry no numbers in the paper (Pingouin,
   tableone), figure-dominant results are unreachable by the locator types (Tensorpac).
