@@ -119,6 +119,18 @@ CSVs are never read (stale, `CLAUDE.md` #5).
   (see `tests/gate/test_perrin_recovery.py`); this paper's C1 extraction may differ from
   the curated set (layout-heavy tables) — the number is reported, not tuned.
 
+## C1 recovery (measured 2026-10-02, reported as measured — never tuned)
+
+`extract_claims(pdf_to_markdown(paper.pdf))` vs the curated set, matched by **place and
+value** (`tests/gate/test_perrin_recovery.py`):
+
+| | |
+|---|---|
+| recall | 1.000 — all 16 curated cells recovered (16/16) |
+| precision | 0.207 — 103 of 498 extracted claims are real paper cells (against the full rule: curated + the 217 runtime-gated members, which are true positives, not defects) |
+| extras | 395 layout numerals — β coefficients, section numbers, list markers — genuine extraction noise on this layout-heavy paper, reported, not retuned |
+| shared ids | 71 of 319 distinct ids span multiple locations, all same-value repeats (value-identity dedup, never two different values under one id) |
+
 ## The number (this fixture)
 
 | | |
