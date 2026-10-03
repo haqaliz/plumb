@@ -81,27 +81,34 @@ def freeze(python: Path) -> str:
     return "\n".join(lines) + "\n"
 
 
-def perrin_env_runner(checkout, descriptor, *, boundary: str) -> EnvBuild:
-    """Build `<checkout>/.venv` at the given `--exclude-newer` boundary (dev-time only)."""
+def perrin_env_runner(checkout, descriptor, *, boundary: str | None) -> EnvBuild:
+    """Build `<checkout>/.venv` at the given `--exclude-newer` boundary (dev-time only).
+
+    `boundary=None` is a current resolve (no boundary) — the flag is omitted.
+    """
     venv = checkout.checkout_dir / ".venv"
     subprocess.run(["uv", "venv", "--python", PYTHON_PIN, "--quiet", str(venv)], check=True)
+    command = ["uv", "pip", "install", "--quiet", "--python", str(venv / "bin" / "python")]
+    if boundary is not None:
+        command += ["--exclude-newer", boundary]
+    command.append(str(checkout.checkout_dir))
     result = subprocess.run(
-        ["uv", "pip", "install", "--quiet", "--python", str(venv / "bin" / "python"),
-         "--exclude-newer", boundary, str(checkout.checkout_dir)],
-        capture_output=True,
-        timeout=1800,
-        check=False,
+        command, capture_output=True, timeout=1800, check=False,
     )
     detail = result.stderr.decode("utf-8", "replace").strip() or result.stdout.decode(
         "utf-8", "replace"
     ).strip() or "installed"
     if result.returncode != 0:
         return EnvBuild(ok=False, policy=descriptor.policy, detail=detail)
+    boundary_note = (
+        f"uv pip install --exclude-newer {boundary}" if boundary is not None
+        else "uv pip install (current resolve, no boundary)"
+    )
     return EnvBuild(
         ok=True,
         policy=descriptor.policy,
-        detail=f"uv pip install --exclude-newer {boundary} (poetry.lock unreadable by "
-               f"modern uv; paper-era boundary unbuildable: qdldl) — {detail}",
+        detail=f"{boundary_note} (poetry.lock unreadable by modern uv; paper-era "
+               f"boundary unbuildable: qdldl) — {detail}",
     )
 
 
@@ -122,11 +129,88 @@ def run_once(workdir: Path, claims, *, boundary: str | None):
     return checkout, descriptor, trace, capture, verdicts, freeze(python)
 
 
+def _drift_report(
+    root: Path, claims, metrics, verdicts_a, trace_a, run_id_a, env_a_text,
+) -> dict:
+    """The M4a drift cross-check: the recorded env's verdicts vs a second buildable env.
+
+    The second env is the **current resolve** (no boundary). On this repo the current
+    resolve cannot run the pipeline at all (lifelines 0.27.7 imports `scipy.integrate.trapz`,
+    removed in scipy>=1.14 — the current resolve), and the paper-era boundary cannot build
+    qdldl on this machine — so the cross-check is **inconclusive by construction** unless a
+    second buildable, runnable env exists. The report records the truth of what happened;
+    it never fabricates a comparison.
+    """
+    try:
+        _, _, trace_b, _, verdicts_b, env_b = run_once(root / "b", claims, boundary=None)
+    except Exception as exc:  # EnvBuildFailed etc.: the second env does not exist
+        return {
+            "older_environment": {
+                "exclude_newer": None,
+                "note": f"current resolve could not build: {exc}; paper-era boundary "
+                        "(2024-01-23) cannot build qdldl 0.1.7.post0 on this machine",
+                "run_ok": False,
+            },
+            "same_outputs": None,
+            "verdicts_changed": None,
+            "inconclusive": True,
+        }
+    if trace_b.failure is not None:
+        return {
+            "older_environment": {
+                "exclude_newer": None,
+                "note": f"current resolve built but the pipeline did not run: "
+                        f"{trace_b.failure.cause}: {trace_b.failure.detail}; paper-era "
+                        "boundary (2024-01-23) cannot build qdldl 0.1.7.post0 on this "
+                        "machine",
+                "run_ok": False,
+            },
+            "same_outputs": None,
+            "verdicts_changed": None,
+            "inconclusive": True,
+        }
+    a = {v.claim_id: v for v in verdicts_a}
+    b = {v.claim_id: v for v in verdicts_b.verdicts}
+    changed = [
+        {"claim_id": cid, "metric": metrics[cid],
+         "recorded": [a[cid].verdict, a[cid].cause, a[cid].located_text],
+         "other": [b[cid].verdict, b[cid].cause, b[cid].located_text]}
+        for cid in sorted(a)
+        if (a[cid].verdict, a[cid].cause) != (b[cid].verdict, b[cid].cause)
+    ]
+    return {
+        "older_environment": {
+            "exclude_newer": None,
+            "note": "current resolve (no boundary): the paper-era boundary (2024-01-23) "
+                    "cannot build qdldl 0.1.7.post0 on this machine",
+            "run_ok": True,
+            "freeze": env_b.splitlines(),
+        },
+        "same_outputs": trace_b.run_id == run_id_a,
+        "verdicts_changed": changed,
+        "inconclusive": False,
+    }
+
+
 def main() -> int:
     claims = load_claims()
     metrics = {c.id: c.metric for c in claims}
     with tempfile.TemporaryDirectory(prefix="plumb-gate-") as tmp:
         root = Path(tmp)
+        if "--drift-only" in sys.argv:
+            committed = json.loads((FIXTURE / "verdicts.json").read_text(encoding="utf-8"))
+            drift = _drift_report(
+                root, claims, metrics,
+                verdicts_a=committed["verdicts"], trace_a=None,
+                run_id_a=committed["run_id"], env_a_text=None,
+            )
+            (FIXTURE / "drift.json").write_text(
+                json.dumps(drift, ensure_ascii=False, indent=1, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            print(json.dumps(drift, indent=1))
+            return 0
+
         checkout, descriptor, trace, capture, verdicts, env = run_once(
             root / "a", claims, boundary=EXCLUDE_NEWER
         )
@@ -157,28 +241,11 @@ def main() -> int:
         if diverged:
             print(f"{len(diverged)} DIVERGED claims — running the drift cross-check "
                   f"(current resolve vs {EXCLUDE_NEWER})", file=sys.stderr)
-            _, _, trace_b, _, verdicts_b, env_b = run_once(
-                root / "b", claims, boundary=None
+            drift = _drift_report(
+                root / "b", claims, metrics,
+                verdicts_a=verdicts.verdicts, trace_a=trace,
+                run_id_a=trace.run_id, env_a_text=env,
             )
-            a = {v.claim_id: v for v in verdicts.verdicts}
-            b = {v.claim_id: v for v in verdicts_b.verdicts}
-            changed = [
-                {"claim_id": cid, "metric": metrics[cid],
-                 "current": [a[cid].verdict, a[cid].cause, a[cid].located_text],
-                 "other": [b[cid].verdict, b[cid].cause, b[cid].located_text]}
-                for cid in sorted(a)
-                if (a[cid].verdict, a[cid].cause) != (b[cid].verdict, b[cid].cause)
-            ]
-            drift = {
-                "older_environment": {"exclude_newer": None,
-                                      "note": "current resolve (no boundary): the "
-                                              "paper-era boundary (2024-01-23) cannot "
-                                              "build qdldl 0.1.7.post0 on this machine",
-                                      "run_ok": trace_b.failure is None,
-                                      "freeze": env_b.splitlines()},
-                "same_outputs": trace_b.run_id == trace.run_id,
-                "verdicts_changed": changed,
-            }
             (FIXTURE / "drift.json").write_text(
                 json.dumps(drift, ensure_ascii=False, indent=1, sort_keys=True) + "\n",
                 encoding="utf-8",
