@@ -175,6 +175,7 @@ for name in ("p20", "p100"):
     df = pd.read_csv(fresh[0], index_col=0)
     reduced = df.groupby("method")["thresh_pval"].mean().reset_index()
     reduced.to_csv("results_expe/reduced/type1_{}.csv".format(name), index=False)
+    os.remove(fresh[0])
     print("===== {}".format(name))
     print(reduced.to_string(index=False))
 """
