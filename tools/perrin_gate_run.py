@@ -147,8 +147,9 @@ def _drift_report(
         return {
             "older_environment": {
                 "exclude_newer": None,
-                "note": f"current resolve could not build: {exc}; paper-era boundary "
-                        "(2024-01-23) cannot build qdldl 0.1.7.post0 on this machine",
+                "note": f"current resolve could not be built or resolved ({type(exc).__name__}); "
+                        "paper-era boundary (2024-01-23) cannot build qdldl 0.1.7.post0 on "
+                        "this machine",
                 "run_ok": False,
             },
             "same_outputs": None,
@@ -159,10 +160,9 @@ def _drift_report(
         return {
             "older_environment": {
                 "exclude_newer": None,
-                "note": f"current resolve built but the pipeline did not run: "
-                        f"{trace_b.failure.cause}: {trace_b.failure.detail}; paper-era "
-                        "boundary (2024-01-23) cannot build qdldl 0.1.7.post0 on this "
-                        "machine",
+                "note": f"current resolve built but the pipeline did not run "
+                        f"({trace_b.failure.cause}); paper-era boundary (2024-01-23) cannot "
+                        "build qdldl 0.1.7.post0 on this machine",
                 "run_ok": False,
             },
             "same_outputs": None,
