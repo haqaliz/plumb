@@ -1,0 +1,1740 @@
+{
+ "unrepresentable": [
+  {
+   "section": "Table 1 Univariate interaction type I error p=1000",
+   "text": "0.001",
+   "context": "Univariate interaction 0.028 0.007 0.001",
+   "start": 42710,
+   "end": 42715,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 1 Univariate t-test type I error p=1000",
+   "text": "0.052",
+   "context": "Univariate t-test 0.035 0.052 0.052",
+   "start": 42746,
+   "end": 42751,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 1 Multivariate Cox type I error p=1000",
+   "text": "0.037",
+   "context": "Multivariate Cox 0.042 0.033 0.037",
+   "start": 42781,
+   "end": 42786,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 1 Multivariate Tree type I error p=1000",
+   "text": "0.051",
+   "context": "Multivariate Tree 0.051 0.051 0.051",
+   "start": 42817,
+   "end": 42822,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 1 MOB type I error p=1000",
+   "text": "0.056",
+   "context": "MOB 0.060 0.043 0.056",
+   "start": 42839,
+   "end": 42844,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 1 IT type I error p=1000",
+   "text": "0.002",
+   "context": "IT 0.024 0.011 0.002",
+   "start": 42860,
+   "end": 42865,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 1 ARDP type I error p=1000",
+   "text": "0.043",
+   "context": "ARDP 0.036 0.049 0.043",
+   "start": 42883,
+   "end": 42888,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.00",
+   "text": "0.07",
+   "context": "0.00 0.07 0.00 0.03 0.03 0.05 0.03 0.00 0.02",
+   "start": 54282,
+   "end": 54286,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.00",
+   "text": "0.00",
+   "context": "0.00 0.07 0.00 0.03 0.03 0.05 0.03 0.00 0.02",
+   "start": 54287,
+   "end": 54291,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.00",
+   "text": "0.03",
+   "context": "0.00 0.07 0.00 0.03 0.03 0.05 0.03 0.00 0.02",
+   "start": 54292,
+   "end": 54296,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.00",
+   "text": "0.03",
+   "context": "0.00 0.07 0.00 0.03 0.03 0.05 0.03 0.00 0.02",
+   "start": 54297,
+   "end": 54301,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.00",
+   "text": "0.05",
+   "context": "0.00 0.07 0.00 0.03 0.03 0.05 0.03 0.00 0.02",
+   "start": 54302,
+   "end": 54306,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.00",
+   "text": "0.03",
+   "context": "0.00 0.07 0.00 0.03 0.03 0.05 0.03 0.00 0.02",
+   "start": 54307,
+   "end": 54311,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.00",
+   "text": "0.00",
+   "context": "0.00 0.07 0.00 0.03 0.03 0.05 0.03 0.00 0.02",
+   "start": 54312,
+   "end": 54316,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.00",
+   "text": "0.02",
+   "context": "0.00 0.07 0.00 0.03 0.03 0.05 0.03 0.00 0.02",
+   "start": 54317,
+   "end": 54321,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.04",
+   "text": "0.09",
+   "context": "0.04 0.09 0.00 0.04 0.03 0.04 0.04 0.00 0.07",
+   "start": 54327,
+   "end": 54331,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.04",
+   "text": "0.00",
+   "context": "0.04 0.09 0.00 0.04 0.03 0.04 0.04 0.00 0.07",
+   "start": 54332,
+   "end": 54336,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.04",
+   "text": "0.04",
+   "context": "0.04 0.09 0.00 0.04 0.03 0.04 0.04 0.00 0.07",
+   "start": 54337,
+   "end": 54341,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.04",
+   "text": "0.03",
+   "context": "0.04 0.09 0.00 0.04 0.03 0.04 0.04 0.00 0.07",
+   "start": 54342,
+   "end": 54346,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.04",
+   "text": "0.04",
+   "context": "0.04 0.09 0.00 0.04 0.03 0.04 0.04 0.00 0.07",
+   "start": 54347,
+   "end": 54351,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.04",
+   "text": "0.04",
+   "context": "0.04 0.09 0.00 0.04 0.03 0.04 0.04 0.00 0.07",
+   "start": 54352,
+   "end": 54356,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.04",
+   "text": "0.00",
+   "context": "0.04 0.09 0.00 0.04 0.03 0.04 0.04 0.00 0.07",
+   "start": 54357,
+   "end": 54361,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.04",
+   "text": "0.07",
+   "context": "0.04 0.09 0.00 0.04 0.03 0.04 0.04 0.00 0.07",
+   "start": 54362,
+   "end": 54366,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.08",
+   "text": "0.32",
+   "context": "0.08 0.32 0.00 0.05 0.05 0.12 0.04 0.00 0.06",
+   "start": 54372,
+   "end": 54376,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.08",
+   "text": "0.00",
+   "context": "0.08 0.32 0.00 0.05 0.05 0.12 0.04 0.00 0.06",
+   "start": 54377,
+   "end": 54381,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.08",
+   "text": "0.05",
+   "context": "0.08 0.32 0.00 0.05 0.05 0.12 0.04 0.00 0.06",
+   "start": 54382,
+   "end": 54386,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.08",
+   "text": "0.05",
+   "context": "0.08 0.32 0.00 0.05 0.05 0.12 0.04 0.00 0.06",
+   "start": 54387,
+   "end": 54391,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.08",
+   "text": "0.12",
+   "context": "0.08 0.32 0.00 0.05 0.05 0.12 0.04 0.00 0.06",
+   "start": 54392,
+   "end": 54396,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.08",
+   "text": "0.04",
+   "context": "0.08 0.32 0.00 0.05 0.05 0.12 0.04 0.00 0.06",
+   "start": 54397,
+   "end": 54401,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.08",
+   "text": "0.00",
+   "context": "0.08 0.32 0.00 0.05 0.05 0.12 0.04 0.00 0.06",
+   "start": 54402,
+   "end": 54406,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.08",
+   "text": "0.06",
+   "context": "0.08 0.32 0.00 0.05 0.05 0.12 0.04 0.00 0.06",
+   "start": 54407,
+   "end": 54411,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.13",
+   "text": "0.64",
+   "context": "0.13 0.64 0.04 0.08 0.06 0.07 0.06 0.04 0.04",
+   "start": 54417,
+   "end": 54421,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.13",
+   "text": "0.04",
+   "context": "0.13 0.64 0.04 0.08 0.06 0.07 0.06 0.04 0.04",
+   "start": 54422,
+   "end": 54426,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.13",
+   "text": "0.08",
+   "context": "0.13 0.64 0.04 0.08 0.06 0.07 0.06 0.04 0.04",
+   "start": 54427,
+   "end": 54431,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.13",
+   "text": "0.06",
+   "context": "0.13 0.64 0.04 0.08 0.06 0.07 0.06 0.04 0.04",
+   "start": 54432,
+   "end": 54436,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.13",
+   "text": "0.07",
+   "context": "0.13 0.64 0.04 0.08 0.06 0.07 0.06 0.04 0.04",
+   "start": 54437,
+   "end": 54441,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.13",
+   "text": "0.06",
+   "context": "0.13 0.64 0.04 0.08 0.06 0.07 0.06 0.04 0.04",
+   "start": 54442,
+   "end": 54446,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.13",
+   "text": "0.04",
+   "context": "0.13 0.64 0.04 0.08 0.06 0.07 0.06 0.04 0.04",
+   "start": 54447,
+   "end": 54451,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.13",
+   "text": "0.04",
+   "context": "0.13 0.64 0.04 0.08 0.06 0.07 0.06 0.04 0.04",
+   "start": 54452,
+   "end": 54456,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.17",
+   "text": "0.94",
+   "context": "0.17 0.94 0.07 0.05 0.05 0.03 0.08 0.13 0.01",
+   "start": 54462,
+   "end": 54466,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.17",
+   "text": "0.07",
+   "context": "0.17 0.94 0.07 0.05 0.05 0.03 0.08 0.13 0.01",
+   "start": 54467,
+   "end": 54471,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.17",
+   "text": "0.05",
+   "context": "0.17 0.94 0.07 0.05 0.05 0.03 0.08 0.13 0.01",
+   "start": 54472,
+   "end": 54476,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.17",
+   "text": "0.05",
+   "context": "0.17 0.94 0.07 0.05 0.05 0.03 0.08 0.13 0.01",
+   "start": 54477,
+   "end": 54481,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.17",
+   "text": "0.03",
+   "context": "0.17 0.94 0.07 0.05 0.05 0.03 0.08 0.13 0.01",
+   "start": 54482,
+   "end": 54486,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.17",
+   "text": "0.08",
+   "context": "0.17 0.94 0.07 0.05 0.05 0.03 0.08 0.13 0.01",
+   "start": 54487,
+   "end": 54491,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.17",
+   "text": "0.13",
+   "context": "0.17 0.94 0.07 0.05 0.05 0.03 0.08 0.13 0.01",
+   "start": 54492,
+   "end": 54496,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.17",
+   "text": "0.01",
+   "context": "0.17 0.94 0.07 0.05 0.05 0.03 0.08 0.13 0.01",
+   "start": 54497,
+   "end": 54501,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.21",
+   "text": "1.00",
+   "context": "0.21 1.00 0.23 0.09 0.04 0.01 0.14 0.24 0.08",
+   "start": 54507,
+   "end": 54511,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.21",
+   "text": "0.23",
+   "context": "0.21 1.00 0.23 0.09 0.04 0.01 0.14 0.24 0.08",
+   "start": 54512,
+   "end": 54516,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.21",
+   "text": "0.09",
+   "context": "0.21 1.00 0.23 0.09 0.04 0.01 0.14 0.24 0.08",
+   "start": 54517,
+   "end": 54521,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.21",
+   "text": "0.04",
+   "context": "0.21 1.00 0.23 0.09 0.04 0.01 0.14 0.24 0.08",
+   "start": 54522,
+   "end": 54526,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.21",
+   "text": "0.01",
+   "context": "0.21 1.00 0.23 0.09 0.04 0.01 0.14 0.24 0.08",
+   "start": 54527,
+   "end": 54531,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.21",
+   "text": "0.14",
+   "context": "0.21 1.00 0.23 0.09 0.04 0.01 0.14 0.24 0.08",
+   "start": 54532,
+   "end": 54536,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.21",
+   "text": "0.24",
+   "context": "0.21 1.00 0.23 0.09 0.04 0.01 0.14 0.24 0.08",
+   "start": 54537,
+   "end": 54541,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.21",
+   "text": "0.08",
+   "context": "0.21 1.00 0.23 0.09 0.04 0.01 0.14 0.24 0.08",
+   "start": 54542,
+   "end": 54546,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.25",
+   "text": "1.00",
+   "context": "0.25 1.00 0.51 0.09 0.13 0.04 0.29 0.55 0.07",
+   "start": 54552,
+   "end": 54556,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.25",
+   "text": "0.51",
+   "context": "0.25 1.00 0.51 0.09 0.13 0.04 0.29 0.55 0.07",
+   "start": 54557,
+   "end": 54561,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.25",
+   "text": "0.09",
+   "context": "0.25 1.00 0.51 0.09 0.13 0.04 0.29 0.55 0.07",
+   "start": 54562,
+   "end": 54566,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.25",
+   "text": "0.13",
+   "context": "0.25 1.00 0.51 0.09 0.13 0.04 0.29 0.55 0.07",
+   "start": 54567,
+   "end": 54571,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.25",
+   "text": "0.04",
+   "context": "0.25 1.00 0.51 0.09 0.13 0.04 0.29 0.55 0.07",
+   "start": 54572,
+   "end": 54576,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.25",
+   "text": "0.29",
+   "context": "0.25 1.00 0.51 0.09 0.13 0.04 0.29 0.55 0.07",
+   "start": 54577,
+   "end": 54581,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.25",
+   "text": "0.55",
+   "context": "0.25 1.00 0.51 0.09 0.13 0.04 0.29 0.55 0.07",
+   "start": 54582,
+   "end": 54586,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.25",
+   "text": "0.07",
+   "context": "0.25 1.00 0.51 0.09 0.13 0.04 0.29 0.55 0.07",
+   "start": 54587,
+   "end": 54591,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.29",
+   "text": "1.00",
+   "context": "0.29 1.00 0.80 0.12 0.22 0.08 0.35 0.90 0.09",
+   "start": 54597,
+   "end": 54601,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.29",
+   "text": "0.80",
+   "context": "0.29 1.00 0.80 0.12 0.22 0.08 0.35 0.90 0.09",
+   "start": 54602,
+   "end": 54606,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.29",
+   "text": "0.12",
+   "context": "0.29 1.00 0.80 0.12 0.22 0.08 0.35 0.90 0.09",
+   "start": 54607,
+   "end": 54611,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.29",
+   "text": "0.22",
+   "context": "0.29 1.00 0.80 0.12 0.22 0.08 0.35 0.90 0.09",
+   "start": 54612,
+   "end": 54616,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.29",
+   "text": "0.08",
+   "context": "0.29 1.00 0.80 0.12 0.22 0.08 0.35 0.90 0.09",
+   "start": 54617,
+   "end": 54621,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.29",
+   "text": "0.35",
+   "context": "0.29 1.00 0.80 0.12 0.22 0.08 0.35 0.90 0.09",
+   "start": 54622,
+   "end": 54626,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.29",
+   "text": "0.90",
+   "context": "0.29 1.00 0.80 0.12 0.22 0.08 0.35 0.90 0.09",
+   "start": 54627,
+   "end": 54631,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.29",
+   "text": "0.09",
+   "context": "0.29 1.00 0.80 0.12 0.22 0.08 0.35 0.90 0.09",
+   "start": 54632,
+   "end": 54636,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.34",
+   "text": "1.00",
+   "context": "0.34 1.00 0.96 0.18 0.43 0.04 0.71 0.98 0.10",
+   "start": 54642,
+   "end": 54646,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.34",
+   "text": "0.96",
+   "context": "0.34 1.00 0.96 0.18 0.43 0.04 0.71 0.98 0.10",
+   "start": 54647,
+   "end": 54651,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.34",
+   "text": "0.18",
+   "context": "0.34 1.00 0.96 0.18 0.43 0.04 0.71 0.98 0.10",
+   "start": 54652,
+   "end": 54656,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.34",
+   "text": "0.43",
+   "context": "0.34 1.00 0.96 0.18 0.43 0.04 0.71 0.98 0.10",
+   "start": 54657,
+   "end": 54661,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.34",
+   "text": "0.04",
+   "context": "0.34 1.00 0.96 0.18 0.43 0.04 0.71 0.98 0.10",
+   "start": 54662,
+   "end": 54666,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.34",
+   "text": "0.71",
+   "context": "0.34 1.00 0.96 0.18 0.43 0.04 0.71 0.98 0.10",
+   "start": 54667,
+   "end": 54671,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.34",
+   "text": "0.98",
+   "context": "0.34 1.00 0.96 0.18 0.43 0.04 0.71 0.98 0.10",
+   "start": 54672,
+   "end": 54676,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.34",
+   "text": "0.10",
+   "context": "0.34 1.00 0.96 0.18 0.43 0.04 0.71 0.98 0.10",
+   "start": 54677,
+   "end": 54681,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 Oracle power at ARR 0.38",
+   "text": "1.00",
+   "context": "0.38 1.00 1.00 0.42 0.69 0.12 0.95 1.00 0.18",
+   "start": 54687,
+   "end": 54691,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U interaction power at ARR 0.38",
+   "text": "1.00",
+   "context": "0.38 1.00 1.00 0.42 0.69 0.12 0.95 1.00 0.18",
+   "start": 54692,
+   "end": 54696,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 U t-test power at ARR 0.38",
+   "text": "0.42",
+   "context": "0.38 1.00 1.00 0.42 0.69 0.12 0.95 1.00 0.18",
+   "start": 54697,
+   "end": 54701,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Cox power at ARR 0.38",
+   "text": "0.69",
+   "context": "0.38 1.00 1.00 0.42 0.69 0.12 0.95 1.00 0.18",
+   "start": 54702,
+   "end": 54706,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 M Tree power at ARR 0.38",
+   "text": "0.12",
+   "context": "0.38 1.00 1.00 0.42 0.69 0.12 0.95 1.00 0.18",
+   "start": 54707,
+   "end": 54711,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 MOB power at ARR 0.38",
+   "text": "0.95",
+   "context": "0.38 1.00 1.00 0.42 0.69 0.12 0.95 1.00 0.18",
+   "start": 54712,
+   "end": 54716,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ITree power at ARR 0.38",
+   "text": "1.00",
+   "context": "0.38 1.00 1.00 0.42 0.69 0.12 0.95 1.00 0.18",
+   "start": 54717,
+   "end": 54721,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 2 ARDP power at ARR 0.38",
+   "text": "0.18",
+   "context": "0.38 1.00 1.00 0.42 0.69 0.12 0.95 1.00 0.18",
+   "start": 54722,
+   "end": 54726,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.00",
+   "text": "0.01",
+   "context": "0.00 0.01 0.01 0.01 0.01 0.01 0.04",
+   "start": 56009,
+   "end": 56013,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.00",
+   "text": "0.01",
+   "context": "0.00 0.01 0.01 0.01 0.01 0.01 0.04",
+   "start": 56014,
+   "end": 56018,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.00",
+   "text": "0.01",
+   "context": "0.00 0.01 0.01 0.01 0.01 0.01 0.04",
+   "start": 56019,
+   "end": 56023,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.00",
+   "text": "0.01",
+   "context": "0.00 0.01 0.01 0.01 0.01 0.01 0.04",
+   "start": 56024,
+   "end": 56028,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.00",
+   "text": "0.01",
+   "context": "0.00 0.01 0.01 0.01 0.01 0.01 0.04",
+   "start": 56029,
+   "end": 56033,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.00",
+   "text": "0.04",
+   "context": "0.00 0.01 0.01 0.01 0.01 0.01 0.04",
+   "start": 56034,
+   "end": 56038,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.04",
+   "text": "0.01",
+   "context": "0.04 0.01 0.01 0.01 0.01 0.02 0.04",
+   "start": 56044,
+   "end": 56048,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.04",
+   "text": "0.01",
+   "context": "0.04 0.01 0.01 0.01 0.01 0.02 0.04",
+   "start": 56049,
+   "end": 56053,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.04",
+   "text": "0.01",
+   "context": "0.04 0.01 0.01 0.01 0.01 0.02 0.04",
+   "start": 56054,
+   "end": 56058,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.04",
+   "text": "0.01",
+   "context": "0.04 0.01 0.01 0.01 0.01 0.02 0.04",
+   "start": 56059,
+   "end": 56063,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.04",
+   "text": "0.02",
+   "context": "0.04 0.01 0.01 0.01 0.01 0.02 0.04",
+   "start": 56064,
+   "end": 56068,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.04",
+   "text": "0.04",
+   "context": "0.04 0.01 0.01 0.01 0.01 0.02 0.04",
+   "start": 56069,
+   "end": 56073,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.08",
+   "text": "0.02",
+   "context": "0.08 0.02 0.01 0.01 0.01 0.02 0.03",
+   "start": 56079,
+   "end": 56083,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.08",
+   "text": "0.01",
+   "context": "0.08 0.02 0.01 0.01 0.01 0.02 0.03",
+   "start": 56084,
+   "end": 56088,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.08",
+   "text": "0.01",
+   "context": "0.08 0.02 0.01 0.01 0.01 0.02 0.03",
+   "start": 56089,
+   "end": 56093,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.08",
+   "text": "0.01",
+   "context": "0.08 0.02 0.01 0.01 0.01 0.02 0.03",
+   "start": 56094,
+   "end": 56098,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.08",
+   "text": "0.02",
+   "context": "0.08 0.02 0.01 0.01 0.01 0.02 0.03",
+   "start": 56099,
+   "end": 56103,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.08",
+   "text": "0.03",
+   "context": "0.08 0.02 0.01 0.01 0.01 0.02 0.03",
+   "start": 56104,
+   "end": 56108,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.13",
+   "text": "0.04",
+   "context": "0.13 0.04 0.02 0.01 0.02 0.02 0.04",
+   "start": 56114,
+   "end": 56118,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.13",
+   "text": "0.02",
+   "context": "0.13 0.04 0.02 0.01 0.02 0.02 0.04",
+   "start": 56119,
+   "end": 56123,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.13",
+   "text": "0.01",
+   "context": "0.13 0.04 0.02 0.01 0.02 0.02 0.04",
+   "start": 56124,
+   "end": 56128,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.13",
+   "text": "0.02",
+   "context": "0.13 0.04 0.02 0.01 0.02 0.02 0.04",
+   "start": 56129,
+   "end": 56133,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.13",
+   "text": "0.02",
+   "context": "0.13 0.04 0.02 0.01 0.02 0.02 0.04",
+   "start": 56134,
+   "end": 56138,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.13",
+   "text": "0.04",
+   "context": "0.13 0.04 0.02 0.01 0.02 0.02 0.04",
+   "start": 56139,
+   "end": 56143,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.17",
+   "text": "0.07",
+   "context": "0.17 0.07 0.03 0.02 0.03 0.05 0.04",
+   "start": 56149,
+   "end": 56153,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.17",
+   "text": "0.03",
+   "context": "0.17 0.07 0.03 0.02 0.03 0.05 0.04",
+   "start": 56154,
+   "end": 56158,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.17",
+   "text": "0.02",
+   "context": "0.17 0.07 0.03 0.02 0.03 0.05 0.04",
+   "start": 56159,
+   "end": 56163,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.17",
+   "text": "0.03",
+   "context": "0.17 0.07 0.03 0.02 0.03 0.05 0.04",
+   "start": 56164,
+   "end": 56168,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.17",
+   "text": "0.05",
+   "context": "0.17 0.07 0.03 0.02 0.03 0.05 0.04",
+   "start": 56169,
+   "end": 56173,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.17",
+   "text": "0.04",
+   "context": "0.17 0.07 0.03 0.02 0.03 0.05 0.04",
+   "start": 56174,
+   "end": 56178,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.21",
+   "text": "0.09",
+   "context": "0.21 0.09 0.03 0.01 0.03 0.04 0.04",
+   "start": 56184,
+   "end": 56188,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.21",
+   "text": "0.03",
+   "context": "0.21 0.09 0.03 0.01 0.03 0.04 0.04",
+   "start": 56189,
+   "end": 56193,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.21",
+   "text": "0.01",
+   "context": "0.21 0.09 0.03 0.01 0.03 0.04 0.04",
+   "start": 56194,
+   "end": 56198,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.21",
+   "text": "0.03",
+   "context": "0.21 0.09 0.03 0.01 0.03 0.04 0.04",
+   "start": 56199,
+   "end": 56203,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.21",
+   "text": "0.04",
+   "context": "0.21 0.09 0.03 0.01 0.03 0.04 0.04",
+   "start": 56204,
+   "end": 56208,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.21",
+   "text": "0.04",
+   "context": "0.21 0.09 0.03 0.01 0.03 0.04 0.04",
+   "start": 56209,
+   "end": 56213,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.25",
+   "text": "0.11",
+   "context": "0.25 0.11 0.04 0.03 0.04 0.04 0.04",
+   "start": 56219,
+   "end": 56223,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.25",
+   "text": "0.04",
+   "context": "0.25 0.11 0.04 0.03 0.04 0.04 0.04",
+   "start": 56224,
+   "end": 56228,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.25",
+   "text": "0.03",
+   "context": "0.25 0.11 0.04 0.03 0.04 0.04 0.04",
+   "start": 56229,
+   "end": 56233,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.25",
+   "text": "0.04",
+   "context": "0.25 0.11 0.04 0.03 0.04 0.04 0.04",
+   "start": 56234,
+   "end": 56238,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.25",
+   "text": "0.04",
+   "context": "0.25 0.11 0.04 0.03 0.04 0.04 0.04",
+   "start": 56239,
+   "end": 56243,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.25",
+   "text": "0.04",
+   "context": "0.25 0.11 0.04 0.03 0.04 0.04 0.04",
+   "start": 56244,
+   "end": 56248,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.29",
+   "text": "0.13",
+   "context": "0.29 0.13 0.04 0.03 0.05 0.07 0.05",
+   "start": 56254,
+   "end": 56258,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.29",
+   "text": "0.04",
+   "context": "0.29 0.13 0.04 0.03 0.05 0.07 0.05",
+   "start": 56259,
+   "end": 56263,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.29",
+   "text": "0.03",
+   "context": "0.29 0.13 0.04 0.03 0.05 0.07 0.05",
+   "start": 56264,
+   "end": 56268,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.29",
+   "text": "0.05",
+   "context": "0.29 0.13 0.04 0.03 0.05 0.07 0.05",
+   "start": 56269,
+   "end": 56273,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.29",
+   "text": "0.07",
+   "context": "0.29 0.13 0.04 0.03 0.05 0.07 0.05",
+   "start": 56274,
+   "end": 56278,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.29",
+   "text": "0.05",
+   "context": "0.29 0.13 0.04 0.03 0.05 0.07 0.05",
+   "start": 56279,
+   "end": 56283,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.34",
+   "text": "0.13",
+   "context": "0.34 0.13 0.05 0.03 0.08 0.12 0.05",
+   "start": 56289,
+   "end": 56293,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.34",
+   "text": "0.05",
+   "context": "0.34 0.13 0.05 0.03 0.08 0.12 0.05",
+   "start": 56294,
+   "end": 56298,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.34",
+   "text": "0.03",
+   "context": "0.34 0.13 0.05 0.03 0.08 0.12 0.05",
+   "start": 56299,
+   "end": 56303,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.34",
+   "text": "0.08",
+   "context": "0.34 0.13 0.05 0.03 0.08 0.12 0.05",
+   "start": 56304,
+   "end": 56308,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.34",
+   "text": "0.12",
+   "context": "0.34 0.13 0.05 0.03 0.08 0.12 0.05",
+   "start": 56309,
+   "end": 56313,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.34",
+   "text": "0.05",
+   "context": "0.34 0.13 0.05 0.03 0.08 0.12 0.05",
+   "start": 56314,
+   "end": 56318,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U interaction averaged precision at ARR 0.38",
+   "text": "0.14",
+   "context": "0.38 0.14 0.04 0.05 0.11 0.17 0.04",
+   "start": 56324,
+   "end": 56328,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 U t-test averaged precision at ARR 0.38",
+   "text": "0.04",
+   "context": "0.38 0.14 0.04 0.05 0.11 0.17 0.04",
+   "start": 56329,
+   "end": 56333,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 M Cox averaged precision at ARR 0.38",
+   "text": "0.05",
+   "context": "0.38 0.14 0.04 0.05 0.11 0.17 0.04",
+   "start": 56334,
+   "end": 56338,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 MOB averaged precision at ARR 0.38",
+   "text": "0.11",
+   "context": "0.38 0.14 0.04 0.05 0.11 0.17 0.04",
+   "start": 56339,
+   "end": 56343,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ITree averaged precision at ARR 0.38",
+   "text": "0.17",
+   "context": "0.38 0.14 0.04 0.05 0.11 0.17 0.04",
+   "start": 56344,
+   "end": 56348,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 3 ARDP averaged precision at ARR 0.38",
+   "text": "0.04",
+   "context": "0.38 0.14 0.04 0.05 0.11 0.17 0.04",
+   "start": 56349,
+   "end": 56353,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.00",
+   "text": "0.52",
+   "context": "0.00 0.52 0.51 0.50 0.49 0.51 0.51 0.53",
+   "start": 56481,
+   "end": 56485,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.00",
+   "text": "0.51",
+   "context": "0.00 0.52 0.51 0.50 0.49 0.51 0.51 0.53",
+   "start": 56486,
+   "end": 56490,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.00",
+   "text": "0.50",
+   "context": "0.00 0.52 0.51 0.50 0.49 0.51 0.51 0.53",
+   "start": 56491,
+   "end": 56495,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.00",
+   "text": "0.49",
+   "context": "0.00 0.52 0.51 0.50 0.49 0.51 0.51 0.53",
+   "start": 56496,
+   "end": 56500,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.00",
+   "text": "0.51",
+   "context": "0.00 0.52 0.51 0.50 0.49 0.51 0.51 0.53",
+   "start": 56501,
+   "end": 56505,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.00",
+   "text": "0.51",
+   "context": "0.00 0.52 0.51 0.50 0.49 0.51 0.51 0.53",
+   "start": 56506,
+   "end": 56510,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.00",
+   "text": "0.53",
+   "context": "0.00 0.52 0.51 0.50 0.49 0.51 0.51 0.53",
+   "start": 56511,
+   "end": 56515,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.04",
+   "text": "0.52",
+   "context": "0.04 0.52 0.52 0.52 0.49 0.51 0.51 0.54",
+   "start": 56521,
+   "end": 56525,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.04",
+   "text": "0.52",
+   "context": "0.04 0.52 0.52 0.52 0.49 0.51 0.51 0.54",
+   "start": 56526,
+   "end": 56530,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.04",
+   "text": "0.52",
+   "context": "0.04 0.52 0.52 0.52 0.49 0.51 0.51 0.54",
+   "start": 56531,
+   "end": 56535,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.04",
+   "text": "0.49",
+   "context": "0.04 0.52 0.52 0.52 0.49 0.51 0.51 0.54",
+   "start": 56536,
+   "end": 56540,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.04",
+   "text": "0.51",
+   "context": "0.04 0.52 0.52 0.52 0.49 0.51 0.51 0.54",
+   "start": 56541,
+   "end": 56545,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.04",
+   "text": "0.51",
+   "context": "0.04 0.52 0.52 0.52 0.49 0.51 0.51 0.54",
+   "start": 56546,
+   "end": 56550,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.04",
+   "text": "0.54",
+   "context": "0.04 0.52 0.52 0.52 0.49 0.51 0.51 0.54",
+   "start": 56551,
+   "end": 56555,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.08",
+   "text": "0.52",
+   "context": "0.08 0.52 0.51 0.54 0.49 0.51 0.51 0.52",
+   "start": 56561,
+   "end": 56565,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.08",
+   "text": "0.51",
+   "context": "0.08 0.52 0.51 0.54 0.49 0.51 0.51 0.52",
+   "start": 56566,
+   "end": 56570,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.08",
+   "text": "0.54",
+   "context": "0.08 0.52 0.51 0.54 0.49 0.51 0.51 0.52",
+   "start": 56571,
+   "end": 56575,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.08",
+   "text": "0.49",
+   "context": "0.08 0.52 0.51 0.54 0.49 0.51 0.51 0.52",
+   "start": 56576,
+   "end": 56580,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.08",
+   "text": "0.51",
+   "context": "0.08 0.52 0.51 0.54 0.49 0.51 0.51 0.52",
+   "start": 56581,
+   "end": 56585,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.08",
+   "text": "0.51",
+   "context": "0.08 0.52 0.51 0.54 0.49 0.51 0.51 0.52",
+   "start": 56586,
+   "end": 56590,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.08",
+   "text": "0.52",
+   "context": "0.08 0.52 0.51 0.54 0.49 0.51 0.51 0.52",
+   "start": 56591,
+   "end": 56595,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.13",
+   "text": "0.54",
+   "context": "0.13 0.54 0.52 0.57 0.49 0.51 0.51 0.53",
+   "start": 56601,
+   "end": 56605,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.13",
+   "text": "0.52",
+   "context": "0.13 0.54 0.52 0.57 0.49 0.51 0.51 0.53",
+   "start": 56606,
+   "end": 56610,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.13",
+   "text": "0.57",
+   "context": "0.13 0.54 0.52 0.57 0.49 0.51 0.51 0.53",
+   "start": 56611,
+   "end": 56615,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.13",
+   "text": "0.49",
+   "context": "0.13 0.54 0.52 0.57 0.49 0.51 0.51 0.53",
+   "start": 56616,
+   "end": 56620,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.13",
+   "text": "0.51",
+   "context": "0.13 0.54 0.52 0.57 0.49 0.51 0.51 0.53",
+   "start": 56621,
+   "end": 56625,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.13",
+   "text": "0.51",
+   "context": "0.13 0.54 0.52 0.57 0.49 0.51 0.51 0.53",
+   "start": 56626,
+   "end": 56630,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.13",
+   "text": "0.53",
+   "context": "0.13 0.54 0.52 0.57 0.49 0.51 0.51 0.53",
+   "start": 56631,
+   "end": 56635,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.17",
+   "text": "0.57",
+   "context": "0.17 0.57 0.53 0.58 0.49 0.51 0.53 0.54",
+   "start": 56641,
+   "end": 56645,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.17",
+   "text": "0.53",
+   "context": "0.17 0.57 0.53 0.58 0.49 0.51 0.53 0.54",
+   "start": 56646,
+   "end": 56650,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.17",
+   "text": "0.58",
+   "context": "0.17 0.57 0.53 0.58 0.49 0.51 0.53 0.54",
+   "start": 56651,
+   "end": 56655,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.17",
+   "text": "0.49",
+   "context": "0.17 0.57 0.53 0.58 0.49 0.51 0.53 0.54",
+   "start": 56656,
+   "end": 56660,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.17",
+   "text": "0.51",
+   "context": "0.17 0.57 0.53 0.58 0.49 0.51 0.53 0.54",
+   "start": 56661,
+   "end": 56665,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.17",
+   "text": "0.53",
+   "context": "0.17 0.57 0.53 0.58 0.49 0.51 0.53 0.54",
+   "start": 56666,
+   "end": 56670,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.17",
+   "text": "0.54",
+   "context": "0.17 0.57 0.53 0.58 0.49 0.51 0.53 0.54",
+   "start": 56671,
+   "end": 56675,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.21",
+   "text": "0.57",
+   "context": "0.21 0.57 0.53 0.59 0.49 0.51 0.57 0.55",
+   "start": 56681,
+   "end": 56685,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.21",
+   "text": "0.53",
+   "context": "0.21 0.57 0.53 0.59 0.49 0.51 0.57 0.55",
+   "start": 56686,
+   "end": 56690,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.21",
+   "text": "0.59",
+   "context": "0.21 0.57 0.53 0.59 0.49 0.51 0.57 0.55",
+   "start": 56691,
+   "end": 56695,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.21",
+   "text": "0.49",
+   "context": "0.21 0.57 0.53 0.59 0.49 0.51 0.57 0.55",
+   "start": 56696,
+   "end": 56700,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.21",
+   "text": "0.51",
+   "context": "0.21 0.57 0.53 0.59 0.49 0.51 0.57 0.55",
+   "start": 56701,
+   "end": 56705,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.21",
+   "text": "0.57",
+   "context": "0.21 0.57 0.53 0.59 0.49 0.51 0.57 0.55",
+   "start": 56706,
+   "end": 56710,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.21",
+   "text": "0.55",
+   "context": "0.21 0.57 0.53 0.59 0.49 0.51 0.57 0.55",
+   "start": 56711,
+   "end": 56715,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.25",
+   "text": "0.57",
+   "context": "0.25 0.57 0.53 0.63 0.49 0.53 0.64 0.56",
+   "start": 56721,
+   "end": 56725,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.25",
+   "text": "0.53",
+   "context": "0.25 0.57 0.53 0.63 0.49 0.53 0.64 0.56",
+   "start": 56726,
+   "end": 56730,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.25",
+   "text": "0.63",
+   "context": "0.25 0.57 0.53 0.63 0.49 0.53 0.64 0.56",
+   "start": 56731,
+   "end": 56735,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.25",
+   "text": "0.49",
+   "context": "0.25 0.57 0.53 0.63 0.49 0.53 0.64 0.56",
+   "start": 56736,
+   "end": 56740,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.25",
+   "text": "0.53",
+   "context": "0.25 0.57 0.53 0.63 0.49 0.53 0.64 0.56",
+   "start": 56741,
+   "end": 56745,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.25",
+   "text": "0.64",
+   "context": "0.25 0.57 0.53 0.63 0.49 0.53 0.64 0.56",
+   "start": 56746,
+   "end": 56750,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.25",
+   "text": "0.56",
+   "context": "0.25 0.57 0.53 0.63 0.49 0.53 0.64 0.56",
+   "start": 56751,
+   "end": 56755,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.29",
+   "text": "0.59",
+   "context": "0.29 0.59 0.53 0.63 0.49 0.54 0.73 0.56",
+   "start": 56761,
+   "end": 56765,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.29",
+   "text": "0.53",
+   "context": "0.29 0.59 0.53 0.63 0.49 0.54 0.73 0.56",
+   "start": 56766,
+   "end": 56770,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.29",
+   "text": "0.63",
+   "context": "0.29 0.59 0.53 0.63 0.49 0.54 0.73 0.56",
+   "start": 56771,
+   "end": 56775,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.29",
+   "text": "0.49",
+   "context": "0.29 0.59 0.53 0.63 0.49 0.54 0.73 0.56",
+   "start": 56776,
+   "end": 56780,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.29",
+   "text": "0.54",
+   "context": "0.29 0.59 0.53 0.63 0.49 0.54 0.73 0.56",
+   "start": 56781,
+   "end": 56785,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.29",
+   "text": "0.73",
+   "context": "0.29 0.59 0.53 0.63 0.49 0.54 0.73 0.56",
+   "start": 56786,
+   "end": 56790,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.29",
+   "text": "0.56",
+   "context": "0.29 0.59 0.53 0.63 0.49 0.54 0.73 0.56",
+   "start": 56791,
+   "end": 56795,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.34",
+   "text": "0.58",
+   "context": "0.34 0.58 0.54 0.66 0.49 0.57 0.79 0.55",
+   "start": 56801,
+   "end": 56805,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.34",
+   "text": "0.54",
+   "context": "0.34 0.58 0.54 0.66 0.49 0.57 0.79 0.55",
+   "start": 56806,
+   "end": 56810,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.34",
+   "text": "0.66",
+   "context": "0.34 0.58 0.54 0.66 0.49 0.57 0.79 0.55",
+   "start": 56811,
+   "end": 56815,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.34",
+   "text": "0.49",
+   "context": "0.34 0.58 0.54 0.66 0.49 0.57 0.79 0.55",
+   "start": 56816,
+   "end": 56820,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.34",
+   "text": "0.57",
+   "context": "0.34 0.58 0.54 0.66 0.49 0.57 0.79 0.55",
+   "start": 56821,
+   "end": 56825,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.34",
+   "text": "0.79",
+   "context": "0.34 0.58 0.54 0.66 0.49 0.57 0.79 0.55",
+   "start": 56826,
+   "end": 56830,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.34",
+   "text": "0.55",
+   "context": "0.34 0.58 0.54 0.66 0.49 0.57 0.79 0.55",
+   "start": 56831,
+   "end": 56835,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U interaction accuracy at ARR 0.38",
+   "text": "0.58",
+   "context": "0.38 0.58 0.54 0.69 0.52 0.57 0.82 0.56",
+   "start": 56841,
+   "end": 56845,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 U t-test accuracy at ARR 0.38",
+   "text": "0.54",
+   "context": "0.38 0.58 0.54 0.69 0.52 0.57 0.82 0.56",
+   "start": 56846,
+   "end": 56850,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Cox accuracy at ARR 0.38",
+   "text": "0.69",
+   "context": "0.38 0.58 0.54 0.69 0.52 0.57 0.82 0.56",
+   "start": 56851,
+   "end": 56855,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 M Tree accuracy at ARR 0.38",
+   "text": "0.52",
+   "context": "0.38 0.58 0.54 0.69 0.52 0.57 0.82 0.56",
+   "start": 56856,
+   "end": 56860,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 MOB accuracy at ARR 0.38",
+   "text": "0.57",
+   "context": "0.38 0.58 0.54 0.69 0.52 0.57 0.82 0.56",
+   "start": 56861,
+   "end": 56865,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ITree accuracy at ARR 0.38",
+   "text": "0.82",
+   "context": "0.38 0.58 0.54 0.69 0.52 0.57 0.82 0.56",
+   "start": 56866,
+   "end": 56870,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  },
+  {
+   "section": "Table 4 ARDP accuracy at ARR 0.38",
+   "text": "0.56",
+   "context": "0.38 0.58 0.54 0.69 0.52 0.57 0.82 0.56",
+   "start": 56871,
+   "end": 56875,
+   "reason": "cannot be re-derived within the panel's laptop-CPU budget: ARDP's p=1000 fit alone measures ~15.5 min per repetition (930 s), so the p=1000 type-I-error scenario (1000 repetitions) is ~24 CPU-hours and the semi-synthetic scenario (100 repetitions x 10 ARR points at p=1000) is ~21 CPU-hours on this 14-core machine; recorded, not forced (panel-run screening.md section 4, plan_20261002.md)"
+  }
+ ]
+}

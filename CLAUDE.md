@@ -16,23 +16,26 @@ The name: a *plumb line* is the oldest tool for testing whether something stands
 is also to investigate a thing to the bottom. Plumb asks of a paper: *does the claim hold when
 you actually run it?*
 
-Status: **the deterministic spine of C1, the C2 artifact-intake spine, the C3 run spine, and
-the first slices of C4 (binding & verdict) and C6 (signed bundle) are built; C5, C7 and C8 are
-not.** `src/plumb/extract/`
+Status: **the deterministic spine of C1, the C2 artifact-intake spine, the C3 run spine,
+C4's binding & verdict, C5's first slices (store/bank/labels/metrics/report), and C6's
+signed bundle are built; C7 and C8 are not.** `src/plumb/extract/`
 holds the record layer (`ClaimValue`, `Location`, `Claim`, `StudyParameter`), a paper hash,
 byte-identical serialization, value-identity dedup, Markdown table parsing, exhaustive candidate
 extraction, and the admission gate that is the sole constructor of a `Claim`. One pinned
 runtime dependency — pypdf (pure-Python, no transitive deps), powering the PDF→Markdown
 converter in `src/plumb/pdf/`; no network reachable from any test.
 
-**Not built:** C5, C7, C8, and C4/C6 beyond their first slices. **The `plumb verify` CLI is built** (2026-09-27): `src/plumb/cli/` is the
+**Not built:** C7, C8, C4/C6 beyond their first slices, and C5's second slice beyond `--bank`. **The `plumb verify` CLI is built** (2026-09-27): `src/plumb/cli/` is the
 Phase 1 headline — `plumb verify <paper> <repo> [--rev REV] [--bindings FILE] [--out DIR]
-[--from-record DIR] [--no-env-build] [--signer-key PATH] [--no-paper] [--json]` runs the
+[--from-record DIR] [--no-env-build] [--signer-key PATH] [--no-paper] [--json] [--bank]` runs the
 C1→C2→C3→C4→C6 spine live (local dir / git URL with `--rev` / archive; real env build by
 default, offline stub with `--no-env-build`) or replays a committed record (`--from-record`:
 byte-identical re-derivation, cross-checked against the record's `verdicts.json`), renders a
-fixed-layout verdict table or canonical JSON (byte-identical across invocations), and writes a
-signed bundle with `--out` that `verify_bundle` accepts. Exit 0 iff every claim decided; 1 on
+fixed-layout verdict table or canonical JSON (byte-identical across invocations), writes a
+signed bundle with `--out` that `verify_bundle` accepts, and banks the run into the
+discrepancy corpus with `--bank` (2026-10-02: the live loop is closed; `corpus bank|report`
+fold records in and pool coverage/precision/recall with denominators and label-authority
+markers — the corpus holds 2 cases (details in the R1 note below). Exit 0 iff every claim decided; 1 on
 any `UNVERIFIED` or named cause (`RECORD_INVALID`, `KEY_MISSING`, `BUNDLE_REFUSED`, ...); 2 on
 usage; never a traceback, never `DIVERGED` on a harness failure. The AgroDesign record replays
 through the CLI: 86 claims, 85 `REPRODUCED`, 1 `DIVERGED`, `--json` byte-identical to the
@@ -100,7 +103,17 @@ returns records, never a second door to `Claim`), and the re-derived verdicts, w
 The AgroDesign bundle (`bundles/agrodesign/`) verifies, and `tools/bundle_replay.py` re-ran it
 from a clean clone byte-identical. **The Phase 0 gate is met** (2026-09-27): the one
 `DIVERGED` was reviewed by the owner and confirmed as a genuine reporting discrepancy. Met on one
-paper — cross-paper coverage (R1) is unmeasured, and C1's 86/86 there is conformance to a curated rule on one paper. Details:
+paper — **cross-paper coverage (R1) is now measured (2026-10-02)**: the corpus holds 2
+cases, 102 claims, 102 bound, 87 `REPRODUCED`, **15 `DIVERGED`**, precision/recall
+`1/15 (owner)` — AgroDesign (85/1; its one confirmed `DIVERGED` is the only confirmed
+discrepancy) and **Perrin, arXiv:2401.11842** (16 claims; this run 2/14 — the artifact is
+**not run-to-run reproducible at the paper's written precision** (three full runs,
+values moved up to 0.017, four verdict flips; unseeded worker RNG; sampling noise
+~0.005–0.010 vs written precision 0.001), so the review **refuted all 14 flagged
+divergences** — a reproducibility finding, not a paper error). A fixed-rule panel
+search probed 4 candidates and found
+1 additional runnable paper; evidence in `docs/planning/cross-paper-coverage/panel-run/screening.md`.
+C1's 86/86 on AgroDesign remains conformance to a curated rule on one paper. Details:
 `fixtures/gate/agrodesign/README.md`.
 
 When in doubt, verify against the code and `git log` rather than this prose. Two assumptions in

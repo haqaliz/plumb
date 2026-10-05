@@ -1,0 +1,132 @@
+{
+ "claims": [
+  {
+   "text": "0.028",
+   "metric": "Table 1 Univariate interaction type I error p=20",
+   "source": "table",
+   "context": "Univariate interaction 0.028 0.007 0.001",
+   "start": 42698,
+   "end": 42703
+  },
+  {
+   "text": "0.007",
+   "metric": "Table 1 Univariate interaction type I error p=100",
+   "source": "table",
+   "context": "Univariate interaction 0.028 0.007 0.001",
+   "start": 42704,
+   "end": 42709
+  },
+  {
+   "text": "0.035",
+   "metric": "Table 1 Univariate t-test type I error p=20",
+   "source": "table",
+   "context": "Univariate t-test 0.035 0.052 0.052",
+   "start": 42734,
+   "end": 42739
+  },
+  {
+   "text": "0.052",
+   "metric": "Table 1 Univariate t-test type I error p=100",
+   "source": "table",
+   "context": "Univariate t-test 0.035 0.052 0.052",
+   "start": 42740,
+   "end": 42745
+  },
+  {
+   "text": "0.042",
+   "metric": "Table 1 Multivariate Cox type I error p=20",
+   "source": "table",
+   "context": "Multivariate Cox 0.042 0.033 0.037",
+   "start": 42769,
+   "end": 42774
+  },
+  {
+   "text": "0.033",
+   "metric": "Table 1 Multivariate Cox type I error p=100",
+   "source": "table",
+   "context": "Multivariate Cox 0.042 0.033 0.037",
+   "start": 42775,
+   "end": 42780
+  },
+  {
+   "text": "0.051",
+   "metric": "Table 1 Multivariate Tree type I error p=20",
+   "source": "table",
+   "context": "Multivariate Tree 0.051 0.051 0.051",
+   "start": 42805,
+   "end": 42810
+  },
+  {
+   "text": "0.051",
+   "metric": "Table 1 Multivariate Tree type I error p=100",
+   "source": "table",
+   "context": "Multivariate Tree 0.051 0.051 0.051",
+   "start": 42811,
+   "end": 42816
+  },
+  {
+   "text": "0.060",
+   "metric": "Table 1 MOB type I error p=20",
+   "source": "table",
+   "context": "MOB 0.060 0.043 0.056",
+   "start": 42827,
+   "end": 42832
+  },
+  {
+   "text": "0.043",
+   "metric": "Table 1 MOB type I error p=100",
+   "source": "table",
+   "context": "MOB 0.060 0.043 0.056",
+   "start": 42833,
+   "end": 42838
+  },
+  {
+   "text": "0.024",
+   "metric": "Table 1 IT type I error p=20",
+   "source": "table",
+   "context": "IT 0.024 0.011 0.002",
+   "start": 42848,
+   "end": 42853
+  },
+  {
+   "text": "0.011",
+   "metric": "Table 1 IT type I error p=100",
+   "source": "table",
+   "context": "IT 0.024 0.011 0.002",
+   "start": 42854,
+   "end": 42859
+  },
+  {
+   "text": "0.036",
+   "metric": "Table 1 ARDP type I error p=20",
+   "source": "table",
+   "context": "ARDP 0.036 0.049 0.043",
+   "start": 42871,
+   "end": 42876
+  },
+  {
+   "text": "0.049",
+   "metric": "Table 1 ARDP type I error p=100",
+   "source": "table",
+   "context": "ARDP 0.036 0.049 0.043",
+   "start": 42877,
+   "end": 42882
+  },
+  {
+   "text": "0.125",
+   "metric": "Table 1 SIDES type I error p=20",
+   "source": "table",
+   "context": "SIDES 0.125 – –",
+   "start": 42895,
+   "end": 42900
+  },
+  {
+   "text": "0.042",
+   "metric": "Table 1 SeqBT type I error p=20",
+   "source": "table",
+   "context": "SeqBT 0.042 – –",
+   "start": 42911,
+   "end": 42916
+  }
+ ]
+}

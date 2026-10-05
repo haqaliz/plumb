@@ -43,6 +43,8 @@ import tempfile
 
 from plumb.bundle import SshSigner, build_bundle, verify_bundle
 from plumb.bundle.causes import BundleRefused
+from plumb.cli.corpus import bank_for_verify
+from plumb.cli.record import write_record
 from plumb.cli.render import render_verdicts
 from plumb.extract.pipeline import extract_claims
 from plumb.intake.checkout import resolve_archive, resolve_git, resolve_local
@@ -106,25 +108,57 @@ def derive_run_dir(work_root: Path | str, tree_hash, argv) -> Path:
 
 
 def run_live(args: argparse.Namespace) -> int:
-    """The live spine seam: extract -> resolve -> env -> run -> bind -> render -> bundle.
+    """The live spine seam: extract -> resolve -> env -> run -> bind -> render -> bank.
 
     The shell has already validated the paper, the bindings flag, the signer
     key and the repo kind. Raises the engine's named exceptions for pre-run
-    failures; returns 0 iff every claim is decided, 1 otherwise. A run-level
-    cause (no entry point, a failed or silent run) also prints its named cause
-    line on stderr — the table carries the verdicts, the cause line the reason.
+    failures; returns 0 iff every claim is decided and (with `--bank`) the
+    bank succeeded, 1 otherwise. A run-level cause (no entry point, a failed
+    or silent run) also prints its named cause line on stderr — the table
+    carries the verdicts, the cause line the reason. With `--bank`, the
+    record is written into a transient directory that outlives the bank call
+    only: the case in the store is the durable artifact.
     """
-    verdicts, run_failure = _spine(args)
+    if args.bank:
+        with tempfile.TemporaryDirectory(prefix="plumb-record-") as tmp:
+            return _run_live(args, Path(tmp) / "record")
+    return _run_live(args, None)
+
+
+def _run_live(args: argparse.Namespace, record_dir: Path | None) -> int:
+    """Render the verdicts, then (with `--bank`) write and bank the record.
+
+    The record is written only after the verdicts are on stdout, so no
+    record-side I/O failure — and no bank refusal — can suppress the verdict
+    table; the failure still decides the exit code (1) with a named cause line.
+    """
+    verdicts, run_failure, materials = _spine(args, record_dir=record_dir)
     sys.stdout.buffer.write(render_verdicts(verdicts, json=args.json))
     sys.stdout.buffer.flush()
     if run_failure is not None:
         cause, detail = run_failure
         print(f"plumb verify: {cause}: {detail}", file=sys.stderr)
-    return 0 if all(v.verdict != UNVERIFIED for v in verdicts.verdicts) else 1
+    banked = True
+    if materials is not None:
+        try:
+            record = write_record(**materials)
+        except OSError as exc:
+            banked = False
+            print(f"plumb verify: SPINE_ERROR: could not write the record: {exc}", file=sys.stderr)
+        else:
+            banked = bank_for_verify(record)
+    decided = all(v.verdict != UNVERIFIED for v in verdicts.verdicts)
+    return 0 if decided and banked else 1
 
 
-def _spine(args: argparse.Namespace):
-    """The ordered spine; returns `(VerdictSet, run-level (cause, detail) | None)`."""
+def _spine(args: argparse.Namespace, record_dir: Path | None = None):
+    """The ordered spine; returns `(VerdictSet, run-level (cause, detail) | None, materials)`.
+
+    `materials` is `None`, or the `write_record` keyword arguments (including
+    `record_dir`) the caller uses to write the record **after rendering** when
+    `--bank` was given and the run happened — a run that never started has no
+    trace to bank.
+    """
     paper_bytes, paper_format, paper_text = _read_paper(Path(args.paper))
     claims, _ = extract_claims(paper_text)
     bindings_bytes = _read_bindings(args.bindings)
@@ -143,7 +177,7 @@ def _spine(args: argparse.Namespace):
         entrypoint = resolve_entrypoint(checkout, descriptor.manifests)
     except (EntryPointMissing, EntryPointAmbiguous) as exc:
         verdicts = verify_claims(claims, bindings, NoRun.from_exception(exc))
-        return verdicts, (exc.cause, str(exc))
+        return verdicts, (exc.cause, str(exc)), None
 
     run_dir = derive_run_dir(WORK_ROOT, checkout.tree_hash, entrypoint.argv)
     _reset(run_dir)
@@ -155,7 +189,13 @@ def _spine(args: argparse.Namespace):
         _build_bundle(args, paper_bytes, paper_format, Path(args.paper), claims,
                       bindings_bytes=bindings_bytes, trace=trace, capture=capture,
                       environment=descriptor.to_text(), checkout=checkout)
-    return verdicts, _trace_failure(trace)
+    record = None
+    if record_dir is not None:
+        record = dict(
+            record_dir=record_dir, claims=claims, bindings_bytes=bindings_bytes, trace=trace,
+            capture=capture, paper_bytes=paper_bytes, paper_format=paper_format,
+        )
+    return verdicts, _trace_failure(trace), record
 
 
 # -----------------------------------------------------------------------------

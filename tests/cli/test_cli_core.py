@@ -69,6 +69,7 @@ FLAGS = (
     "--rev",
     "--bindings",
     "--out",
+    "--bank",
     "--from-record",
     "--no-env-build",
     "--signer-key",

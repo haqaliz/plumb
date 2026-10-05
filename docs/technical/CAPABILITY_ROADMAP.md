@@ -217,6 +217,29 @@ number the whole reputation rests on.
 **Depends on:** C4. **Guardrail:** constraint #4 — the corpus is the asset that a better base
 model cannot hand you for free.
 
+**Status (2026-10-01/02):** the store, bank, labels, metrics and report aspects are built
+(`src/plumb/corpus/`, `plumb corpus bank|report`) — every verify run banks as a
+content-addressed, write-once, replay-validated case under gitignored `corpus/local/`;
+`plumb verify --bank` (2026-10-02, `cross-paper-coverage`) closes the live loop. The
+**R1 measurement exists (2026-10-02)**: the bank holds **2 cases, 102 claims, 102 bound,
+87 `REPRODUCED`, 15 `DIVERGED`, 0 `UNVERIFIED`, precision/recall `1/15 (owner)`** —
+AgroDesign (86: 85/1; its one confirmed `DIVERGED` is the only confirmed discrepancy) and
+**Perrin** (arXiv:2401.11842, 16 claims; this run 2/14 — the artifact is **not
+run-to-run reproducible at the paper's written precision** (three full runs, values
+moved up to 0.017, four verdict flips; unseeded worker RNG; binomial noise ~0.005–0.010
+vs written precision 0.001), so the review **refuted all 14 flagged divergences** — a
+reproducibility finding, not a paper error). A fixed-rule panel
+search probed 4 candidates and found 1 additional runnable paper (3 documented misses:
+software papers without numbers, figure-dominant results — evidence in
+`fixtures/gate/perrin/README.md` and
+`docs/planning/cross-paper-coverage/panel-run/screening.md`). Perrin's environment
+required recorded drift (earliest buildable `--exclude-newer` boundary; the M4a
+cross-check was inconclusive by construction — no second runnable env exists on this
+machine). Growing the corpus is blocked by named engine gaps, in order: notebook-cell
+capture (C3), a poetry env policy (C2's best-effort `uv sync` silently produces an empty
+venv for poetry-only projects), and figure-with-data locators. The precision/recall
+benchmark over a public corpus stays Phase 2.
+
 ## C6. Signed, replayable reproduction bundle
 
 **What:** a signed record binding paper hash + repo tree hash + environment + run traces +

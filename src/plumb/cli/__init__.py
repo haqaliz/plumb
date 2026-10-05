@@ -5,11 +5,12 @@ This is the load-bearing surface the render, replay and live-spine aspects plug 
 the spine does lives behind three importable seams, and everything this module owns
 is the argument surface, the failure contract, and the dispatch:
 
-**Exit codes.** 0 = every claim decided and the run succeeded; 1 = any `UNVERIFIED`,
-any spine failure, any named cause; 2 = usage error (argparse's own stderr message).
-`main(argv=None) -> int` never raises — `SystemExit` from argparse (help, usage
-errors) is converted to its code, and every other exception is mapped to a named
-cause and rendered as `plumb verify: <CAUSE>: <detail>` on stderr.
+**Exit codes.** 0 = every claim decided and the run succeeded (and, with
+`--bank`, the case banked); 1 = any `UNVERIFIED`, any spine failure, any named
+cause; 2 = usage error (argparse's own stderr message). `main(argv=None) -> int`
+never raises — `SystemExit` from argparse (help, usage errors) is converted to
+its code, and every other exception is mapped to a named cause and rendered as
+`plumb verify: <CAUSE>: <detail>` on stderr.
 
 **The named-cause vocabulary.** Closed, one name per failure class from the PRD's
 failure table. The engine's raised exceptions (`SourceNotFound`, `RevNotFound`,
@@ -28,6 +29,13 @@ never a traceback.
 the same replay chain `replay_record` reads it by, and `cmd_corpus_report` is the
 dispatch target of `corpus report`, which reads the store back and reports
 coverage, precision and recall over the banked cases (`plumb.cli.corpus`).
+**`--bank` banks what ran.** In both modes, `--bank` folds the run's record
+into the write-once discrepancy corpus at the default store `corpus/local`
+(relative to the working directory) through the same `bank_record` seam
+`corpus bank` uses. The verdicts render first and the bank never changes them:
+a refusal is the named cause `CORPUS_REFUSED` (or `RECORD_INVALID`) on stderr
+with exit 1 even when every claim was decided, and a success prints
+`banked <case_id>` (or `already banked: <case_id>`) after the verdicts.
 `render_verdicts` is the pure rendering seam the other two compose — it takes a
 `VerdictSet` and returns bytes (`plumb.cli.render`), never deciding an exit
 code. `run_live` and `replay_record` take the parsed `args`
@@ -171,6 +179,8 @@ def build_parser() -> argparse.ArgumentParser:
             "  --rev REV            git revision for a git-URL <repo>\n"
             "  --bindings FILE      JSON bindings file (required in live mode)\n"
             "  --out DIR            write a signed, replayable bundle to DIR\n"
+            "  --bank               bank the run's record into the write-once\n"
+            "                       discrepancy corpus (default store: corpus/local)\n"
             "  --from-record DIR    replay a committed record instead of running live\n"
             "  --no-env-build       skip the real environment build (offline stub);\n"
             "                       the real uv sync runs only without this flag, at\n"
@@ -216,6 +226,9 @@ def build_parser() -> argparse.ArgumentParser:
                         help="JSON bindings file (required in live mode)")
     verify.add_argument("--out", metavar="DIR",
                         help="write a signed, replayable bundle to DIR")
+    verify.add_argument("--bank", action="store_true",
+                        help="bank the run's record into the discrepancy corpus "
+                             "(default store: corpus/local)")
     verify.add_argument("--from-record", metavar="DIR",
                         help="replay a committed record instead of running live")
     verify.add_argument("--no-env-build", action="store_true",

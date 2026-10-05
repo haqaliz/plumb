@@ -1,0 +1,8 @@
+{
+ "kind": "git",
+ "location": "https://github.com/owkin/hte.git",
+ "rev_requested": "76ce145f42fd37a91b389d8c8762de167647f82f",
+ "rev_resolved": "76ce145f42fd37a91b389d8c8762de167647f82f",
+ "rev_defaulted": false,
+ "size_cap_bytes": 1073741824
+}

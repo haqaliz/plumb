@@ -9,14 +9,17 @@ optionally rebuilds the signed bundle. No network, no run, no environment build 
 verdicts are a pure function of the committed evidence, the same guarantee
 `tests/gate/test_agrodesign_replay.py` pins.
 
-**The admission gate stays the only door to `Claim`.** The gate record's
-`claims.json` is the curated rule format (`tools/agrodesign_spec.py`): each entry is
-a verbatim value at a span, with the metric and context. Replay turns each entry into
-a `Candidate` and admits it again against the paper through `plumb.extract.admit.admit`
-— exactly what the reference wiring `tools/bundle_build.py` does — and refuses the
-record if any entry no longer admits (the record lied about the paper).
-`parse_claims`/`readmit` are the door for the serialized form (a C6 bundle's
-`claims.json`), which the curated record is not.
+**The admission gate stays the only door to `Claim`.** `read_record` reads
+`claims.json` in either of two forms, decided by the document's key set. The
+gate record's curated rule format (`tools/agrodesign_spec.py`) is six fields
+per entry — a verbatim value at a span, with the metric and context — and
+replay turns each entry into a `Candidate` and admits it again against the
+paper through `plumb.extract.admit.admit`, refusing the record if any entry no
+longer admits (the record lied about the paper). The serialized C1 form — the
+bytes `serialize_claims` writes, `{"claims", "paper_hash"}` — is read back
+through `parse_claims`/`readmit` (the same door a C6 bundle's `claims.json`
+takes), with the document's `paper_hash` checked against the record's own
+paper first.
 
 **The cross-check is the honesty check.** When the record carries `verdicts.json`,
 the re-derived verdicts must serialize byte-identically to it; a mismatch means the
@@ -40,9 +43,11 @@ from plumb.bundle import SshSigner, build_bundle, verify_bundle
 from plumb.bundle.causes import BundleRefused
 from plumb.bundle.verify import paper_text
 from plumb.cli.render import render_verdicts
-from plumb.extract.admit import NonClaim, admit
+from plumb.extract.admit import NonClaim, admit, readmit
 from plumb.extract.candidates import SECTION_OTHER, Candidate
+from plumb.extract.hashing import hash_paper
 from plumb.extract.location import CharSpan, normalize_text
+from plumb.extract.serialize import parse_claims
 from plumb.intake.checkout import SourceRecord
 from plumb.run import parse_trace
 from plumb.run.capture import Capture
@@ -68,17 +73,23 @@ _SOURCE_FIELDS = {
 
 
 def replay_record(args) -> int:
-    """The replay seam: re-derive from the record, render, and decide the exit code.
+    """The replay seam: re-derive from the record, render, bank, decide the exit code.
 
     The shell has already rejected the live-mode arguments and checked the signer
     key for `--out`. Raises the engine's named exceptions on failure; returns 0 iff
-    every claim is decided.
+    every claim is decided and (with `--bank`) the bank succeeded.
     """
     record_dir = Path(args.from_record)
     verdicts = _replay(record_dir, args)
     sys.stdout.buffer.write(render_verdicts(verdicts, json=args.json))
     sys.stdout.buffer.flush()
-    return 0 if all(v.verdict != UNVERIFIED for v in verdicts.verdicts) else 1
+    banked = True
+    if args.bank:
+        from plumb.cli.corpus import bank_for_verify
+
+        banked = bank_for_verify(record_dir)
+    decided = all(v.verdict != UNVERIFIED for v in verdicts.verdicts)
+    return 0 if decided and banked else 1
 
 
 def _replay(record_dir: Path, args) -> VerdictSet:
@@ -119,12 +130,81 @@ def read_record(record_dir: Path):
     capture = Capture(
         store=objects, artifacts=trace.artifacts, stale=trace.stale, causes=trace.causes,
     )
-    claims = _admit_record_claims(claims_path, record_dir, paper_path, paper_format)
+    claims = _read_record_claims(claims_path, record_dir, paper_path, paper_format)
     bindings_bytes = bindings_path.read_bytes()
     return claims, bindings_bytes, trace, capture, paper_path.read_bytes(), paper_format
 
 
-def _admit_record_claims(path: Path, record_dir: Path, paper_path: Path, paper_format: str):
+def _read_record_claims(path: Path, record_dir: Path, paper_path: Path, paper_format: str):
+    """The record's claims, in either of the two forms, re-admitted through the gate.
+
+    The document's key set decides which door the claims come through. A
+    document with exactly `{"claims"}` is the curated rule form
+    (`tools/agrodesign_spec.py`): each entry is a verbatim value at a span,
+    admitted again entry by entry against the paper. A document with exactly
+    `{"claims", "paper_hash"}` is the serialized C1 form — the bytes
+    `serialize_claims` writes — read back through `parse_claims` and
+    re-admitted through `readmit`, after the document's `paper_hash` is
+    checked against the record's own paper (the same check
+    `bundle/verify.py:238` runs): a digest that does not name this paper
+    means the claims were not extracted from it, and the record is refused
+    whole. Anything else is refused; every refusal is `ValueError`
+    (`RECORD_INVALID` in the shell).
+    """
+    raw = paper_text(paper_path.read_bytes(), paper_format)
+    normalized = normalize_text(raw)
+    data = path.read_bytes()
+    try:
+        document = json.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(
+            f"record {record_dir}: claims.json is not a claim document: {exc!r}"
+        ) from None
+    if not isinstance(document, dict):
+        raise ValueError(f"record {record_dir}: claims.json is not a claim document")
+    keys = set(document)
+    if keys == {"claims", "paper_hash"}:
+        return _admit_serialized_claims(data, record_dir, raw, normalized)
+    if keys == {"claims"}:
+        return _admit_record_claims(document, record_dir, normalized)
+    raise ValueError(
+        f"record {record_dir}: claims.json is not a claim document: a claim document "
+        "has exactly the fields claims, or claims and paper_hash"
+    )
+
+
+def _admit_serialized_claims(
+    data: bytes, record_dir: Path, raw: str, normalized: str
+) -> tuple:
+    """The record's serialized C1 claims, checked against its own paper.
+
+    `parse_claims` reads back what `serialize_claims` wrote; the document's
+    `paper_hash` must equal `hash_paper` of the record's own paper text —
+    a mismatch means the claims were not extracted from this paper, and the
+    record is refused whole, never partly believed. The records then
+    re-admit through the gate (`readmit`), which refuses any record the
+    paper no longer grounds, exactly as a C6 bundle's claims re-admit
+    (`bundle/verify.py:237-243`).
+    """
+    try:
+        records, paper_hash = parse_claims(data)
+    except ValueError as exc:
+        raise ValueError(
+            f"record {record_dir}: claims.json is not a serialized claim document: "
+            f"{exc!r}"
+        ) from None
+    if hash_paper(raw) != paper_hash:
+        raise ValueError(
+            f"record {record_dir}: claims.json's paper_hash does not match the "
+            "record's paper"
+        )
+    try:
+        return readmit(records, normalized_text=normalized)
+    except ValueError as exc:
+        raise ValueError(f"record {record_dir}: claims do not re-admit: {exc}") from None
+
+
+def _admit_record_claims(document: dict, record_dir: Path, normalized: str):
     """The record's curated claims, re-admitted through the gate against the paper.
 
     Each entry is a value the record says the paper writes at a span. A `Candidate`
@@ -133,16 +213,11 @@ def _admit_record_claims(path: Path, record_dir: Path, paper_path: Path, paper_f
     `paper.pdf` (or `paper.md`); a record without one cannot re-admit anything and
     is refused earlier, at member reading.
     """
-    raw = paper_text(paper_path.read_bytes(), paper_format)
-    normalized = normalize_text(raw)
     try:
-        document = json.loads(path.read_bytes().decode("utf-8"))
-        if not isinstance(document, dict) or set(document) != {"claims"}:
-            raise ValueError("a curated claim document is an object with exactly one field, claims")
         entries = document["claims"]
         if not isinstance(entries, list):
             raise ValueError("claims must be a list")
-    except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
+    except (TypeError, ValueError) as exc:
         raise ValueError(
             f"record {record_dir}: claims.json is not a curated claim document: {exc!r}"
         ) from None
@@ -153,13 +228,29 @@ def _admit_record_claims(path: Path, record_dir: Path, paper_path: Path, paper_f
             raise ValueError(
                 f"record {record_dir}: claims.json entry #{index} is not a curated claim"
             )
-        candidate = Candidate(
-            text=entry["text"],
-            span=CharSpan(entry["start"], entry["end"]),
-            context=entry["context"],
-            section_hint=SECTION_OTHER,
-        )
-        result = admit(candidate, normalized_text=normalized, metric=entry["metric"])
+        if not (
+            isinstance(entry["text"], str)
+            and isinstance(entry["metric"], str)
+            and isinstance(entry["source"], str)
+            and isinstance(entry["context"], str)
+            and isinstance(entry["start"], int)
+            and isinstance(entry["end"], int)
+        ):
+            raise ValueError(
+                f"record {record_dir}: claims.json entry #{index} has a wrong-typed field"
+            )
+        try:
+            candidate = Candidate(
+                text=entry["text"],
+                span=CharSpan(entry["start"], entry["end"]),
+                context=entry["context"],
+                section_hint=SECTION_OTHER,
+            )
+            result = admit(candidate, normalized_text=normalized, metric=entry["metric"])
+        except (TypeError, AttributeError, KeyError, IndexError) as exc:
+            raise ValueError(
+                f"record {record_dir}: claims.json entry #{index} is malformed: {exc!r}"
+            ) from None
         if isinstance(result, NonClaim):
             raise ValueError(
                 f"record {record_dir}: claim {entry['metric']!r} does not re-admit: "

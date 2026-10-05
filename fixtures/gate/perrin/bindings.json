@@ -1,0 +1,196 @@
+{
+ "bindings": [
+  {
+   "claim_id": "e3449098c33051ad9cbfe87db0e72db9cc7ff12a59f2a4f204b613c824ec269d",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p20.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "Univariate interaction"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "3a06fd6b082b7a3acabf0bafa33b7ebed2fc0eb53f32e82913714be04249df3e",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p100.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "Univariate interaction"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "3cd9114ebc0b2d9fe7fa836befb37e8860ed62f5847a45b25bff1524b8b8c527",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p20.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "Univariate t_test"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "71a1b225613e76f966dc3122696eb44864a224750f8e5771e51b13411c7c8c5b",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p100.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "Univariate t_test"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "18b2a3e141b187d813f5e2a99e78aae8f1d9b30693068a23964a9c5cbdc139b0",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p20.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "Multivariate cox"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "91b845a9b8b806c3674debcef768b21b51897f62413140b136d1d9dd62fd3e07",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p100.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "Multivariate cox"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "a4a3fe88de7000a7c68a9c883ba24687981d0df435685c1393f4ffdcef3f19da",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p20.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "Multivariate tree"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "aa88d1ebd67ae8b9c0ed7745482762eccd0b76849b8afca61a38f7cae3be19cc",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p100.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "Multivariate tree"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "064864b8b968c5f4b0d670c440e82cadbe0e09047c5c81c16508b63c379577c7",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p20.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "MOB"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "28a3920acf5ffacaa0eb4fa9ee733c31125ea4f9ccf14a30936a185d98d6dcc5",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p100.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "MOB"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "a99aba35acb2a360c0b93c1be9f99b52bb912a1903c14eb9bc574fa4cf857179",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p20.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "ITree"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "7041da0b261c7d85ce3b41599ca7bbfa8d28edb7a338d17305419ce9cee5cde7",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p100.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "ITree"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "4c7b0f277399d22afa3efe45a0a72209f8f4e8d730f3c1b0c51ca9aa94cb5d67",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p20.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "ARDP"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "b2e9d9fefe605a85e5451287032640c3288a8d3bd9efe8483d032d6c1727d5b6",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p100.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "ARDP"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "9a2c6da6c243219974052beba56d6c443abe2bb64b353aeba24f098700b501c8",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p20.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "SIDES"
+    }
+   },
+   "float_repr": true
+  },
+  {
+   "claim_id": "c1b84d1c879d5a09383e27c8f82101052f81f38c2cae6c9115b2f4859eafd886",
+   "artifact": "hte/experiments/results_expe/reduced/type1_p20.csv",
+   "locator": {
+    "kind": "csv_cell",
+    "column": "thresh_pval",
+    "row": {
+     "method": "SeqBT"
+    }
+   },
+   "float_repr": true
+  }
+ ]
+}
