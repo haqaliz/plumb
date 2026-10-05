@@ -222,10 +222,13 @@ model cannot hand you for free.
 content-addressed, write-once, replay-validated case under gitignored `corpus/local/`;
 `plumb verify --bank` (2026-10-02, `cross-paper-coverage`) closes the live loop. The
 **R1 measurement exists (2026-10-02)**: the bank holds **2 cases, 102 claims, 102 bound,
-88 `REPRODUCED`, 14 `DIVERGED`, 0 `UNVERIFIED`** — AgroDesign (86: 85/1) and **Perrin**
-(arXiv:2401.11842, 16: 3/13 — the paper's own code at the pinned rev contradicts 13 of
-the 16 verified Table 1 type-I-error rates; `review_required` on all 13, owner review
-2026-10-02: confirmed genuine; precision/recall 14/14 `(owner)`). A fixed-rule panel
+87 `REPRODUCED`, 15 `DIVERGED`, 0 `UNVERIFIED`, precision/recall `1/15 (owner)`** —
+AgroDesign (86: 85/1; its one confirmed `DIVERGED` is the only confirmed discrepancy) and
+**Perrin** (arXiv:2401.11842, 16 claims; this run 2/14 — the artifact is **not
+run-to-run reproducible at the paper's written precision** (three full runs, values
+moved up to 0.017, four verdict flips; unseeded worker RNG; binomial noise ~0.005–0.010
+vs written precision 0.001), so the review **refuted all 14 flagged divergences** — a
+reproducibility finding, not a paper error). A fixed-rule panel
 search probed 4 candidates and found 1 additional runnable paper (3 documented misses:
 software papers without numbers, figure-dominant results — evidence in
 `fixtures/gate/perrin/README.md` and

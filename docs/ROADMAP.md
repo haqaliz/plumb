@@ -45,15 +45,17 @@ off by default. Publish the method.
   `--run-dir` knobs, and the method write-up.
 - **Status (2026-10-02):** the R1 measurement exists. `plumb verify --bank`
   closes the verify→corpus loop (`cross-paper-coverage`); the corpus holds **2 cases,
-  102 claims, 102 bound, 88 `REPRODUCED`, 14 `DIVERGED`, 0 `UNVERIFIED`** —
-  AgroDesign (86: 85/1) and **Perrin, arXiv:2401.11842** (16: 3/13 — the paper's own
-  code at the pinned rev contradicts 13 of the 16 verified Table 1 type-I-error rates;
-  drift cross-check inconclusive by construction on this machine, all 13
-  `review_required`, **owner review 2026-10-02: all 13 confirmed genuine**
-  (`fixtures/gate/perrin/README.md`); precision/recall 14/14 `(owner)` on the two
-  confirmed cases). The panel search — a fixed rule written before selection, 4
-  candidates probed end-to-end — produced **1 additional runnable paper** and 3
-  documented misses: software papers carry no numbers in the paper (Pingouin,
+  102 claims, 102 bound, 87 `REPRODUCED`, 15 `DIVERGED`, 0 `UNVERIFIED`, precision/recall
+  `1/15 (owner)`** — AgroDesign (86: 85/1; its one confirmed `DIVERGED` is the only
+  confirmed discrepancy) and **Perrin, arXiv:2401.11842** (16: this run 2/14; **the
+  artifact is not run-to-run reproducible at the paper's written precision** — three full
+  runs gave different values for every claim (spread up to 0.017, four verdict flips)
+  because the survival draws use unseeded worker RNG; the binomial sampling noise
+  (~0.005–0.010) exceeds the written precision (0.001), so the review **refuted all 14
+  flagged divergences** — a reproducibility finding, not a paper error;
+  `fixtures/gate/perrin/README.md`). The panel search — a fixed rule written before
+  selection, 4 candidates probed end-to-end — produced **1 additional runnable paper**
+  and 3 documented misses: software papers carry no numbers in the paper (Pingouin,
   tableone), figure-dominant results are unreachable by the locator types (Tensorpac).
   Perrin's environment needed **recorded drift** — the paper-era boundary cannot build
   qdldl on this machine, so the earliest buildable boundary (2024-06-18) is used.
@@ -62,8 +64,7 @@ off by default. Publish the method.
   number itself**: the runnable-paper space is thin (consistent with ~3.2% notebook
   reproduction), and growing the panel is blocked by named engine gaps — notebook-cell
   capture (C3), a poetry env policy (C2), figure-with-data locators. Remaining:
-  `--timeout-seconds` / `--run-dir` knobs, the method write-up, and the owner review of
-  Perrin's 13 `DIVERGED`s (labels) before they count in precision.
+  `--timeout-seconds` / `--run-dir` knobs and the method write-up.
 
 ## Phase 2 — Corpus + benchmark + no-code path (months 2–3)
 
