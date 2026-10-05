@@ -14,11 +14,12 @@ never carries verdicts it did not derive itself, the same rule `build_bundle`
 holds (`src/plumb/bundle/build.py:78`).
 
 **`objects/` carries exactly `Capture.locatable`.** stderr is captured by C3
-for diagnosis and marked `diagnostic_only` (`src/plumb/run/capture.py:109-112`),
-but it may carry local paths and no claim may ever bind to it, so it is never
-copied: the record's bytes contain no path that leaves the run area, an
-invariant `tests/gate/test_agrodesign_replay.py:88-93` pins for bundles and
-this module keeps for records.
+for diagnosis and marked `diagnostic_only` (`src/plumb/run/capture.py:109-112`)
+and is **never copied** — no claim may ever bind to it, and it may carry local
+paths. Locatable outputs are the run's own fresh artifacts, copied verbatim by
+content address; a run whose own output embeds a path would say so in its own
+bytes (the pinned invariant this module keeps is stderr-free records, plus
+"nothing outside `record_dir` is ever written").
 
 **`claims.json` is the serialized C1 form** — `serialize_claims` under
 `hash_paper` of the paper's own text, the same call `build_bundle` makes —

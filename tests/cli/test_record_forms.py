@@ -105,3 +105,28 @@ class TestAC1RecordWhosePaperChangedIsRefused:
         (record / "paper.md").write_bytes(b"# Synthetic paper\n\nAUC was 0.88.\n")
         with pytest.raises(ValueError, match="paper_hash"):
             read_record(record)
+
+class TestAWrongTypedCuratedEntryIsRefused:
+    """Review fix: wrong-typed fields in a curated entry are `ValueError`
+    (`RECORD_INVALID`), never a `TypeError` that surfaces as `SPINE_ERROR`."""
+
+    def test_a_string_span_is_refused_by_read_record(self, tmp_path: Path) -> None:
+        record = record_dir(tmp_path)
+        document = json.loads((record / "claims.json").read_bytes())
+        document["claims"][0]["start"] = "5"
+        _rewrite_json(record / "claims.json", document)
+        with pytest.raises(ValueError, match="wrong-typed field"):
+            read_record(record)
+
+    def test_a_string_span_is_record_invalid_through_the_cli(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        record = record_dir(tmp_path)
+        document = json.loads((record / "claims.json").read_bytes())
+        document["claims"][0]["start"] = "5"
+        _rewrite_json(record / "claims.json", document)
+        code = main(["verify", "--from-record", str(record), "--json"])
+        captured = capsys.readouterr()
+        assert code == 1
+        assert captured.err.startswith(f"plumb verify: {RECORD_INVALID}: ")
+        assert "Traceback" not in captured.err

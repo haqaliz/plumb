@@ -129,6 +129,18 @@ def run_once(workdir: Path, claims, *, boundary: str | None):
     return checkout, descriptor, trace, capture, verdicts, freeze(python)
 
 
+def _verdict_key(v) -> str:
+    """The claim id of a `Verdict` object or a committed verdicts.json entry."""
+    return v["claim_id"] if isinstance(v, dict) else v.claim_id
+
+
+def _verdict_triple(v) -> tuple:
+    """`(verdict, cause, located_text)` of a `Verdict` object or a committed entry."""
+    if isinstance(v, dict):
+        return (v["verdict"], v["cause"], v["located_text"])
+    return (v.verdict, v.cause, v.located_text)
+
+
 def _drift_report(
     root: Path, claims, metrics, verdicts_a, trace_a, run_id_a, env_a_text,
 ) -> dict:
@@ -169,14 +181,14 @@ def _drift_report(
             "verdicts_changed": None,
             "inconclusive": True,
         }
-    a = {v.claim_id: v for v in verdicts_a}
-    b = {v.claim_id: v for v in verdicts_b.verdicts}
+    a = {_verdict_key(v): _verdict_triple(v) for v in verdicts_a}
+    b = {_verdict_key(v): _verdict_triple(v) for v in verdicts_b.verdicts}
     changed = [
         {"claim_id": cid, "metric": metrics[cid],
-         "recorded": [a[cid].verdict, a[cid].cause, a[cid].located_text],
-         "other": [b[cid].verdict, b[cid].cause, b[cid].located_text]}
+         "recorded": list(a[cid]),
+         "other": list(b[cid])}
         for cid in sorted(a)
-        if (a[cid].verdict, a[cid].cause) != (b[cid].verdict, b[cid].cause)
+        if a[cid] != b[cid]
     ]
     return {
         "older_environment": {
@@ -231,8 +243,9 @@ def main() -> int:
             f"# resolved by uv pip install --exclude-newer {EXCLUDE_NEWER} "
             f"(policy {descriptor.policy!r}: {descriptor.policy_detail}) on the pinned "
             f"checkout {REV}; poetry.lock is unreadable by modern uv and the paper-era "
-            f"boundary (2024-01-23) cannot build qdldl on this toolchain; python pin "
-            f"{descriptor.python_pin!r} ({descriptor.python_pin_source}); tools: "
+            f"boundary (2024-01-23) cannot build qdldl on this toolchain; descriptor "
+            f"python pin {descriptor.python_pin!r} ({descriptor.python_pin_source}); "
+            f"interpreter built {PYTHON_PIN}; tools: "
             + ", ".join(f"{k}={v}" for k, v in descriptor.tool_versions) + "\n"
         )
         (FIXTURE / "environment.txt").write_text(header + env, encoding="utf-8")

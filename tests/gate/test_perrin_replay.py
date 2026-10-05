@@ -130,7 +130,7 @@ _TALLY: Counter = Counter({REPRODUCED: 2, DIVERGED: 14})
 def test_a_divergence_would_be_documented_with_its_tension() -> None:
     # The probe found the repo's own committed type-I-error CSVs disagree with the printed
     # Table 1 on several cells. The fresh run at the pinned rev reproduces some paper
-    # values (3 REPRODUCED) and contradicts others (13 DIVERGED) — the verdicts decide,
+    # values (2 REPRODUCED) and contradicts others (14 DIVERGED) — the verdicts decide,
     # and the M4a drift cross-check is recorded in drift.json. On this machine the drift
     # is INCONCLUSIVE by construction (the alternate envs cannot run the pipeline:
     # current resolve breaks lifelines/scipy, the paper-era boundary cannot build qdldl) —

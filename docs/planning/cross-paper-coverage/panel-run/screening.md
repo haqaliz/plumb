@@ -258,10 +258,12 @@ The JOSS review thread and HTML page were checked; both confirm the summary-only
   rev 76ce145 (last commit before the 2024-01-22 submission); data fully synthetic or
   bundled (DGP + committed ARR grids + committed semi-synthetic pool — nothing
   downloaded at run time); headline numbers ARE machine-readable (Tables 1-4, pipe
-  tables, main text); seeding confirmed (`np.random.seed(42)` at launch and import;
-  per-repetition seeds from the seeded parent RNG); deterministic across five probe runs
-  on this 14-core machine (draw order inside joblib workers may differ by core count —
-  recorded limit). **Env drift (recorded, not assumed away):** poetry project, modern uv
+  tables, main text); seeding confirmed (`np.random.seed(42)` at launch and import) —
+  but **NOT run-to-run deterministic at full scale**: three full runs gave different
+  values for every claim (spread up to 0.017; four verdict flips) because worker-side
+  draws depend on scheduling. The earlier probe's "byte-identical across five probe
+  runs" note was a small-slice artifact and is falsified; see
+  `fixtures/gate/perrin/README.md` (The finding). **Env drift (recorded, not assumed away):** poetry project, modern uv
   cannot read poetry.lock (empty `uv sync` — engine gap, below); the paper-era boundary
   (2024-01-23) cannot build qdldl 0.1.7.post0 (osqp ← scikit-survival: no arm64 wheel,
   sdist needs a generated header). The run therefore builds at the **earliest buildable

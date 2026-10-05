@@ -40,3 +40,13 @@ are recorded as follow-ons.
 4. Nothing overclaims: no paper count, coverage rate, or precision figure beyond what the
    bank and the screening note evidence; `UNVERIFIED`/selection-miss language is honest.
 5. `uv run pytest -q` stays green (docs-only change).
+
+## Revision (2026-10-02, after the Perrin review was revised)
+
+The problem slice above ("0 additional runnable papers") was superseded the same day: Perrin
+passed the panel and its three-run evidence changed the review outcome twice. The shipped
+state is recorded in `docs/ROADMAP.md` and `fixtures/gate/perrin/README.md`: 2 cases,
+102 claims, 102 bound, 87 `REPRODUCED`, 15 `DIVERGED`, precision/recall `1/15 (owner)` —
+Perrin's 14 flagged divergences were **refuted** (the artifact is not run-to-run
+reproducible at the paper's written precision). Acceptance criterion 1's "1 case" wording
+is historical; the corrected numbers live in the docs cited above.

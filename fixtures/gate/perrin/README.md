@@ -26,6 +26,12 @@ C3 run → C4 bind & verdict). Planning and screening: `docs/planning/cross-pape
 | `unrepresentable.json` | members of the rule that do not become claims, each with the reason | `tools/perrin_spec.py` |
 | `bindings.json` | one binding per claim | `tools/perrin_spec.py` |
 | `source.json` | the `SourceRecord` the code was resolved from (for `--out` bundle rebuilds; `plumb verify --from-record` reads it) | hand-written, rev pinned at probe time |
+| `trace.json` | the C3 `RunTrace` (pinned git tree, argv, artifacts, stale inputs) | `tools/perrin_gate_run.py` |
+| `objects/` | the locatable captured outputs (the run's own reduced type-I tables, by SHA-256) — intermediates pruned by the driver before exit | `tools/perrin_gate_run.py` |
+| `verdicts.json` | the C4 verdict set for the recorded run (2 `REPRODUCED`, 14 `DIVERGED`) | `tools/perrin_gate_run.py` |
+| `environment.txt` | the resolved environment freeze + the C2 descriptor header (see the interpreter note in Known deviations) | `tools/perrin_gate_run.py` |
+| `drift.json` | the M4a cross-check record — `"inconclusive": true` (no second runnable env on this machine), path-free | `tools/perrin_gate_run.py` |
+| `labels.json` | the owner review: all 14 `DIVERGED` ids marked `refuted` — transported by the bank, never created by the engine | owner (delegated), 2026-10-02 |
 
 ## The claim rule (fixed before any run or binding, 2026-10-03)
 
@@ -85,8 +91,10 @@ CSVs are never read (stale, `CLAUDE.md` #5).
   (`--exclude-newer 2024-01-23`, the M4a pattern) cannot build either: `qdldl 0.1.7.post0`
   (via osqp ← scikit-survival) has no macOS arm64 wheel and its sdist fails to compile
   on this toolchain (missing generated header, even with CMake 4.4.3 installed). The
-  environment is therefore resolved at **`--exclude-newer 2024-06-18`** (Python 3.10;
-  qdldl 0.1.7.post3 is the first arm64-wheel release, 2024-06-17) — the earliest
+  environment is therefore resolved at **`--exclude-newer 2024-06-18`** with Python 3.10
+  (the runner's explicit pin; the C2 descriptor's *declared* pin is 3.11-by-default, and
+  `environment.txt` records both — `qdldl 0.1.7.post3` is the first arm64-wheel release,
+  2024-06-17) — the earliest
   boundary this machine can build. Recorded as drift, not assumed away (M4a).
 - **Output naming**: the pipeline names its CSVs with a wall-clock timestamp
   (`..._<MONTH>_<DAY>_<YEAR>_<TIME>.csv`). The driver copies each fresh CSV to a

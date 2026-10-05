@@ -126,26 +126,38 @@ def run_live(args: argparse.Namespace) -> int:
 
 
 def _run_live(args: argparse.Namespace, record_dir: Path | None) -> int:
-    """Render the verdicts, then (with `--bank`) bank the record; decide the exit code."""
-    verdicts, run_failure, record = _spine(args, record_dir=record_dir)
+    """Render the verdicts, then (with `--bank`) write and bank the record.
+
+    The record is written only after the verdicts are on stdout, so no
+    record-side I/O failure — and no bank refusal — can suppress the verdict
+    table; the failure still decides the exit code (1) with a named cause line.
+    """
+    verdicts, run_failure, materials = _spine(args, record_dir=record_dir)
     sys.stdout.buffer.write(render_verdicts(verdicts, json=args.json))
     sys.stdout.buffer.flush()
     if run_failure is not None:
         cause, detail = run_failure
         print(f"plumb verify: {cause}: {detail}", file=sys.stderr)
     banked = True
-    if record is not None:
-        banked = bank_for_verify(record)
+    if materials is not None:
+        try:
+            record = write_record(**materials)
+        except OSError as exc:
+            banked = False
+            print(f"plumb verify: SPINE_ERROR: could not write the record: {exc}", file=sys.stderr)
+        else:
+            banked = bank_for_verify(record)
     decided = all(v.verdict != UNVERIFIED for v in verdicts.verdicts)
     return 0 if decided and banked else 1
 
 
 def _spine(args: argparse.Namespace, record_dir: Path | None = None):
-    """The ordered spine; returns `(VerdictSet, run-level (cause, detail) | None, record | None)`.
+    """The ordered spine; returns `(VerdictSet, run-level (cause, detail) | None, materials)`.
 
-    `record_dir` is the directory the record is written to when `--bank` was
-    given (and the run happened — a run that never started has no trace to
-    bank); the record is returned so the caller can bank it after rendering.
+    `materials` is `None`, or the `write_record` keyword arguments (including
+    `record_dir`) the caller uses to write the record **after rendering** when
+    `--bank` was given and the run happened — a run that never started has no
+    trace to bank.
     """
     paper_bytes, paper_format, paper_text = _read_paper(Path(args.paper))
     claims, _ = extract_claims(paper_text)
@@ -179,8 +191,8 @@ def _spine(args: argparse.Namespace, record_dir: Path | None = None):
                       environment=descriptor.to_text(), checkout=checkout)
     record = None
     if record_dir is not None:
-        record = write_record(
-            record_dir, claims=claims, bindings_bytes=bindings_bytes, trace=trace,
+        record = dict(
+            record_dir=record_dir, claims=claims, bindings_bytes=bindings_bytes, trace=trace,
             capture=capture, paper_bytes=paper_bytes, paper_format=paper_format,
         )
     return verdicts, _trace_failure(trace), record

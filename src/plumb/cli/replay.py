@@ -228,13 +228,29 @@ def _admit_record_claims(document: dict, record_dir: Path, normalized: str):
             raise ValueError(
                 f"record {record_dir}: claims.json entry #{index} is not a curated claim"
             )
-        candidate = Candidate(
-            text=entry["text"],
-            span=CharSpan(entry["start"], entry["end"]),
-            context=entry["context"],
-            section_hint=SECTION_OTHER,
-        )
-        result = admit(candidate, normalized_text=normalized, metric=entry["metric"])
+        if not (
+            isinstance(entry["text"], str)
+            and isinstance(entry["metric"], str)
+            and isinstance(entry["source"], str)
+            and isinstance(entry["context"], str)
+            and isinstance(entry["start"], int)
+            and isinstance(entry["end"], int)
+        ):
+            raise ValueError(
+                f"record {record_dir}: claims.json entry #{index} has a wrong-typed field"
+            )
+        try:
+            candidate = Candidate(
+                text=entry["text"],
+                span=CharSpan(entry["start"], entry["end"]),
+                context=entry["context"],
+                section_hint=SECTION_OTHER,
+            )
+            result = admit(candidate, normalized_text=normalized, metric=entry["metric"])
+        except (TypeError, AttributeError, KeyError, IndexError) as exc:
+            raise ValueError(
+                f"record {record_dir}: claims.json entry #{index} is malformed: {exc!r}"
+            ) from None
         if isinstance(result, NonClaim):
             raise ValueError(
                 f"record {record_dir}: claim {entry['metric']!r} does not re-admit: "

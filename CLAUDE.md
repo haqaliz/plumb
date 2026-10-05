@@ -35,8 +35,7 @@ fixed-layout verdict table or canonical JSON (byte-identical across invocations)
 signed bundle with `--out` that `verify_bundle` accepts, and banks the run into the
 discrepancy corpus with `--bank` (2026-10-02: the live loop is closed; `corpus bank|report`
 fold records in and pool coverage/precision/recall with denominators and label-authority
-markers — the corpus holds case #1, AgroDesign 86/86 bound, 85 `REPRODUCED`, 1 `DIVERGED`,
-precision/recall 1/1 `(owner)`). Exit 0 iff every claim decided; 1 on
+markers — the corpus holds 2 cases (details in the R1 note below). Exit 0 iff every claim decided; 1 on
 any `UNVERIFIED` or named cause (`RECORD_INVALID`, `KEY_MISSING`, `BUNDLE_REFUSED`, ...); 2 on
 usage; never a traceback, never `DIVERGED` on a harness failure. The AgroDesign record replays
 through the CLI: 86 claims, 85 `REPRODUCED`, 1 `DIVERGED`, `--json` byte-identical to the
