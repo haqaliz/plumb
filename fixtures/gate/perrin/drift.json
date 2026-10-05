@@ -1,0 +1,10 @@
+{
+ "inconclusive": true,
+ "older_environment": {
+  "exclude_newer": null,
+  "note": "current resolve could not be built or resolved (TimeoutExpired); paper-era boundary (2024-01-23) cannot build qdldl 0.1.7.post0 on this machine",
+  "run_ok": false
+ },
+ "same_outputs": null,
+ "verdicts_changed": null
+}

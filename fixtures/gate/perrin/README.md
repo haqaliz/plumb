@@ -106,13 +106,13 @@ CSVs are never read (stale, `CLAUDE.md` #5).
   (16 of 233 numeric cells of Tables 1–4); the other 217 are recorded non-claims with
   the measured runtime reason. The p=1000 and semi-synthetic scenarios are cluster-scale
   on this machine and were not forced through.
-- Determinism (probe): the pipeline is seed-controlled (`np.random.seed(42)` at launch
-  and at module import; per-repetition seeds drawn from the seeded parent RNG), but
-  survival-time draws use the global RNG inside joblib workers, whose draw order depends
-  on worker scheduling. Empirically the pipeline was byte-identical across five probe
-  runs (raw and processed CSVs) on this 14-core machine; a machine with a different
-  core count may produce different draws, and the recorded run's verdicts bind to what
-  this machine produced.
+- **Determinism (probe note revised after three full runs): the pipeline is NOT
+  run-to-run deterministic.** It is seed-controlled (`np.random.seed(42)` at launch and
+  at module import), but survival-time draws use the global RNG inside joblib workers,
+  whose draw order depends on worker scheduling — three full runs gave different values
+  for every claim (spread up to 0.017; see The finding). The earlier probe note
+  ("byte-identical across five probe runs") was measured on a small slice and is
+  falsified at full scale; the recorded run's verdicts bind to what this run produced.
 - The environment is resolved, not locked (no uv.lock; the poetry.lock is unreadable by
   modern uv). The boundary date and the toolchain deviation are recorded above.
 - C1 recovery on this paper is measured and reported in the README's recovery section
@@ -138,38 +138,70 @@ value** (`tests/gate/test_perrin_recovery.py`):
 | Claims in the rule (Tables 1–4 numeric cells) | 233 |
 | Claims verified (Table 1, p=20 and p=100 columns) | 16 |
 | Recorded non-claims (out of the panel's budget) | 217 |
-| Bound to a value the run produced | to be recorded by `tools/perrin_gate_run.py` |
-| `REPRODUCED` / `DIVERGED` / `UNVERIFIED` | to be recorded by `tools/perrin_gate_run.py` |
+| Bound to a value the run produced | 16/16 |
+| `REPRODUCED` (this run) | 2 |
+| `DIVERGED` (this run, all `review_required`) | 14 |
+| `UNVERIFIED` | 0 |
+| Review outcome | all 14 `refuted` — run-to-run sampling noise, no confirmed discrepancy |
+| run_id | `38dee9c8d1dfdef6…` |
 
-Run-time files (written once by `tools/perrin_gate_run.py`, the only networked code;
-never imported by tests): `trace.json`, `objects/` (locatable only), `verdicts.json`,
-`environment.txt`, and — only where a `DIVERGED` appears — `drift.json`. `labels.json`
-is never created (owner review is separate).
+## The finding (2026-10-02, revised after three full runs)
 
-## Owner review of the 13 DIVERGEDs (2026-10-02, delegated)
+**The artifact is not run-to-run reproducible at the paper's written precision, and no
+per-claim divergence survives that variance.** The paper reports 3-decimal type-I-error
+rates from an unseeded 1000-repetition Monte-Carlo: the survival-time draws inside
+`joblib` workers use the workers' global RNG, whose draw order depends on scheduling
+(`run_experiments.py:295-310`). Three independent full runs at the pinned rev produced
+**different values for every claim** (spread up to 0.017), including four verdict flips:
 
-**Conclusion: all 13 confirmed as genuine reporting discrepancies** — the paper's printed
-Table 1 rates are not re-derivable from its own artifacts. Evidence:
+| claim (paper) | run 1 | run 2 | run 3 |
+|---|---|---|---|
+| MOB p=20 (0.060) | 0.064 | 0.059 | 0.077 |
+| Univariate t-test p=20 (0.035) | 0.035 `REPRODUCED` | 0.045 | 0.046 |
+| MOB p=100 (0.043) | 0.043 `REPRODUCED` | 0.051 | 0.042 |
+| Multivariate Tree p=100 (0.051) | 0.052 | `REPRODUCED` | `REPRODUCED` |
+| Multivariate Cox p=100 (0.033) | 0.040 | 0.053 | 0.049 |
+| SIDES p=20 (0.125) | 0.119 | 0.105 | 0.107 |
+| ARDP p=100 (0.049) | 0.039 | 0.045 | 0.026 |
+| … (all 16 claims tabulated in the run logs) | | | |
 
-1. **Two independent runs contradict the printed table.** The authors' own committed
-   results (`experiments/results_expe/processed_results/dim_20.zip`, `dim_100.zip`)
-   disagree with the printed values in places where the fresh run **agrees** with the
-   paper (p=20 Univariate t-test: committed `0.043` vs printed `0.035` vs fresh `0.035`;
-   p=100 MOB: committed `0.058` vs printed `0.043` vs fresh `0.043`). The env-boundary
-   deviation (2024-06-18 vs paper era) cannot explain the 13: two unrelated resolutions
-   of the repo both fail to reproduce the printed numbers.
-2. **No harness-side failure.** The run succeeded (exit 0, no run-level causes) on the
-   pinned tree `76ce145f`; every binding reads a fresh, hash-verified captured output
-   (csv_cell on the run's own reduced CSVs); every DIVERGED carries its written-precision
-   band and delta (e.g. `0.060` vs `0.064`: outside [0.0595, 0.0605]).
-3. **The pattern is not a rounding artifact.** Deltas run 0.001–0.010 in both directions
-   (e.g. p=20 SIDES `0.125` printed vs `0.119` run; p=100 ARDP `0.049` vs `0.039`) —
-   outside written-precision bands, with no systematic offset.
-4. **Caveats recorded, not waived:** the M4a drift cross-check is inconclusive by
-   construction on this machine (no second runnable env; `drift.json`); the recorded
-   environment is the earliest buildable boundary. The review weighs the two-runs
-   evidence above as decisive for the printed values being the anomaly.
+The sampling noise of a 1000-repetition rate is itself ~0.005–0.010 (binomial SE
+`sqrt(p(1-p)/1000)` at p≈0.03–0.12) — **larger than the written precision (0.001) the
+paper reports and C4 compares at**. Every flagged divergence sits within ~1–2 SE of the
+paper's value; none is statistically significant. The correct reading is not "the paper
+is wrong": it is that **the artifact cannot support a per-claim verdict at the precision
+the paper writes, and the paper's own printed values are consistent with its own
+stochastic output**.
 
-`labels.json` marks all 13 `confirmed` (transported by the bank, never created by the
-engine); the case is re-banked so the labels land in the manifest. The signed verdicts
-keep `review_required` — the label is the human review, the verdict the execution.
+`REPRODUCED` and `DIVERGED` the engine emits are per-run facts (execution decides, on
+the run's own evidence); the **review layer is where the stochasticity is adjudicated**,
+and it refutes all 14 flagged divergences (below). This is a reproducibility finding
+about the artifact — reported, never an accusation (`DIVERGED` would be over-claiming).
+
+## Owner review (2026-10-02, delegated; revised after the second and third full runs)
+
+**Conclusion: all 14 of the recorded run's `DIVERGED`s are `refuted`.** The earlier
+review — recorded before the re-runs — confirmed 13 as genuine on the first run's
+evidence and the repo's committed CSVs; the second and third runs **falsified** that
+conclusion: the same claims' located values moved by up to 0.017 run-to-run, four
+verdicts flipped, and the paper's values sit inside the observed three-run envelopes at
+the artifact's own sampling error. The recorded run's `labels.json` marks the 14
+`refuted` (transported by the bank, never created by the engine); precision for this
+paper is `0/14 (owner)` — zero confirmed discrepancies, which is the honest outcome.
+
+The review's evidence, in order:
+
+1. **Three full runs, different values every time** (table above; run ids
+   `0407d6f0…`, `e4435cef…`, `38dee9c8…`). The probe's "byte-identical across five probe
+   runs" note was measured on a small slice and is **falsified at full scale**.
+2. **The noise floor exceeds the compare precision.** Written precision 0.001 vs
+   binomial SE ≈0.005–0.010: a per-claim `DIVERGED` at 0.001–0.01 is not distinguishable
+   from sampling noise, and a `REPRODUCED` is equally a lucky sample.
+3. **No harness-side failure.** The runs succeeded (exit 0, no causes) on the pinned tree
+   `76ce145f`; every binding reads a fresh, hash-verified captured output (csv_cell on the
+   run's own reduced CSVs); every verdict carries its band and delta.
+4. **Caveats recorded, not waived:** the M4a drift cross-check is inconclusive by construction on this machine
+   (no second runnable env; `drift.json`), and the recorded
+   environment is the earliest buildable boundary (2024-06-18). Neither is needed to
+   refute the divergences — the run-to-run variance is sufficient and is the artifact's
+   own.

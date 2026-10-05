@@ -1,0 +1,9 @@
+method,thresh_pval
+ARDP,0.026
+ITree,0.014
+MOB,0.042
+Multivariate cox,0.049
+Multivariate tree,0.051
+Oracle,0.057
+Univariate interaction,0.01
+Univariate t_test,0.04
