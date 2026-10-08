@@ -2,9 +2,10 @@
 
 `capture_outputs(result)` turns a finished `RunResult` into a `Capture`:
 
-- **Artifacts** — stdout, stderr, and every ``.json``/``.csv`` file in the
-  run's working copy that the run wrote. Each is hashed (SHA-256) and its
-  bytes are copied into the run's object store at
+- **Artifacts** — stdout, stderr, and every ``.json``/``.csv``/``.ipynb``
+  file in the run's working copy that the run wrote. A notebook is one
+  whole-file artifact, never decomposed into cells. Each is hashed (SHA-256)
+  and its bytes are copied into the run's object store at
   ``<run_dir>/objects/<sha256>``. `Capture.read` is the only way back to those
   bytes and it re-checks the hash, so what C4 binds against is exactly what
   was captured, whatever happens to the working copy afterwards.
@@ -43,6 +44,9 @@ __all__ = ["Artifact", "Capture", "StaleOutput", "capture_outputs"]
 #: File suffixes captured as structured outputs, mapped to the artifact kind.
 _OUTPUT_KINDS = {".json": "json", ".csv": "csv"}
 
+#: A notebook is captured as one whole file, without decomposing cells.
+_NOTEBOOK_SUFFIX = ".ipynb"
+
 STDOUT = "<stdout>"
 STDERR = "<stderr>"
 
@@ -51,7 +55,7 @@ STDERR = "<stderr>"
 class Artifact:
     """A captured output: what it is, where it came from, and its content address."""
 
-    kind: str  # "csv" | "json" | "stderr" | "stdout"
+    kind: str  # "csv" | "json" | "notebook" | "stderr" | "stdout"
     relpath: str  # posix path in the working copy, or "<stdout>" / "<stderr>"
     sha256: str
     size: int
@@ -118,7 +122,8 @@ def capture_outputs(result: RunResult) -> Capture:
             stale.append(StaleOutput(relpath, info.st_mtime_ns, info.st_size))
             continue
         data = path.read_bytes()
-        kind = _OUTPUT_KINDS[path.suffix.lower()]
+        suffix = path.suffix.lower()
+        kind = "notebook" if suffix == _NOTEBOOK_SUFFIX else _OUTPUT_KINDS[suffix]
         artifacts.append(Artifact(kind, relpath, stored(data), len(data), info.st_mtime_ns))
 
     files = [a for a in artifacts if a.mtime_ns is not None]
@@ -132,11 +137,13 @@ def capture_outputs(result: RunResult) -> Capture:
 
 
 def _output_files(workdir: Path) -> list[tuple[str, Path]]:
-    """Every regular ``.json``/``.csv`` under `workdir`, as (posix relpath, path)."""
+    """Every regular ``.json``/``.csv``/``.ipynb`` under `workdir`, as (posix relpath, path)."""
     found = []
     for dirpath, _dirnames, filenames in os.walk(workdir, followlinks=False):
         for name in filenames:
             path = Path(dirpath) / name
-            if path.suffix.lower() in _OUTPUT_KINDS and not path.is_symlink():
+            suffix = path.suffix.lower()
+            captured = suffix in _OUTPUT_KINDS or suffix == _NOTEBOOK_SUFFIX
+            if captured and not path.is_symlink():
                 found.append((path.relative_to(workdir).as_posix(), path))
     return sorted(found)

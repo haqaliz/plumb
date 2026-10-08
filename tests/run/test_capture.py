@@ -32,6 +32,7 @@ from plumb.run.runner import run_entrypoint
 
 OK_BUILD = EnvBuild(ok=True, policy="best-effort", detail="stub")
 COMMITTED = b'{"auc": 0.87, "note": "committed, not produced by this run"}'
+NOTEBOOK = b'{"cells": [], "nbformat": 4, "nbformat_minor": 5}'
 OLD = 1_000_000_000  # 2001-09-09, long before any run
 
 
@@ -48,6 +49,13 @@ def committed_checkout(tmp_path: Path):
     """A checkout carrying a committed result, back-dated like a real clone's."""
     checkout = make_checkout(tmp_path / "proj", {"results/out.json": COMMITTED})
     os.utime(checkout.checkout_dir / "results/out.json", (OLD, OLD))
+    return checkout
+
+
+def committed_notebook_checkout(tmp_path: Path):
+    """A checkout carrying a committed notebook, back-dated like a real clone's."""
+    checkout = make_checkout(tmp_path / "proj", {"analysis.ipynb": NOTEBOOK})
+    os.utime(checkout.checkout_dir / "analysis.ipynb", (OLD, OLD))
     return checkout
 
 
@@ -181,6 +189,57 @@ class TestTheFreshnessGuard:
         capture = capture_outputs(result)
         assert "at.json" in by_relpath(capture)
         assert [s.relpath for s in capture.stale] == ["before.json"]
+
+
+class TestNotebookCapture:
+    """A fresh `.ipynb` is one whole-file artifact; a stale one is never read."""
+
+    def test_a_fresh_notebook_is_captured_whole_with_its_hash(self, tmp_path: Path) -> None:
+        result = run(tmp_path, f"open('analysis.ipynb', 'w').write({NOTEBOOK.decode()!r})")
+        capture = capture_outputs(result)
+        artifact = by_relpath(capture)["analysis.ipynb"]
+        assert artifact.kind == "notebook"
+        assert artifact.sha256 == hashlib.sha256(NOTEBOOK).hexdigest()
+        assert artifact.size == len(NOTEBOOK)
+        assert artifact.mtime_ns is not None
+        assert capture.read(artifact) == NOTEBOOK
+
+    def test_a_committed_notebook_is_stale_and_never_stored(self, tmp_path: Path) -> None:
+        result = run(tmp_path, "print('ok')", checkout=committed_notebook_checkout(tmp_path))
+        capture = capture_outputs(result)
+        assert "analysis.ipynb" not in by_relpath(capture)
+        assert capture.stale == (
+            StaleOutput(relpath="analysis.ipynb", mtime_ns=OLD * 10**9, size=len(NOTEBOOK)),
+        )
+        assert NOTEBOOK not in stored_blobs(result)
+        assert hashlib.sha256(NOTEBOOK).hexdigest() not in {
+            path.name for path in (result.run_dir / "objects").iterdir()
+        }
+
+    def test_the_freshness_boundary_is_strict_for_notebooks(self, tmp_path: Path) -> None:
+        result = run(
+            tmp_path,
+            "open('at.ipynb', 'w').write('{}'); open('before.ipynb', 'w').write('{}')",
+        )
+        start = result.started_at_ns
+        os.utime(result.workdir / "at.ipynb", ns=(start, start))
+        os.utime(result.workdir / "before.ipynb", ns=(start - 1, start - 1))
+        capture = capture_outputs(result)
+        assert by_relpath(capture)["at.ipynb"].kind == "notebook"
+        assert [s.relpath for s in capture.stale] == ["before.ipynb"]
+
+    def test_a_committed_notebook_the_run_rewrites_is_fresh(self, tmp_path: Path) -> None:
+        rewritten = b'{"cells": [{"cell_type": "code"}], "nbformat": 4}'
+        result = run(
+            tmp_path,
+            f"open('analysis.ipynb', 'w').write({rewritten.decode()!r})",
+            checkout=committed_notebook_checkout(tmp_path),
+        )
+        capture = capture_outputs(result)
+        assert capture.stale == ()
+        artifact = by_relpath(capture)["analysis.ipynb"]
+        assert artifact.kind == "notebook"
+        assert capture.read(artifact) == rewritten
 
 
 class TestNoArtifact:
