@@ -8,6 +8,7 @@ anything that is not a trace this serializer wrote is refused.
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import sys
@@ -46,6 +47,38 @@ def trace_of(tmp_path: Path, program: str, files: dict[str, bytes] | None = None
 )
 def test_the_round_trip_is_the_identity(tmp_path: Path, program: str, files) -> None:
     trace = trace_of(tmp_path, program, files)
+    data = serialize_trace(trace)
+    assert parse_trace(data) == trace
+    assert serialize_trace(parse_trace(data)) == data
+
+
+def test_the_round_trip_is_the_identity_over_notebook_artifacts(tmp_path: Path) -> None:
+    outputs = [{"output_type": "stream", "name": "stdout", "text": "AUC = 0.91\n"}]
+    notebook = json.dumps(
+        {
+            "cells": [
+                {"cell_type": "markdown", "metadata": {}, "source": ["# Analysis"]},
+                {
+                    "cell_type": "code",
+                    "execution_count": 1,
+                    "metadata": {},
+                    "outputs": outputs,
+                    "source": ["print('AUC = 0.91')"],
+                },
+            ],
+            "nbformat": 4,
+            "nbformat_minor": 5,
+        }
+    ).encode("utf-8")
+    program = (
+        "import pathlib; "
+        f"pathlib.Path('analysis.ipynb').write_bytes({notebook!r}); "
+        "print('AUC = 0.91')"
+    )
+    trace = trace_of(tmp_path, program)
+    by_relpath = {artifact.relpath: artifact.kind for artifact in trace.artifacts}
+    assert by_relpath["analysis.ipynb"] == "notebook"
+    assert by_relpath["analysis.ipynb#cell-1"] == "notebook_cell"
     data = serialize_trace(trace)
     assert parse_trace(data) == trace
     assert serialize_trace(parse_trace(data)) == data
