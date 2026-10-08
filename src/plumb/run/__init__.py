@@ -21,7 +21,7 @@ that cause recorded; none can ever produce `DIVERGED`:
 
 | Cause | Raised / recorded when | Future `UNVERIFIED` cause |
 |---|---|---|
-| `EntryPointMissing` (raised) | no explicit argv, and no `[project.scripts]` entry or root `main.py`; or an unreadable `pyproject.toml` | `ENTRYPOINT_MISSING` |
+| `EntryPointMissing` (raised) | no explicit argv, and no `[project.scripts]` entry, root `main.py`, or root notebook; or an unreadable `pyproject.toml` | `ENTRYPOINT_MISSING` |
 | `EntryPointAmbiguous` (raised) | more than one entry point discovered | `ENTRYPOINT_AMBIGUOUS` |
 | C2's `EnvBuildFailed` (raised) | the env build is missing or failed; nothing runs | `ENV_BUILD_FAILED` |
 | `WONT_RUN` (recorded) | the argv could not start, or exited non-zero | `WONT_RUN` |
@@ -31,8 +31,12 @@ that cause recorded; none can ever produce `DIVERGED`:
 
 **Offline contract.** Tests never touch the network: every entry point is the
 test interpreter running a local program, and the run env sets
-``UV_OFFLINE=1``. Notebook cell capture is a named follow-on (it needs
-nbconvert); resource caps beyond the timeout are recorded, not enforced.
+``UV_OFFLINE=1``. Notebook capture is built (2026-10-08): a root ``*.ipynb`` is
+the fallback entry point, executed through the checkout's own
+``jupyter nbconvert --execute --inplace``; each fresh notebook is captured
+whole-file (``notebook``) plus one ``notebook_cell`` artifact per output-bearing
+cell. The C4 ``notebook_cell`` locator is the named follow-on; resource caps
+beyond the timeout are recorded, not enforced.
 """
 
 from __future__ import annotations

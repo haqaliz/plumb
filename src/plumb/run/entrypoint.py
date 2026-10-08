@@ -7,13 +7,19 @@ the runner will execute, and records which rule chose it:
 - **``pyproject-script``** — exactly one `[project.scripts]` entry in the root
   `pyproject.toml`, run as ``uv run <name>``.
 - **``main.py``** — a root `main.py`, run as ``python main.py``.
+- **``notebook``** — a fallback only, and only when neither rule above yields
+  a candidate: exactly one root notebook, run as ``jupyter nbconvert --to
+  notebook --execute --inplace <path>``.
 
-Those are the only two discovery rules. More than one candidate is
-`EntryPointAmbiguous` and none is `EntryPointMissing`: Plumb never picks
-between candidates, because a guessed entry point is a wrong binding, and a
-wrong binding must end as `UNVERIFIED` rather than as a verdict on the wrong
-run. An unreadable `pyproject.toml` could be hiding a script, so it too is
-`EntryPointMissing` rather than a silent fall-through to `main.py`.
+More than one candidate is `EntryPointAmbiguous` and none is
+`EntryPointMissing`: Plumb never picks between candidates, because a guessed
+entry point is a wrong binding, and a wrong binding must end as `UNVERIFIED`
+rather than as a verdict on the wrong run. Notebooks are never mixed into the
+same pool as scripts and `main.py`: they are considered only when no script
+or `main.py` candidate exists, so a root notebook can never make an otherwise
+decidable checkout ambiguous. An unreadable `pyproject.toml` could be hiding
+a script, so it too is `EntryPointMissing` rather than a silent fall-through
+to `main.py` or a notebook.
 """
 
 from __future__ import annotations
@@ -34,7 +40,7 @@ class EntryPoint:
     """The exact argv to run, and the rule that chose it."""
 
     argv: tuple[str, ...]
-    source: str  # "explicit" | "pyproject-script" | "main.py"
+    source: str  # "explicit" | "pyproject-script" | "main.py" | "notebook"
 
 
 def resolve_entrypoint(
@@ -57,11 +63,27 @@ def resolve_entrypoint(
             )
     if manifests.main_py is not None:
         candidates.append(EntryPoint(argv=("python", "main.py"), source="main.py"))
+    if not candidates:
+        for notebook in manifests.notebooks:
+            candidates.append(
+                EntryPoint(
+                    argv=(
+                        "jupyter",
+                        "nbconvert",
+                        "--to",
+                        "notebook",
+                        "--execute",
+                        "--inplace",
+                        notebook.as_posix(),
+                    ),
+                    source="notebook",
+                )
+            )
 
     if not candidates:
         raise EntryPointMissing(
             f"no entry point in {checkout.checkout_dir}: no [project.scripts] "
-            "entry and no root main.py; pass one explicitly"
+            "entry, no root main.py, and no root notebook; pass one explicitly"
         )
     if len(candidates) > 1:
         found = "; ".join(" ".join(c.argv) for c in candidates)

@@ -48,6 +48,7 @@ ALL_MANIFESTS = {
     "environment.yml": b"name: demo\n",
     "Makefile": b"all:\n\techo hi\n",
     "main.py": b"print('hi')\n",
+    "analysis.ipynb": b'{"cells": []}\n',
 }
 
 
@@ -62,6 +63,7 @@ class TestScanManifests:
         assert scan.environment_yml == Path("environment.yml")
         assert scan.makefile == Path("Makefile")
         assert scan.main_py == Path("main.py")
+        assert scan.notebooks == (Path("analysis.ipynb"),)
 
     def test_reports_absence_as_none(self, tmp_path: Path) -> None:
         checkout_dir = make_checkout(tmp_path / "empty", {"notes.md": b"hi"})
@@ -72,14 +74,36 @@ class TestScanManifests:
         assert scan.environment_yml is None
         assert scan.makefile is None
         assert scan.main_py is None
+        assert scan.notebooks == ()
 
     def test_does_not_look_inside_subdirectories(self, tmp_path: Path) -> None:
         checkout_dir = make_checkout(
-            tmp_path / "proj", {"sub/pyproject.toml": b"[project]\n", "sub/uv.lock": b""}
+            tmp_path / "proj",
+            {"sub/pyproject.toml": b"[project]\n", "sub/uv.lock": b"", "sub/analysis.ipynb": b"{}\n"},
         )
         scan = scan_manifests(resolve_local(checkout_dir))
         assert scan.pyproject is None
         assert scan.uv_lock is None
+        assert scan.notebooks == ()
+
+    def test_notebooks_are_root_only(self, tmp_path: Path) -> None:
+        checkout_dir = make_checkout(
+            tmp_path / "proj",
+            {
+                "sub/analysis.ipynb": b'{"cells": []}\n',
+                ".ipynb_checkpoints/analysis.ipynb": b'{"cells": []}\n',
+            },
+        )
+        scan = scan_manifests(resolve_local(checkout_dir))
+        assert scan.notebooks == ()
+
+    def test_notebooks_are_sorted(self, tmp_path: Path) -> None:
+        checkout_dir = make_checkout(
+            tmp_path / "proj",
+            {"b.ipynb": b'{"cells": []}\n', "a.ipynb": b'{"cells": []}\n'},
+        )
+        scan = scan_manifests(resolve_local(checkout_dir))
+        assert scan.notebooks == (Path("a.ipynb"), Path("b.ipynb"))
 
     def test_requirements_globs_only_at_the_root(self, tmp_path: Path) -> None:
         checkout_dir = make_checkout(

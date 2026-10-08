@@ -2,9 +2,11 @@
 
 `scan_manifests(checkout)` records which dependency and entry-point manifests
 exist at the checkout root — `uv.lock`, `pyproject.toml`, `requirements*.txt`,
-`environment.yml`, `Makefile`, `main.py` — so C3 can later pick entry points.
-Manifests are read at the root only: a nested `pyproject.toml` is a different
-package and belongs to that project's own intake, not this checkout's.
+`environment.yml`, `Makefile`, `main.py`, `*.ipynb` — so C3 can later pick
+entry points and notebook capture can find candidate notebooks. Manifests are
+read at the root only: a nested `pyproject.toml` is a different package and
+belongs to that project's own intake, not this checkout's, and a nested
+notebook belongs to that subproject, not this checkout's.
 
 The scan is pure reading of the checkout tree: no network, no subprocess, no
 side effects. Absence is recorded as `None`/empty, never as a silent drop.
@@ -30,12 +32,14 @@ class ManifestScan:
     environment_yml: Path | None
     makefile: Path | None
     main_py: Path | None
+    notebooks: tuple[Path, ...]
 
 
 def scan_manifests(checkout: Checkout) -> ManifestScan:
-    """Record which manifests exist at the checkout root."""
+    """Record which manifests and root notebooks exist at the checkout root."""
     root = checkout.checkout_dir
     requirements = tuple(sorted(root.glob("requirements*.txt")))
+    notebooks = tuple(sorted(root.glob("*.ipynb")))
 
     def present(name: str) -> Path | None:
         path = root / name
@@ -48,4 +52,5 @@ def scan_manifests(checkout: Checkout) -> ManifestScan:
         environment_yml=present("environment.yml"),
         makefile=present("Makefile"),
         main_py=present("main.py"),
+        notebooks=tuple(path.relative_to(root) for path in notebooks),
     )

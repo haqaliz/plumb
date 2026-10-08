@@ -2,12 +2,19 @@
 
 `capture_outputs(result)` turns a finished `RunResult` into a `Capture`:
 
-- **Artifacts** — stdout, stderr, and every ``.json``/``.csv`` file in the
-  run's working copy that the run wrote. Each is hashed (SHA-256) and its
-  bytes are copied into the run's object store at
+- **Artifacts** — stdout, stderr, and every ``.json``/``.csv``/``.ipynb``
+  file in the run's working copy that the run wrote. Each is hashed (SHA-256)
+  and its bytes are copied into the run's object store at
   ``<run_dir>/objects/<sha256>``. `Capture.read` is the only way back to those
   bytes and it re-checks the hash, so what C4 binds against is exactly what
   was captured, whatever happens to the working copy afterwards.
+  A fresh notebook is additionally decomposed: every cell whose ``outputs`` is
+  a non-empty list becomes one `notebook_cell` artifact at
+  ``<notebook-relpath>#cell-<i>`` (the cell's 0-based index in the notebook's
+  ``cells`` array), holding the canonical JSON projection of that cell's
+  outputs. Decomposition is all-or-nothing: a notebook whose JSON, ``cells``,
+  or any cell's projection cannot be canonicalized keeps its whole-file
+  artifact, gains zero cell artifacts, and raises no new cause.
 - **The freshness guard** (`CLAUDE.md` #5). A file whose mtime is strictly
   before the run start is a `StaleOutput`: relpath, mtime and size only. Its
   bytes are never read, so it never reaches the store and cannot be parsed —
@@ -31,6 +38,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+import json
 import os
 from pathlib import Path
 from typing import ClassVar
@@ -43,6 +51,9 @@ __all__ = ["Artifact", "Capture", "StaleOutput", "capture_outputs"]
 #: File suffixes captured as structured outputs, mapped to the artifact kind.
 _OUTPUT_KINDS = {".json": "json", ".csv": "csv"}
 
+#: A notebook's suffix; captured whole-file and decomposed into cell artifacts.
+_NOTEBOOK_SUFFIX = ".ipynb"
+
 STDOUT = "<stdout>"
 STDERR = "<stderr>"
 
@@ -51,7 +62,7 @@ STDERR = "<stderr>"
 class Artifact:
     """A captured output: what it is, where it came from, and its content address."""
 
-    kind: str  # "csv" | "json" | "stderr" | "stdout"
+    kind: str  # "csv" | "json" | "notebook" | "notebook_cell" | "stderr" | "stdout"
     relpath: str  # posix path in the working copy, or "<stdout>" / "<stderr>"
     sha256: str
     size: int
@@ -118,8 +129,20 @@ def capture_outputs(result: RunResult) -> Capture:
             stale.append(StaleOutput(relpath, info.st_mtime_ns, info.st_size))
             continue
         data = path.read_bytes()
-        kind = _OUTPUT_KINDS[path.suffix.lower()]
+        suffix = path.suffix.lower()
+        kind = "notebook" if suffix == _NOTEBOOK_SUFFIX else _OUTPUT_KINDS[suffix]
         artifacts.append(Artifact(kind, relpath, stored(data), len(data), info.st_mtime_ns))
+        if kind == "notebook":
+            for index, canonical in _notebook_cell_outputs(data):
+                artifacts.append(
+                    Artifact(
+                        "notebook_cell",
+                        f"{relpath}#cell-{index}",
+                        stored(canonical),
+                        len(canonical),
+                        info.st_mtime_ns,
+                    )
+                )
 
     files = [a for a in artifacts if a.mtime_ns is not None]
     silent = result.failure is None and not files and not result.stdout
@@ -131,12 +154,47 @@ def capture_outputs(result: RunResult) -> Capture:
     )
 
 
+def _notebook_cell_outputs(data: bytes) -> list[tuple[int, bytes]]:
+    """The canonical projection of each output-bearing cell, or [] if undecomposable.
+
+    All-or-nothing: every projection is built in memory before any is stored,
+    so one bad cell leaves the notebook whole-file only.
+    """
+    try:
+        document = json.loads(data.decode("utf-8"))
+        if not isinstance(document, dict) or not isinstance(document.get("cells"), list):
+            return []
+        projected = []
+        for index, cell in enumerate(document["cells"]):
+            if not isinstance(cell, dict):
+                continue
+            outputs = cell.get("outputs")
+            if not isinstance(outputs, list) or not outputs:
+                continue
+            canonical = (
+                json.dumps(
+                    outputs,
+                    sort_keys=True,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    allow_nan=False,
+                )
+                + "\n"
+            ).encode("utf-8")
+            projected.append((index, canonical))
+    except (ValueError, TypeError, UnicodeDecodeError):
+        return []
+    return projected
+
+
 def _output_files(workdir: Path) -> list[tuple[str, Path]]:
-    """Every regular ``.json``/``.csv`` under `workdir`, as (posix relpath, path)."""
+    """Every regular ``.json``/``.csv``/``.ipynb`` under `workdir`, as (posix relpath, path)."""
     found = []
     for dirpath, _dirnames, filenames in os.walk(workdir, followlinks=False):
         for name in filenames:
             path = Path(dirpath) / name
-            if path.suffix.lower() in _OUTPUT_KINDS and not path.is_symlink():
+            suffix = path.suffix.lower()
+            captured = suffix in _OUTPUT_KINDS or suffix == _NOTEBOOK_SUFFIX
+            if captured and not path.is_symlink():
                 found.append((path.relative_to(workdir).as_posix(), path))
     return sorted(found)
