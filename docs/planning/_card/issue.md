@@ -1,39 +1,45 @@
-# Brief — cross-paper-coverage (C5, next slice)
+# Brief — notebook-capture (C3, named follow-on)
 
-Source: `pbf feat cross-paper-coverage` handoff from `plumb-next` (2026-10-02). No GitHub
-issue exists for this work; the id lives in the branch and PR.
+Source: `pbf feat notebook-capture` handoff from `plumb-next` (2026-10-08). No GitHub issue
+exists for this work (`gh issue list` is empty); the id lives in the branch and PR.
 
 ## Brief
 
-Build C5's next slice test-first: **the R1 measurement** (cross-paper binding coverage,
-`docs/ROADMAP.md:41-45, 68` — the last unmeasured High/High risk).
+Build C3's named follow-on test-first: **notebook entry-point resolution and cell-output
+capture**, so a repo whose only entry is an executed `analysis.ipynb` can run and have each
+cell's outputs content-addressed into the per-run object store. This is the repo's own
+first-listed engine gap blocking panel growth: *"Growing the corpus is blocked by named
+engine gaps, in order: notebook-cell capture (C3), a poetry env policy (C2), and
+figure-with-data locators"* (`docs/planning/cross-paper-coverage/panel-run/screening.md:296-298`;
+`docs/technical/CAPABILITY_ROADMAP.md:236-241`). R1 is High/High and "notebook cell" is its
+named mitigation (`docs/ROADMAP.md:90`). Notebook-rendered results are the dominant failure
+mode across both selection passes (`docs/planning/gate-paper/survey.md:47-48`;
+`screening.md:46,61,293-294`).
 
-**First slice — `plumb verify --bank`:** the live spine persists its record dir
-(`claims.json` + `bindings.json` + `trace.json` + `objects/` + `verdicts.json`, the replay
-shape) and banks it through the existing `corpus bank` replay chain, no-op on re-bank
-(N2, `docs/planning/discrepancy-corpus/prd.md:113-114`; the bank seam at
-`src/plumb/cli/corpus.py` already validates by re-derivation). Today the live spine writes
-no record dir — `--out` writes only the signed bundle (`src/plumb/cli/live.py:154-157`).
+The named follow-on in the design docs: `docs/planning/execution-capture/prd.md:108`
+("Notebook cell capture (follow-on, needs nbconvert)") and
+`docs/technical/ARCHITECTURE.md:109` ("Notebook cell capture is a named follow-on").
 
-**Then the campaign:** run a small panel (3–5) of runnable Python/R data-analysis papers
-through the live spine at dev time — a **fixed selection rule**, committed fixtures per the
-AgroDesign precedent (`fixtures/gate/agrodesign/`) — bank each case, and publish the first
-honest multi-paper coverage/precision/recall figure via `plumb corpus report`, every number
-with its denominator and label-authority marker, updating R1's status in `docs/ROADMAP.md`.
+**Coupled follow-on, not this unit's scope unless it falls out naturally:** C4's
+notebook-cell locator (`docs/planning/binding-verdict/prd.md:238`) — capture alone yields no
+verdicts.
 
-**Caveat:** the number may be ugly (R1 High/High — most repos don't run or never expose the
-headline number machine-readably). Report it honestly; `UNVERIFIED` is the honest default.
-Real env builds stay dev-time-only (the `tools/demo_env_build.py` precedent,
-`docs/technical/CAPABILITY_ROADMAP.md:109-111`), never in tests or CI. C1 recovery on new
-papers is unmeasured — expect claim-recovery tuning per paper
-(`docs/technical/CAPABILITY_ROADMAP.md:85-87`).
+**Caveat:** nbconvert is a transitive dependency in a repo that deliberately holds exactly
+one runtime dep today (pypdf). Keep execution behind a runner seam like C2's:
+`build_environment`'s runner pattern — tests stay offline with synthetic `.ipynb` fixtures
+and a stub runner; the real kernel runs only at dev time, and whatever nbconvert pulls in is
+pinned and recorded as C2 records its tools. Unseeded notebooks will still end `UNVERIFIED` —
+capture unlocks the class, it does not guarantee verdicts (R1 stays honest).
 
 **Acceptance tests, written first:**
-1. A synthetic live run with `--bank` writes a record that re-derives byte-identically and
-   banks; re-bank is a no-op (append-only store, never mutates).
-2. A second paper's committed record banks and re-derives from its stored trace matching
-   its `verdicts.json`.
-3. `plumb corpus report` pools ≥ 2 cases with per-case and pooled denominators and
-   label-authority markers.
-4. The suite stays network-free under the autouse blocker (`tests/conftest.py:56-60`);
-   env builds never run in tests/CI.
+1. A synthetic executed `.ipynb` in a run's working copy yields per-cell captured outputs,
+   readable only by hash through `Capture.read` (content-addressed, like JSON/CSV outputs).
+2. A committed (stale) notebook is `STALE_ARTIFACT` — its bytes are never read (constraint
+   #5, reproduce what ran).
+3. Notebook entry-point resolution: zero or many notebook candidates are
+   `ENTRYPOINT_MISSING`/`ENTRYPOINT_AMBIGUOUS`, never a guess.
+4. The `RunTrace` stays byte-identical across processes, with no absolute paths and no
+   clock.
+5. The full suite stays green and network-free under the autouse blocker
+   (`tests/conftest.py:56-60`); real kernel execution runs only at dev time, never in
+   tests or CI.
