@@ -99,6 +99,37 @@ def stub_jupyter(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PATH", f"{stub}{os.pathsep}{os.environ['PATH']}")
 
 
+@pytest.fixture
+def work_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """The CLI's work area for one test: per-test tmp, never the real ~/.plumb-runs."""
+    root = tmp_path / "plumb-runs"
+    monkeypatch.setattr("plumb.cli.live.WORK_ROOT", root)
+    return root
+
+
+def paper_and_bindings(tmp_path: Path) -> tuple[Path, Path]:
+    """The S1 paper and a `<stdout>` binding for its one claim."""
+    paper = tmp_path / "paper.md"
+    paper.write_text(PAPER, encoding="utf-8")
+    claims, _ = extract_claims(PAPER)
+    bindings = tmp_path / "bindings.json"
+    bindings.write_bytes(
+        bindings_json(
+            (claims[0], "<stdout>", {"kind": "stdout_regex", "pattern": r"AUC = (\S+)"})
+        )
+    )
+    return paper, bindings
+
+
+def notebook_argv(paper: Path, repo: Path, bindings: Path) -> list[str]:
+    return ["verify", str(paper), str(repo), "--bindings", str(bindings),
+            "--no-env-build", "--json"]
+
+
+def run_dirs(work_root: Path) -> list[Path]:
+    return [path for path in work_root.iterdir() if path.name.startswith("run-")]
+
+
 class TestANotebookRunRecordsAndReplays:
     """Acceptance 2: the record's objects carry the notebook and replay byte-identically."""
 
@@ -146,3 +177,49 @@ class TestANotebookRunRecordsAndReplays:
         captured = capsys.readouterr()
         assert captured.err == ""
         assert captured.out.encode("utf-8") == (record / "verdicts.json").read_bytes()
+
+
+class TestANotebookOnlyRepoThroughTheLiveCli:
+    """Acceptance S2a: the live CLI runs the stub kernel and captures its notebook."""
+
+    def test_the_claim_is_reproduced_and_the_objects_hold_the_notebook(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys, work_root: Path
+    ) -> None:
+        checkout = make_checkout(tmp_path / "proj")
+        stub_jupyter(tmp_path, monkeypatch)
+        paper, bindings = paper_and_bindings(tmp_path)
+
+        code = main(notebook_argv(paper, checkout.checkout_dir, bindings))
+        captured = capsys.readouterr()
+        assert code == 0
+        assert captured.err == ""
+        document = json.loads(captured.out)
+        assert [verdict["verdict"] for verdict in document["verdicts"]] == ["REPRODUCED"]
+
+        runs = run_dirs(work_root)
+        assert len(runs) == 1
+        objects = {path.name: path.read_bytes() for path in (runs[0] / "objects").iterdir()}
+        assert objects[hashlib.sha256(EXECUTED_NOTEBOOK).hexdigest()] == EXECUTED_NOTEBOOK
+        assert objects[hashlib.sha256(CANONICAL_CELL).hexdigest()] == CANONICAL_CELL
+
+
+class TestTheLiveCliIsDeterministicForANotebookRepo:
+    """Acceptance S2b: same inputs, one process → byte-identical stdout, one run dir."""
+
+    def test_two_invocations_are_byte_identical(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys, work_root: Path
+    ) -> None:
+        checkout = make_checkout(tmp_path / "proj")
+        stub_jupyter(tmp_path, monkeypatch)
+        paper, bindings = paper_and_bindings(tmp_path)
+        argv = notebook_argv(paper, checkout.checkout_dir, bindings)
+
+        assert main(argv) == 0
+        first = capsys.readouterr().out
+        assert main(argv) == 0
+        second = capsys.readouterr().out
+        assert first == second
+
+        runs = run_dirs(work_root)
+        assert len(runs) == 1
+        assert runs[0].is_dir()
