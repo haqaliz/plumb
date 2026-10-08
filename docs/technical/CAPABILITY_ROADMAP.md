@@ -124,8 +124,9 @@ mtime/provenance predates this run is never read as a fresh result).
 
 **Status (2026-09-23):** the run spine is built under `src/plumb/run/` — entry-point
 resolution (explicit argv wins; else exactly one of a single `[project.scripts]` entry → `uv
-run <name>` or a root `main.py` → `python main.py`; more is `ENTRYPOINT_AMBIGUOUS`, none is
-`ENTRYPOINT_MISSING` — never a guess), the runner (`run_entrypoint`: a subprocess in a
+run <name>`, a root `main.py` → `python main.py`, or — only when those yield nothing — a root
+`*.ipynb` → `jupyter nbconvert --to notebook --execute --inplace`; more is
+`ENTRYPOINT_AMBIGUOUS`, none is `ENTRYPOINT_MISSING` — never a guess), the runner (`run_entrypoint`: a subprocess in a
 **working copy of the checkout** under the run area — mtimes preserved, `.git`/`.venv` not
 copied, the pinned checkout never touched — with C2's scrubbed env, `UV_OFFLINE=1`, a built
 `.venv` used in place, and a timeout that kills the whole process group; `WONT_RUN` and
@@ -137,9 +138,16 @@ freshness guard is load-bearing:** an output whose mtime is strictly before the 
 `STALE_ARTIFACT` record whose bytes are never read — an untouched committed output, a
 back-dated file and a `cp -p` of a committed result are all caught, and a mutation check
 (guard removed, or loosened to `<=`) fails the suite. A successful run with no fresh output and
-empty stdout is `NO_ARTIFACT`. All offline-tested with local programs. **Not built:** notebook
-cell capture (needs nbconvert — named follow-on), resource caps beyond the timeout, and
-container isolation. C4's first slice (2026-09-25) consumes the trace and capture; verdicts
+empty stdout is `NO_ARTIFACT`. All offline-tested with local programs. **Notebook capture is
+built** (2026-10-08, `notebook-capture`): a root `*.ipynb` is the fallback entry point (only
+when no `[project.scripts]` entry and no root `main.py` yield a candidate; several notebooks
+are `ENTRYPOINT_AMBIGUOUS`, never a guess), executed through the checkout's own
+`jupyter nbconvert --to notebook --execute --inplace` (a missing or failing tool is
+`WONT_RUN`); every fresh `.ipynb` is captured whole-file (`notebook`) plus one
+`notebook_cell` artifact per output-bearing cell (`<relpath>#cell-<i>`, the canonical
+`outputs` JSON), freshness-guarded and undecomposable-safe, all offline-tested with a stub
+`jupyter`. **The C4 `notebook_cell` locator is the named follow-on. Not built:** resource caps
+beyond the timeout, and container isolation. C4's first slice (2026-09-25) consumes the trace and capture; verdicts
 ran on a real paper for the first time on 2026-09-26 (AgroDesign, see C4); the Phase 0 gate
 now has its signed bundle (C6, 2026-09-27), and with the owner's review of the `DIVERGED` the
 Phase 0 gate is met.

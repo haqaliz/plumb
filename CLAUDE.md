@@ -57,7 +57,7 @@ the checkout under the run area (never the pinned checkout), and captures stdout
 a per-run object store keyed by SHA-256, folded into a deterministic `RunTrace`. The
 **freshness guard** records any output older than the run start as `STALE_ARTIFACT` without
 reading its bytes; `WONT_RUN`, `TIMEOUT`, `NO_ARTIFACT`, `ENTRYPOINT_MISSING`/`_AMBIGUOUS` are
-the other named causes. Notebook capture is a named follow-on. **C2 artifact intake is built** (2026-09-22): `src/plumb/intake/`
+the other named causes. Notebook capture is built (2026-10-08): a root `.ipynb` is the fallback entry point (only when no `[project.scripts]` entry and no root `main.py`), run through the checkout's own `jupyter nbconvert --execute --inplace`, captured whole-file (`notebook`) plus per-cell `notebook_cell` artifacts, freshness-guarded; the C4 `notebook_cell` locator is the named follow-on. **C2 artifact intake is built** (2026-09-22): `src/plumb/intake/`
 resolves a local path, a git URL with `--rev`, or a tar.gz/zip archive into a pinned
 `Checkout` with a recorded tree hash (`plumb` bytes framing over sorted `(relpath, bytes)`, or
 the repo's own `HEAD^{tree}` for git sources, reconciled by the `scheme` field), scans
