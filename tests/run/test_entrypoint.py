@@ -1,13 +1,15 @@
 """Entry-point resolution (R1).
 
 `resolve_entrypoint(checkout, manifests, explicit=None)` decides *what runs*.
-An explicit argv always wins and is recorded verbatim. Otherwise exactly two
+An explicit argv always wins and is recorded verbatim. Otherwise three
 discovery rules apply — a single `[project.scripts]` entry in `pyproject.toml`
-runs as `uv run <name>`, and a root `main.py` runs as `python main.py` — and
-the rule that fired is recorded as the entry point's `source`. More than one
-candidate is `EntryPointAmbiguous`; none is `EntryPointMissing`. Plumb never
-guesses between candidates: a guessed entry point is a wrong binding waiting
-to happen, and a wrong binding must surface as `UNVERIFIED`, not as a verdict.
+runs as `uv run <name>`, a root `main.py` runs as `python main.py`, and, only
+when neither exists, a single root notebook runs through
+`jupyter nbconvert --execute --inplace` — and the rule that fired is recorded
+as the entry point's `source`. More than one candidate is
+`EntryPointAmbiguous`; none is `EntryPointMissing`. Plumb never guesses
+between candidates: a guessed entry point is a wrong binding waiting to
+happen, and a wrong binding must surface as `UNVERIFIED`, not as a verdict.
 """
 
 from __future__ import annotations
@@ -39,6 +41,7 @@ TWO_SCRIPTS = (
     b'[project]\nname = "demo"\n\n[project.scripts]\n'
     b'reproduce = "demo.cli:main"\nfigures = "demo.cli:figures"\n'
 )
+NB = b'{"cells": []}\n'
 
 
 class TestExplicit:
@@ -87,6 +90,58 @@ class TestDiscovery:
         checkout = make_checkout(tmp_path / "proj", {"src/main.py": b"print(1)\n"})
         with pytest.raises(EntryPointMissing):
             resolve(checkout)
+
+
+class TestNotebooks:
+    def test_a_single_root_notebook_runs_through_jupyter_nbconvert(
+        self, tmp_path: Path
+    ) -> None:
+        checkout = make_checkout(tmp_path / "proj", {"analysis.ipynb": NB})
+        entry = resolve(checkout)
+        assert entry.argv == (
+            "jupyter",
+            "nbconvert",
+            "--to",
+            "notebook",
+            "--execute",
+            "--inplace",
+            "analysis.ipynb",
+        )
+        assert entry.source == "notebook"
+
+    def test_two_root_notebooks_are_ambiguous(self, tmp_path: Path) -> None:
+        checkout = make_checkout(tmp_path / "proj", {"a.ipynb": NB, "b.ipynb": NB})
+        with pytest.raises(EntryPointAmbiguous) as info:
+            resolve(checkout)
+        message = str(info.value)
+        assert "a.ipynb" in message and "b.ipynb" in message
+
+    def test_a_notebook_is_shadowed_by_a_root_main_py(self, tmp_path: Path) -> None:
+        checkout = make_checkout(
+            tmp_path / "proj", {"main.py": b"print(1)\n", "analysis.ipynb": NB}
+        )
+        entry = resolve(checkout)
+        assert entry.argv == ("python", "main.py")
+        assert entry.source == "main.py"
+
+    def test_a_notebook_is_shadowed_by_a_pyproject_script(self, tmp_path: Path) -> None:
+        checkout = make_checkout(
+            tmp_path / "proj", {"pyproject.toml": ONE_SCRIPT, "analysis.ipynb": NB}
+        )
+        entry = resolve(checkout)
+        assert entry.argv == ("uv", "run", "reproduce")
+        assert entry.source == "pyproject-script"
+
+    def test_a_nested_notebook_is_not_a_candidate(self, tmp_path: Path) -> None:
+        checkout = make_checkout(tmp_path / "proj", {"notebooks/analysis.ipynb": NB})
+        with pytest.raises(EntryPointMissing):
+            resolve(checkout)
+
+    def test_nothing_runnable_mentions_the_notebook_rule(self, tmp_path: Path) -> None:
+        checkout = make_checkout(tmp_path / "proj", {"README.md": b"# demo\n"})
+        with pytest.raises(EntryPointMissing) as info:
+            resolve(checkout)
+        assert "notebook" in str(info.value)
 
 
 class TestNamedCauses:
