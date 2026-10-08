@@ -17,6 +17,7 @@ back-dates, and a `cp -p` of a committed result are all stale.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from pathlib import Path
 import sys
@@ -72,6 +73,21 @@ def by_relpath(capture) -> dict[str, Artifact]:
 def stored_blobs(result) -> set[bytes]:
     store = result.run_dir / "objects"
     return {path.read_bytes() for path in store.iterdir()} if store.is_dir() else set()
+
+
+def notebook_bytes(cells: list[dict]) -> bytes:
+    return json.dumps({"cells": cells, "nbformat": 4, "nbformat_minor": 5}).encode("utf-8")
+
+
+def write_files(files: dict[str, bytes]) -> str:
+    """A Python program that text-writes each (relpath, bytes) pair."""
+    return "; ".join(
+        f"open({rel!r}, 'w').write({data.decode('utf-8')!r})" for rel, data in files.items()
+    )
+
+
+def cell_relpaths(capture) -> list[str]:
+    return [a.relpath for a in capture.artifacts if a.kind == "notebook_cell"]
 
 
 WRITES_OUTPUTS = (
@@ -240,6 +256,137 @@ class TestNotebookCapture:
         artifact = by_relpath(capture)["analysis.ipynb"]
         assert artifact.kind == "notebook"
         assert capture.read(artifact) == rewritten
+
+
+class TestNotebookCells:
+    """A fresh notebook's output-bearing cells become canonical artifacts, all-or-nothing."""
+
+    def test_output_bearing_cells_become_content_addressed_artifacts(self, tmp_path: Path) -> None:
+        outputs = [{"output_type": "stream", "name": "stdout", "text": "AUC = 0.91\n"}]
+        cells = [
+            {"cell_type": "markdown", "metadata": {}, "source": ["# Analysis"]},
+            {
+                "cell_type": "code",
+                "execution_count": 1,
+                "metadata": {},
+                "outputs": outputs,
+                "source": ["print('AUC = 0.91')"],
+            },
+            {"cell_type": "code", "execution_count": 2, "metadata": {}, "outputs": [], "source": []},
+        ]
+        result = run(tmp_path, write_files({"analysis.ipynb": notebook_bytes(cells)}))
+        capture = capture_outputs(result)
+        canonical = json.dumps(
+            outputs, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+        ).encode("utf-8") + b"\n"
+        assert cell_relpaths(capture) == ["analysis.ipynb#cell-1"]
+        artifact = by_relpath(capture)["analysis.ipynb#cell-1"]
+        assert artifact.kind == "notebook_cell"
+        assert artifact.sha256 == hashlib.sha256(canonical).hexdigest()
+        assert artifact.size == len(canonical)
+        assert artifact.mtime_ns == by_relpath(capture)["analysis.ipynb"].mtime_ns
+        assert capture.read(artifact) == canonical
+
+    def test_cell_indices_are_positions_in_the_cells_array(self, tmp_path: Path) -> None:
+        def cell(text: str) -> dict:
+            return {
+                "cell_type": "code",
+                "metadata": {},
+                "outputs": [{"output_type": "stream", "name": "stdout", "text": text}],
+                "source": [],
+            }
+
+        cells = [
+            cell("first\n"),
+            {"cell_type": "markdown", "metadata": {}, "source": []},
+            cell("third\n"),
+        ]
+        result = run(tmp_path, write_files({"analysis.ipynb": notebook_bytes(cells)}))
+        assert cell_relpaths(capture_outputs(result)) == [
+            "analysis.ipynb#cell-0",
+            "analysis.ipynb#cell-2",
+        ]
+
+    def test_two_fresh_notebooks_are_both_decomposed(self, tmp_path: Path) -> None:
+        def notebook(text: str) -> bytes:
+            return notebook_bytes(
+                [
+                    {
+                        "cell_type": "code",
+                        "metadata": {},
+                        "outputs": [{"output_type": "stream", "name": "stdout", "text": text}],
+                        "source": [],
+                    }
+                ]
+            )
+
+        files = {"first.ipynb": notebook("A\n"), "second.ipynb": notebook("B\n")}
+        artifacts = by_relpath(capture_outputs(run(tmp_path, write_files(files))))
+        assert artifacts["first.ipynb"].kind == "notebook"
+        assert artifacts["second.ipynb"].kind == "notebook"
+        assert artifacts["first.ipynb#cell-0"].kind == "notebook_cell"
+        assert artifacts["second.ipynb#cell-0"].kind == "notebook_cell"
+
+    def test_identical_notebooks_produce_identical_cell_hashes(self, tmp_path: Path) -> None:
+        cells = [
+            {
+                "cell_type": "code",
+                "metadata": {},
+                "outputs": [{"output_type": "stream", "name": "stdout", "text": "same\n"}],
+                "source": [],
+            }
+        ]
+        program = write_files({"analysis.ipynb": notebook_bytes(cells)})
+        first = by_relpath(capture_outputs(run(tmp_path / "one", program)))
+        second = by_relpath(capture_outputs(run(tmp_path / "two", program)))
+        assert first["analysis.ipynb#cell-0"].sha256 == second["analysis.ipynb#cell-0"].sha256
+
+    def test_bad_json_is_kept_whole_with_no_cell_artifacts(self, tmp_path: Path) -> None:
+        result = run(tmp_path, write_files({"analysis.ipynb": b"not a notebook"}))
+        capture = capture_outputs(result)
+        assert by_relpath(capture)["analysis.ipynb"].kind == "notebook"
+        assert cell_relpaths(capture) == []
+
+    def test_cells_that_are_not_a_list_are_kept_whole(self, tmp_path: Path) -> None:
+        data = json.dumps({"cells": "nope", "nbformat": 4}).encode("utf-8")
+        result = run(tmp_path, write_files({"analysis.ipynb": data}))
+        capture = capture_outputs(result)
+        assert by_relpath(capture)["analysis.ipynb"].kind == "notebook"
+        assert cell_relpaths(capture) == []
+
+    def test_a_nan_in_any_cell_output_keeps_the_whole_notebook(self, tmp_path: Path) -> None:
+        good_outputs = [{"output_type": "stream", "name": "stdout", "text": "good\n"}]
+        cells = [
+            {
+                "cell_type": "code",
+                "metadata": {},
+                "outputs": good_outputs,
+                "source": [],
+            },
+            {
+                "cell_type": "code",
+                "metadata": {},
+                "outputs": [
+                    {
+                        "output_type": "execute_result",
+                        "execution_count": 1,
+                        "metadata": {},
+                        "data": {"text/plain": float("nan")},
+                    }
+                ],
+                "source": [],
+            },
+        ]
+        data = json.dumps({"cells": cells, "nbformat": 4, "nbformat_minor": 5}).encode("utf-8")
+        assert b"NaN" in data
+        result = run(tmp_path, write_files({"analysis.ipynb": data}))
+        capture = capture_outputs(result)
+        good = json.dumps(
+            good_outputs, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+        ).encode("utf-8") + b"\n"
+        assert by_relpath(capture)["analysis.ipynb"].kind == "notebook"
+        assert cell_relpaths(capture) == []
+        assert good not in stored_blobs(result)
 
 
 class TestNoArtifact:
