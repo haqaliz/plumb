@@ -118,7 +118,13 @@ immediately-next unit (`docs/planning/notebook-capture/prd.md:23`) and R1's name
 
 - **D1 — Grammar: pointer into the outputs array.** A `notebook_cell` locator is
   `{"kind": "notebook_cell", "pointer": "/1/data/text/plain/0"}` — one mechanism, exactly
-  mirroring `json_pointer` semantics. Confirmed with the owner.
+  mirroring `json_pointer` semantics. Confirmed with the owner. **Amendment (2026-10-10,
+  P2):** nbconvert writes the mime key `text/plain` *verbatim* (a single key containing a
+  `/`), so the pointer walk over cell outputs reads an unescaped `/` run as a literal key
+  (`literal_slash`): an exact key always wins (so `~1` escapes still work), a joined run
+  resolves only if the exact key is absent, and `json_pointer` over `.json` artifacts stays
+  strict RFC 6901 (locate.py `_walk`). An output dict carrying both `text` and `text/plain`
+  is resolved exact-key-first — deterministic and auditable, never a guess.
 - **D2 — "Many" is unreachable; say so.** A JSON pointer resolves at most one node, and the
   canonical array's per-object keys cannot repeat (duplicate keys collapse at notebook-read
   time). The never-a-guess contract is enforced by `NO_BINDING` (nothing resolves) and
