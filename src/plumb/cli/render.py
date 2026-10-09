@@ -30,7 +30,7 @@ nondeterminism, exactly as in `plumb.verify.serialize` and `plumb.extract.serial
 
 from __future__ import annotations
 
-from plumb.verify.bindings import CsvCell, JsonPointer, StdoutRegex
+from plumb.verify.bindings import CsvCell, JsonPointer, NotebookCell, StdoutRegex
 from plumb.verify.serialize import serialize_verdicts
 from plumb.verify.verdict import Verdict, VerdictSet
 
@@ -122,6 +122,9 @@ def _locator_text(verdict: Verdict) -> str:
     locator = verdict.locator
     if isinstance(locator, JsonPointer):
         text = f"json: {locator.pointer}"
+    elif isinstance(locator, NotebookCell):
+        cell = verdict.artifact.rsplit("#", 1)[-1]
+        text = f"{cell} {locator.pointer}"
     elif isinstance(locator, StdoutRegex):
         text = f"stdout: {locator.pattern}"
     elif isinstance(locator, CsvCell):

@@ -24,7 +24,7 @@ from decimal import Decimal
 import json
 from typing import Any
 
-from plumb.verify.bindings import CsvCell, JsonPointer, Locator, StdoutRegex
+from plumb.verify.bindings import CsvCell, JsonPointer, Locator, NotebookCell, StdoutRegex
 from plumb.verify.verdict import Verdict, VerdictSet
 
 __all__ = ["serialize_verdicts"]
@@ -72,6 +72,8 @@ def _verdict(v: Verdict) -> dict[str, Any]:
 def _locator(locator: Locator) -> dict[str, Any]:
     if isinstance(locator, JsonPointer):
         return {"kind": "json_pointer", "pointer": _str(locator.pointer, "pointer")}
+    if isinstance(locator, NotebookCell):
+        return {"kind": "notebook_cell", "pointer": _str(locator.pointer, "pointer")}
     if isinstance(locator, StdoutRegex):
         return {"kind": "stdout_regex", "pattern": _str(locator.pattern, "pattern")}
     if isinstance(locator, CsvCell):

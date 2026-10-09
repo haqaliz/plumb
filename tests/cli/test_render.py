@@ -35,7 +35,7 @@ from plumb.verify import (
     load_bindings,
     verify_claims,
 )
-from plumb.verify.bindings import CsvCell, JsonPointer, StdoutRegex
+from plumb.verify.bindings import CsvCell, JsonPointer, NotebookCell, StdoutRegex
 from plumb.verify.causes import NO_BINDING, WONT_RUN
 
 _THIS_DIR = Path(__file__).parent
@@ -398,6 +398,8 @@ class TestTheTableLayout:
                             located="9.0"),
                 _reproduced(claim_id="b", locator=StdoutRegex("AUC=(\\S+)"), located="0.87"),
                 _reproduced(claim_id="c", locator=JsonPointer("/auc"), located="0.87"),
+                _reproduced(claim_id="d", artifact="analysis.ipynb#cell-1",
+                            locator=NotebookCell("/0/text/0"), located="0.87"),
             ),
         )
         out = render_verdicts(verdicts, json=False).decode("utf-8")
@@ -405,6 +407,7 @@ class TestTheTableLayout:
         assert "csv: DF[Residual] → 9.0" in lines[2]
         assert "stdout: AUC=(\\S+) → 0.87" in lines[3]
         assert "json: /auc → 0.87" in lines[4]
+        assert "cell-1 /0/text/0 → 0.87" in lines[5]
 
 
 class TestTheSeamContract:
