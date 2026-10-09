@@ -46,7 +46,14 @@ import re
 from typing import Any
 
 from plumb.run.capture import Artifact, Capture
-from plumb.verify.bindings import Binding, CsvCell, JsonPointer, NotebookCell, StdoutRegex
+from plumb.verify.bindings import (
+    Binding,
+    CsvCell,
+    JsonPointer,
+    NotebookCell,
+    StdoutRegex,
+    _CELL_ARTIFACT,
+)
 from plumb.verify.causes import (
     AMBIGUOUS_BINDING,
     BINDING_INVALID,
@@ -104,7 +111,14 @@ def locate(binding: Binding, capture: Capture) -> Located | Unlocated:
 
 
 def _stale_target(binding: Binding, capture: Capture) -> bool:
-    return binding.artifact in {s.relpath for s in capture.stale}
+    return _cell_file(binding.artifact) in {s.relpath for s in capture.stale}
+
+
+def _cell_file(artifact: str) -> str:
+    """A cell artifact's notebook file, which is what C3 records as stale."""
+    if _CELL_ARTIFACT.fullmatch(artifact):
+        return artifact.rsplit("#", 1)[0]
+    return artifact
 
 
 def _number(text: str, artifact: Artifact, *, exact: bool) -> Located | Unlocated:
