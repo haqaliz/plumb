@@ -49,7 +49,8 @@ from typing import Any
 from plumb.verify.causes import BindingInvalid
 from plumb.verify.numbers import Tolerance, strict_decimal
 
-__all__ = ["Binding", "CsvCell", "JsonPointer", "StdoutRegex", "load_bindings"]
+__all__ = ["Binding", "CsvCell", "JsonPointer", "NotebookCell", "StdoutRegex",
+           "load_bindings"]
 
 STDOUT = "<stdout>"
 STDERR = "<stderr>"
@@ -77,7 +78,14 @@ class CsvCell:
     row: tuple[tuple[str, str], ...]  # exactly one (key column, key value) when valid
 
 
-Locator = JsonPointer | StdoutRegex | CsvCell
+@dataclass(frozen=True, slots=True)
+class NotebookCell:
+    """An RFC 6901 pointer into a notebook cell's canonical ``outputs`` array."""
+
+    pointer: str
+
+
+Locator = JsonPointer | StdoutRegex | CsvCell | NotebookCell
 
 
 @dataclass(frozen=True, slots=True)
@@ -98,8 +106,10 @@ _LOCATOR_FIELDS = {
     "json_pointer": {"kind", "pointer"},
     "stdout_regex": {"kind", "pattern"},
     "csv_cell": {"kind", "column", "row"},
+    "notebook_cell": {"kind", "pointer"},
 }
 _POINTER = re.compile(r"(?:/(?:[^~/]|~[01])*)*")
+_CELL_ARTIFACT = re.compile(r".*\.ipynb#cell-\d+$")
 
 
 def load_bindings(raw: bytes, claim_ids: Iterable[str]) -> Mapping[str, Binding]:
@@ -197,6 +207,11 @@ def _locator(where: str, spec: Any) -> tuple[Locator, str | None]:
         ok = _POINTER.fullmatch(pointer) is not None
         return JsonPointer(pointer), None if ok else f"not an RFC 6901 pointer: {pointer!r}"
 
+    if kind == "notebook_cell":
+        pointer = _string(where, spec, "pointer")
+        ok = _POINTER.fullmatch(pointer) is not None
+        return NotebookCell(pointer), None if ok else f"not an RFC 6901 pointer: {pointer!r}"
+
     if kind == "stdout_regex":
         pattern = _string(where, spec, "pattern")
         try:
@@ -222,6 +237,7 @@ def _kind_mismatch(artifact: str, locator: Locator) -> str | None:
         JsonPointer: lambda a: a.lower().endswith(".json"),
         StdoutRegex: lambda a: a == STDOUT,
         CsvCell: lambda a: a.lower().endswith(".csv"),
+        NotebookCell: lambda a: _CELL_ARTIFACT.fullmatch(a) is not None,
     }[type(locator)]
     if wanted(artifact):
         return None
