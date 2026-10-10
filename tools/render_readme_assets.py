@@ -32,8 +32,8 @@ def esc(text: str) -> str:
 
 def svg_head(width: int, height: int) -> str:
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" '
-        f'font-family="{FONT}">'
+        f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '
+        f'viewBox="0 0 {width} {height}" font-family="{FONT}">'
     )
 
 
@@ -149,11 +149,60 @@ LOGO = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
 """
 
 
+def build_social_card() -> None:
+    """1280x640 social preview: the mark, wordmark, tagline, and the real pooled number."""
+    W, H = 1280, 640
+    out = [svg_head(W, H)]
+    out.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="{BG}"/>')
+    out.append(f'<rect x="0" y="0" width="{W}" height="10" fill="{GREEN}"/>')
+    # the mark, centered
+    out.append(
+        f'<image x="{W/2-64}" y="86" width="128" height="128" '
+        f'href="plumb-logo.svg" xlink:href="plumb-logo.svg"/>'
+    )
+    out.append(f'<text x="{W/2}" y="266" font-size="64" font-weight="bold" fill="{FG}" '
+               f'text-anchor="middle">Plumb</text>')
+    out.append(
+        f'<text x="{W/2}" y="318" font-size="24" fill="{DIM}" text-anchor="middle">'
+        f'Execution-grounded research-integrity verifier</text>'
+    )
+    out.append(
+        f'<text x="{W/2}" y="352" font-size="19" fill="{DIM}" text-anchor="middle">'
+        f'Re-runs a paper&apos;s own artifacts on your compute &mdash; a per-claim, reproducible verdict</text>'
+    )
+    # the real pooled number
+    stats = [
+        ("117 REPRODUCED", GREEN),
+        ("15 DIVERGED · 1 confirmed", RED),
+        ("1 UNVERIFIED", AMBER),
+        ("133 claims · 132 bound", FG),
+        ("precision 1/15 (owner)", AMBER),
+    ]
+    x0, y0 = 180, 448
+    for i, (text, color) in enumerate(stats):
+        out.append(
+            f'<text x="{(x0 + i * (W - 2 * x0) / len(stats))}" y="{y0}" font-size="17" '
+            f'fill="{color}" text-anchor="middle">{esc(text)}</text>'
+        )
+    out.append(
+        f'<text x="{W/2}" y="506" font-size="15" fill="{BORDER}" text-anchor="middle">'
+        f'github.com/haqaliz/plumb</text>'
+    )
+    out.append("</svg>")
+    (ASSETS / "plumb-social.svg").write_text("\n".join(out), encoding="utf-8")
+    subprocess.run(
+        ["qlmanage", "-t", "-s", "1280", "-o", str(ASSETS), str(ASSETS / "plumb-social.svg")],
+        check=True, capture_output=True,
+    )
+    (ASSETS / "plumb-social.svg.png").rename(ASSETS / "plumb-social.png")
+
+
 def main() -> int:
     ASSETS.mkdir(exist_ok=True)
     (ASSETS / "plumb-logo.svg").write_text(LOGO, encoding="utf-8")
     build_verify_card()
     build_corpus_card()
+    build_social_card()
     for name in ("plumb-logo", "plumb-verify", "plumb-corpus"):
         subprocess.run(
             ["qlmanage", "-t", "-s", "1600", "-o", str(ASSETS), str(ASSETS / f"{name}.svg")],

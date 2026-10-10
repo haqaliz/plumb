@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1280 640" font-family="Menlo, Monaco, 'DejaVu Sans Mono', monospace">
+<rect x="0" y="0" width="1280" height="640" fill="#0d1117"/>
+<rect x="0" y="0" width="1280" height="10" fill="#3fb950"/>
+<image x="576.0" y="86" width="128" height="128" href="plumb-logo.svg" xlink:href="plumb-logo.svg"/>
+<text x="640.0" y="266" font-size="64" font-weight="bold" fill="#e6edf3" text-anchor="middle">Plumb</text>
+<text x="640.0" y="318" font-size="24" fill="#8b949e" text-anchor="middle">Execution-grounded research-integrity verifier</text>
+<text x="640.0" y="352" font-size="19" fill="#8b949e" text-anchor="middle">Re-runs a paper&apos;s own artifacts on your compute &mdash; a per-claim, reproducible verdict</text>
+<text x="180.0" y="448" font-size="17" fill="#3fb950" text-anchor="middle">117 REPRODUCED</text>
+<text x="364.0" y="448" font-size="17" fill="#f85149" text-anchor="middle">15 DIVERGED · 1 confirmed</text>
+<text x="548.0" y="448" font-size="17" fill="#d29922" text-anchor="middle">1 UNVERIFIED</text>
+<text x="732.0" y="448" font-size="17" fill="#e6edf3" text-anchor="middle">133 claims · 132 bound</text>
+<text x="916.0" y="448" font-size="17" fill="#d29922" text-anchor="middle">precision 1/15 (owner)</text>
+<text x="640.0" y="506" font-size="15" fill="#30363d" text-anchor="middle">github.com/haqaliz/plumb</text>
+</svg>
