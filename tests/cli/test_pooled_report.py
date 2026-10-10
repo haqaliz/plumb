@@ -16,6 +16,11 @@ precision/recall figures carrying their `n/n (owner)` authority markers.
 2. The JSON is canonical and byte-identical across two invocations.
 3. The table form renders per-case rows, the `total (2 cases)` row, and the
    denominator-carrying rate lines with the authority markers.
+4. The notebook-paper case (`fixtures/gate/rcai`, the committed 31-claim record)
+   banks into a temp store and pools with AgroDesign: 31 claims, 30 bound, 30
+   REPRODUCED, 1 UNVERIFIED (`NO_BINDING`), 0 DIVERGED, no labels (its precision
+   and recall are `None`); totals 2 cases, 117/116, 115 REPRODUCED, 1 DIVERGED,
+   1 UNVERIFIED, labeled 1, precision 1/1, recall 1/1, authority "owner".
 """
 
 from __future__ import annotations
@@ -33,6 +38,7 @@ _GATE_DIR = _THIS_DIR.parent / "gate"
 
 sys.path.insert(0, str(_GATE_DIR))
 from test_agrodesign_fixture import FIXTURE  # noqa: E402
+from test_rcai_fixture import FIXTURE as RCAI_FIXTURE  # noqa: E402
 
 PAPER = _THIS_DIR / "fixtures" / "paper.md"
 REPO = _THIS_DIR / "fixtures" / "repo"
@@ -210,6 +216,76 @@ class TestThePooledReportTable:
         assert lines[5:] == [
             "",
             "  coverage: 88/88 bound",
+            "  precision: 1/1 (owner)",
+            "  recall: 1/1 (owner)",
+        ]
+
+
+class TestTheRcaiGateCasePools:
+    """Acceptance 4: the notebook-paper case folds in with its own denominators."""
+
+    def _bank_both(self, tmp_path: Path, capsys) -> tuple[Path, str, str]:
+        """Bank the committed rcai and AgroDesign records into one temp store."""
+        store = tmp_path / "store"
+        ids = []
+        for fixture in (RCAI_FIXTURE, FIXTURE):
+            assert main(["corpus", "bank", str(fixture), "--store", str(store)]) == 0
+            captured = capsys.readouterr()
+            assert captured.err == ""
+            assert captured.out.startswith("banked ")
+            ids.append(captured.out.strip().split()[1])
+        return store, ids[0], ids[1]
+
+    def test_the_rcai_case_pools_with_denominators_and_authority(
+        self, tmp_path: Path, capsys
+    ) -> None:
+        store, rcai_id, agro_id = self._bank_both(tmp_path, capsys)
+        assert main(["corpus", "report", "--store", str(store), "--json"]) == 0
+        captured = capsys.readouterr()
+        assert captured.err == ""
+        document = json.loads(captured.out)
+        assert document["authority"] == "owner"
+        by_id = {case["case_id"]: case for case in document["cases"]}
+        assert sorted(by_id) == sorted((rcai_id, agro_id))
+
+        rcai = by_id[rcai_id]
+        assert rcai["coverage"] == {
+            "bound": 30, "by_verdict": [["REPRODUCED", 30], ["WITHIN-TOLERANCE", 0],
+                                        ["DIVERGED", 0], ["UNVERIFIED", 1]], "claims": 31,
+        }
+        assert rcai["diverged"] == 0
+        assert rcai["labeled"] == 0
+        assert rcai["confirmed"] == 0
+        assert rcai["refuted"] == 0
+        assert rcai["precision"] is None
+        assert rcai["recall"] is None
+
+        totals = document["totals"]
+        assert totals["cases"] == 2
+        assert totals["coverage"] == {
+            "bound": 116, "by_verdict": [["REPRODUCED", 115], ["WITHIN-TOLERANCE", 0],
+                                         ["DIVERGED", 1], ["UNVERIFIED", 1]], "claims": 117,
+        }
+        assert totals["diverged"] == 1
+        assert totals["labeled"] == 1
+        assert totals["confirmed"] == 1
+        assert totals["refuted"] == 0
+        assert totals["precision"] == {"confirmed": 1, "flagged": 1}
+        assert totals["recall"] == {"confirmed": 1, "flagged": 1}
+
+    def test_the_pooled_table_carries_the_rcai_row(self, tmp_path: Path, capsys) -> None:
+        store, rcai_id, agro_id = self._bank_both(tmp_path, capsys)
+        assert main(["corpus", "report", "--store", str(store)]) == 0
+        captured = capsys.readouterr()
+        assert captured.err == ""
+        lines = captured.out.splitlines()
+        rows = {line[:24].rstrip(): line for line in lines[2:4]}
+        assert rows[_cell_id(rcai_id)] == _row(rcai_id, 31, 30, 30, 0, 0, 1, 0, 0)
+        assert rows[_cell_id(agro_id)] == _row(agro_id, 86, 86, 85, 0, 1, 0, 1, 1)
+        assert lines[4] == _row("total (2 cases)", 117, 116, 115, 0, 1, 1, 1, 1)
+        assert lines[5:] == [
+            "",
+            "  coverage: 116/117 bound",
             "  precision: 1/1 (owner)",
             "  recall: 1/1 (owner)",
         ]

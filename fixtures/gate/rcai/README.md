@@ -15,7 +15,7 @@ and local probe, the fixture plan).
 | Paper source | abs `https://arxiv.org/abs/2609.00137` · PDF `https://arxiv.org/pdf/2609.00137v1`, fetched 2026-10-10 (owner-authorized dev-time fetch; never fetched by tests or CI) |
 | `paper.pdf` SHA-256 | `8ddf1e2f55f938f089517ca998a43bb22ab2baa804748c7bc860a47035b858a8` (757,128 bytes, `%PDF-1.7`) |
 | Code | `https://github.com/burtsev/recursive-criticality-ai`, MIT — **not vendored**; resolved at run time by `tools/rcai_run.py` |
-| Pinned rev | to be fixed at the recorded probe commit in Phase 4 (the clone is not made in this phase); `HEAD^{tree}` recorded in `source.json` then |
+| Pinned rev | `d50b33eeced3a036ef31cd2de534016f50f61c3c` (the probe commit); tree `4a756315787c777e8d64eab2233fc0589d09f60d` (`scheme: git-tree`), recorded in `trace.json` |
 | Data | none bundled and nothing downloaded: all data is generated code-side by the notebook (per the probe) |
 
 ## Files
@@ -24,7 +24,8 @@ and local probe, the fixture plan).
 |---|---|---|
 | `paper.pdf` | the paper member (P2a: PDF, not the HTML fallback) | fetched once, 2026-10-10 |
 | `README.md` | this provenance file | hand-written |
-| `claims.json` · `bindings.json` · `trace.json` · `verdicts.json` · `source.json` · `environment.txt` · `objects/` | the committed record | `tools/rcai_spec.py` / `tools/rcai_run.py`, Phases 2–4 |
+| `claims.json` · `bindings.json` | the rule-encoded claim set (31) and the pre-registered bindings (30), both committed before any run | `tools/rcai_spec.py`, Phases 2/4 |
+| `trace.json` · `verdicts.json` · `objects/` · `environment.txt` · `drift.json` | the dev-time run's record: trace, verdicts, locatable capture, frozen environment, determinism note | `tools/rcai_run.py`, Phase 5 (dev-time; never re-run by tests) |
 
 ## Selection rule (fixed before selection — verbatim from `_card/issue.md`)
 
@@ -132,6 +133,40 @@ computed but never displayed. The bindings target the outputs as the notebook di
 them, so a verdict on a literal row reproduces the notebook's shown value, not a
 simulated one.
 
+## Campaign record (Phase 5 — dev-time, networked; tests never re-run it)
+
+`tools/rcai_run.py` executed the paper's own notebook once at dev time (2026-10-10) through
+the built spine: C2 `resolve_git` at the pinned rev above, a fresh `uv` resolve of the
+README-declared deps plus `jupyter`/`nbconvert` (frozen in `environment.txt`); C3's
+notebook fallback entry — the repo's only entry (`entrypoint_source: notebook`):
+`jupyter nbconvert --execute --inplace`, freshness guard active, no stale artifacts; C4
+`verify_claims` through the pre-registered `notebook_cell` bindings. Result: **31 claims,
+30 bound, 30 `REPRODUCED`, 1 `UNVERIFIED` (`NO_BINDING` — the pre-registered KAA prose
+statistic), 0 `DIVERGED`.**
+
+| | |
+|---|---|
+| Runtime | the trace's `started_at_ns` (wall clock just before the process started) to the executed notebook's `mtime_ns`: **70.003 s** whole-notebook execution — well inside the 1500 s per-run budget (`timeout_seconds` in `trace.json`) |
+| Replay | `plumb verify --from-record fixtures/gate/rcai --json` output is byte-identical to the committed `verdicts.json` (exit 1 — the honest `UNVERIFIED` contract; identity is proven by the bytes, never the exit code; `tests/gate/test_rcai_record.py`) |
+| Determinism (`drift.json`) | the second full run (fresh working copy, fresh venv) succeeded with **0 verdict changes**; `same_run_id` is **false** — the cell artifacts embed pandas' `Styler at 0x…` object repr (`<pandas.io.formats.style.Styler at 0x112e96e40>` in cell 18's stored `text/plain` leaf), so the artifact hashes, and the run id over them, differ run to run. The bindings address only the deterministic `text/html` leaf, so the verdicts are stable: the run id identifies a run, the verdicts are the claims |
+| Drift | fresh resolve only — the code is ~6 weeks old, no lockfile, no era boundary exists on this machine; no second buildable env for an M4a-style cross-check (recorded, not assumed away; `drift.json`'s `environment.note`) |
+| Banked | case `db99db77e4e15da01fdd2b7e5e7a880f7f005aaa89a518187bbc6be4d264c722` in `corpus/local/` (`plumb verify --bank`, dev-time), content-addressed; re-derivation in a store is byte-identical (`tests/cli/test_pooled_report.py`) |
+
+## C1 conformance
+
+The claim set above is defined by the written rule (P2), not by what extraction finds — so
+the two are measured separately. `extract_claims(pdf_to_markdown(paper.pdf))`, no help,
+**recovers 0 of 31 curated claim values** by the AgroDesign place-and-value convention
+(`tests/gate/test_rcai_conformance.py`): no extracted claim sits inside a curated span and
+parses to its value. The table numerals sit in the converted text as plain rows (for
+example `No-RSI baseline 0 24.00 96.00 72.00`) outside C1's current table grammar, and the
+few candidates extraction finds on this paper are model-setup numerals (`a ∈ {.5, 3, 6, 15}`,
+`k = 10`, `β = 2`) and prose comparators (`> 1`, `< 1`) — none is a computed result value.
+The number is a
+conformance report on a curated rule — not coverage, not a verdict, not a gate — and the
+honest counterweight to the curated count: these 31 claims bind because the rule was
+written for them, not because C1 recovered them (G4).
+
 ## Probe note (2026-10-10, dev-time, this machine)
 
 Clean full-notebook re-execution on the paper's repo: a fresh venv (Python 3.13, NumPy 2.1.x,
@@ -141,13 +176,22 @@ SciPy 1.16.x, matplotlib, networkx, tqdm, ipython, numba on macOS arm64) ran
 (§3/§4 table rows above; banner `3/3721 infeasible (0.1%)` reproduced). Zero RNG calls in
 any cell source; the 61×61 (3,721-combination) numba sweep completes inside the execution
 budget. The repo is notebook-only (3 files: LICENSE, README, the one root `.ipynb`), so C3's
-fallback notebook entry applies. Full-notebook wall time is measured and recorded in Phase 4.
+fallback notebook entry applies. Measured whole-notebook wall time and the run-to-run
+determinism check are in the campaign record above.
 
 ## Known limits
 
-- The code pin is not yet recorded here (Phase 5 fixes it at the probe commit); until then
-  this fixture carries the paper member, the rule-encoded claims and the pre-registered
-  bindings only.
-- The `notebook_cell` bindings were committed before any run (the Phase 4 anti-inflation
-  boundary); the dev-time run and the record's `objects/` are Phase 5, so `trace.json`,
-  `verdicts.json`, `source.json`, `environment.txt` and `objects/` do not exist yet.
+- The claim set is rule-curated (P2), and **C1's own recovery on this paper is 0/31 by the
+  place-and-value convention** — see "C1 conformance". The curated number is never read as
+  extraction coverage (G4).
+- The record's run is dev-time evidence on this machine; tests never execute the notebook —
+  replay reads the committed `objects/` by hash only, and replay writes nothing:
+  `tests/gate/test_rcai_record.py`.
+- No labels exist: there are no `DIVERGED` claims to review. The one `UNVERIFIED` is the
+  pre-registered `NO_BINDING` (KAA prose statistic); the corpus reports it with denominators
+  and no rates (`authority: owner`, `tests/cli/test_pooled_report.py`).
+- The `--out` bundle and `source.json` are deferred (PRD: not required for corpus banking).
+- The paper is ~6 weeks old with no lockfile: the only recorded environment is the fresh
+  resolve, frozen in `environment.txt`; there is no second buildable env for a Perrin-style
+  epoch cross-check (drift note above; `drift.json`). Run-to-run determinism — second run ok,
+  0 verdict changes — is the reproducibility claim (G5).
