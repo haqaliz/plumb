@@ -30,7 +30,9 @@ reading is that the document is ambiguous.
 **No float.** A JSON number reaches `strict_decimal` as the literal text the run
 wrote, so `0.870` keeps its three places and nothing passes through a binary
 approximation. NaN and Infinity are refused, as is any leaf that is not a number
-or a plain decimal string.
+or a plain decimal string. A notebook cell's number leaf is transported the same
+way — its JSON text via `json.dumps(leaf, allow_nan=False)`, the shortest
+round-trip of the bytes the artifact wrote (D7).
 """
 
 from __future__ import annotations
@@ -44,7 +46,14 @@ import re
 from typing import Any
 
 from plumb.run.capture import Artifact, Capture
-from plumb.verify.bindings import Binding, CsvCell, JsonPointer, StdoutRegex
+from plumb.verify.bindings import (
+    Binding,
+    CsvCell,
+    JsonPointer,
+    NotebookCell,
+    StdoutRegex,
+    _CELL_ARTIFACT,
+)
 from plumb.verify.causes import (
     AMBIGUOUS_BINDING,
     BINDING_INVALID,
@@ -92,6 +101,8 @@ def locate(binding: Binding, capture: Capture) -> Located | Unlocated:
         found = _json(data, locator.pointer)
     elif isinstance(locator, StdoutRegex):
         found = _stdout(data, locator.pattern)
+    elif isinstance(locator, NotebookCell):
+        found = _notebook_cell(data, locator.pointer)
     else:
         found = _csv(data, locator)
     if isinstance(found, Unlocated):
@@ -100,7 +111,14 @@ def locate(binding: Binding, capture: Capture) -> Located | Unlocated:
 
 
 def _stale_target(binding: Binding, capture: Capture) -> bool:
-    return binding.artifact in {s.relpath for s in capture.stale}
+    return _cell_file(binding.artifact) in {s.relpath for s in capture.stale}
+
+
+def _cell_file(artifact: str) -> str:
+    """A cell artifact's notebook file, which is what C3 records as stale."""
+    if _CELL_ARTIFACT.fullmatch(artifact):
+        return artifact.rsplit("#", 1)[0]
+    return artifact
 
 
 def _number(text: str, artifact: Artifact, *, exact: bool) -> Located | Unlocated:
@@ -132,6 +150,38 @@ class _Constant(Exception):
 _INDEX = re.compile(r"0|[1-9][0-9]*")
 
 
+def _walk(node: Any, pointer: str, *, literal_slash: bool = False) -> Any | Unlocated:
+    """The node an RFC 6901 pointer names, or why it resolves to nothing.
+
+    With `literal_slash` (notebook cell outputs) an unescaped ``/`` run may
+    name a key verbatim — ``text/plain`` — the shape the notebook format
+    writes, so the pointer reads like the JSON it walks; an exact key still
+    wins, so ``~1`` escapes keep working. Strict RFC 6901 otherwise.
+    """
+    tokens = pointer.split("/")[1:]
+    at = 0
+    while at < len(tokens):
+        key = tokens[at].replace("~1", "/").replace("~0", "~")
+        if isinstance(node, list) and _INDEX.fullmatch(key) and int(key) < len(node):
+            node = node[int(key)]
+        elif isinstance(node, dict) and key in node:
+            node = node[key]
+        elif literal_slash and isinstance(node, dict):
+            joined = key
+            while at + 1 < len(tokens):
+                at += 1
+                joined += "/" + tokens[at].replace("~1", "/").replace("~0", "~")
+                if joined in node:
+                    node = node[joined]
+                    break
+            else:
+                return Unlocated(NO_BINDING, f"pointer {pointer!r} resolves to nothing")
+        else:
+            return Unlocated(NO_BINDING, f"pointer {pointer!r} resolves to nothing")
+        at += 1
+    return node
+
+
 def _json(data: bytes, pointer: str) -> str | Unlocated:
     def pairs(items: list[tuple[str, Any]]) -> dict[str, Any]:
         keys = [key for key, _ in items]
@@ -157,18 +207,33 @@ def _json(data: bytes, pointer: str) -> str | Unlocated:
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         return Unlocated(UNPARSEABLE_VALUE, f"not a JSON document: {exc}")
 
-    for token in pointer.split("/")[1:]:
-        key = token.replace("~1", "/").replace("~0", "~")
-        if isinstance(node, dict) and key in node:
-            node = node[key]
-        elif isinstance(node, list) and _INDEX.fullmatch(key) and int(key) < len(node):
-            node = node[int(key)]
-        else:
-            return Unlocated(NO_BINDING, f"pointer {pointer!r} resolves to nothing")
-
+    node = _walk(node, pointer)
+    if isinstance(node, Unlocated):
+        return node
     if isinstance(node, str):  # a _Literal number, or a string that may hold one
         return str(node)
     return Unlocated(UNPARSEABLE_VALUE, f"pointer {pointer!r} holds {type(node).__name__}")
+
+
+# --------------------------------------------------------------------------------
+# notebook cell outputs
+# --------------------------------------------------------------------------------
+
+
+def _notebook_cell(data: bytes, pointer: str) -> str | Unlocated:
+    """The leaf `pointer` names in a cell's canonical outputs array (D1, D7)."""
+    try:
+        outputs = json.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        return Unlocated(UNPARSEABLE_VALUE, f"not a JSON document: {exc}")
+    node = _walk(outputs, pointer, literal_slash=True)
+    if isinstance(node, Unlocated):
+        return node
+    if isinstance(node, str):
+        return node
+    if isinstance(node, bool) or not isinstance(node, (int, float)):
+        return Unlocated(UNPARSEABLE_VALUE, f"pointer {pointer!r} holds {type(node).__name__}")
+    return json.dumps(node, allow_nan=False)
 
 
 # --------------------------------------------------------------------------------

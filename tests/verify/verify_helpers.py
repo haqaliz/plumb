@@ -62,6 +62,18 @@ def writes(relpath: str, data: str | bytes) -> str:
     )
 
 
+def notebook_bytes(cells: list[dict]) -> bytes:
+    """A synthetic executed notebook's bytes: `cells` under a v4 header (capture.py pattern)."""
+    import json
+
+    return json.dumps({"cells": cells, "nbformat": 4, "nbformat_minor": 5}).encode("utf-8")
+
+
+def writes_notebook(relpath: str, cells: list[dict]) -> str:
+    """A program that writes a synthetic executed notebook with `cells` to `relpath`."""
+    return writes(relpath, notebook_bytes(cells))
+
+
 def prints(data: str | bytes) -> str:
     """A program that writes `data` verbatim to stdout."""
     payload = data.encode() if isinstance(data, str) else data

@@ -15,7 +15,7 @@ import json
 
 import pytest
 
-from plumb.verify.bindings import CsvCell, JsonPointer, StdoutRegex, load_bindings
+from plumb.verify.bindings import CsvCell, JsonPointer, NotebookCell, StdoutRegex, load_bindings
 from plumb.verify.causes import BindingInvalid
 from plumb.verify.numbers import Tolerance
 
@@ -68,6 +68,20 @@ class TestValidFile:
         bindings = load_bindings(raw(entry(tolerance={"rel": "0.05"})), IDS)
         assert bindings["c-auc"].tolerance == Tolerance("rel", Decimal("0.05"))
 
+    def test_a_notebook_cell_locator_loads(self) -> None:
+        bindings = load_bindings(
+            raw(
+                entry(
+                    "c-auc",
+                    artifact="analysis.ipynb#cell-0",
+                    locator={"kind": "notebook_cell", "pointer": "/1/data/text/plain/0"},
+                )
+            ),
+            IDS,
+        )
+        assert bindings["c-auc"].locator == NotebookCell("/1/data/text/plain/0")
+        assert bindings["c-auc"].invalid is None
+
     def test_claims_without_a_binding_are_simply_absent(self) -> None:
         assert set(load_bindings(raw(entry()), IDS)) == {"c-auc"}
 
@@ -99,6 +113,9 @@ class TestWholeFileRefusals:
             (raw(entry(locator={"kind": "xpath", "path": "//a"})), "unknown locator kind"),
             (raw(entry(locator={"kind": "json_pointer"})), "locator missing its field"),
             (raw(entry(locator={"kind": "json_pointer", "pointer": "/a", "x": 1})),
+             "locator extra field"),
+            (raw(entry(locator={"kind": "notebook_cell"})), "locator missing its field"),
+            (raw(entry(locator={"kind": "notebook_cell", "pointer": "/0", "x": 1})),
              "locator extra field"),
             (raw(entry(locator={"kind": "csv_cell", "column": "a", "row": {"k": 1}})),
              "csv row value not a string"),
@@ -148,6 +165,22 @@ class TestPerEntryInvalid:
             ({"artifact": "t.csv",
               "locator": {"kind": "csv_cell", "column": "a", "row": {"k": "1", "j": "2"}}},
              "csv row with two keys"),
+            ({"artifact": "analysis.ipynb#cell-0",
+              "locator": {"kind": "notebook_cell", "pointer": "1/data"}},
+             "notebook pointer without leading /"),
+            ({"artifact": "analysis.ipynb#cell-0",
+              "locator": {"kind": "notebook_cell", "pointer": "/a~2b"}},
+             "notebook pointer bad ~ escape"),
+            ({"artifact": "analysis.ipynb#cell-0",
+              "locator": {"kind": "notebook_cell", "pointer": "/a~"}},
+             "notebook pointer trailing ~"),
+            ({"artifact": "results.json",
+              "locator": {"kind": "notebook_cell", "pointer": "/0"}},
+             "notebook cell on a json"),
+            ({"artifact": "analysis.ipynb#cell-0"}, "json pointer on a notebook cell"),
+            ({"artifact": "notes.md#cell-0",
+              "locator": {"kind": "notebook_cell", "pointer": "/0"}},
+             "notebook cell not in an ipynb"),
             ({"artifact": "results.csv"}, "json pointer on a csv"),
             ({"artifact": "<stdout>"}, "json pointer on stdout"),
             ({"locator": {"kind": "stdout_regex", "pattern": "(x)"}}, "regex on a file"),

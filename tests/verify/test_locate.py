@@ -8,17 +8,19 @@ output's bytes are never read at all (`CLAUDE.md` #5).
 
 from __future__ import annotations
 
+from dataclasses import replace
 from decimal import Decimal
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
 
-from plumb.run.capture import Capture
+from plumb.run.capture import Artifact, Capture
 from plumb.verify import causes
 from plumb.verify.bindings import load_bindings
 from plumb.verify.locate import Located, Unlocated, locate
-from verify_helpers import prints, run_program, writes
+from verify_helpers import notebook_bytes, prints, run_program, writes, writes_notebook
 
 
 def bind(artifact: str, locator: dict):
@@ -40,8 +42,37 @@ def cell(column: str, key: str, value: str, artifact: str = "table.csv"):
     return bind(artifact, {"kind": "csv_cell", "column": column, "row": {key: value}})
 
 
+def notebook_cell(p: str, artifact: str = "analysis.ipynb#cell-0"):
+    return bind(artifact, {"kind": "notebook_cell", "pointer": p})
+
+
 def json_run(tmp_path: Path, text: str) -> Capture:
     return run_program(tmp_path, writes("results.json", text))[1]
+
+
+def stale_cell_capture(tmp_path: Path, cells: list[dict]) -> Capture:
+    """A stale notebook with cell artifacts leaked in, as if capture had not refused them."""
+    _, capture = run_program(
+        tmp_path, prints("done\n"), files={"analysis.ipynb": notebook_bytes(cells)}
+    )
+    (stale,) = capture.stale
+    assert stale.relpath == "analysis.ipynb"
+    canonical = (
+        json.dumps(
+            cells[0]["outputs"], sort_keys=True, ensure_ascii=False,
+            separators=(",", ":"), allow_nan=False,
+        )
+        + "\n"
+    ).encode("utf-8")
+    digest = hashlib.sha256(canonical).hexdigest()
+    (capture.store / digest).write_bytes(canonical)
+    leaked = Artifact(
+        "notebook_cell", "analysis.ipynb#cell-0", digest, len(canonical), stale.mtime_ns
+    )
+    return replace(
+        capture,
+        artifacts=tuple(sorted((*capture.artifacts, leaked), key=lambda a: (a.kind, a.relpath))),
+    )
 
 
 def cause_of(outcome) -> str:
@@ -183,6 +214,91 @@ class TestCsvCell:
         assert cause_of(locate(cell("auc", "model", "A"), capture)) == causes.UNPARSEABLE_VALUE
 
 
+class TestNotebookCell:
+    """A value in a cell's canonical outputs array (C3 notebook capture → C4 locate)."""
+
+    CELLS = [
+        {
+            "cell_type": "code",
+            "execution_count": 1,
+            "metadata": {},
+            "outputs": [
+                {"output_type": "stream", "name": "stdout", "text": ["0.87\n"], "value": 0.87},
+            ],
+            "source": ["print(0.87)"],
+        },
+        {
+            "cell_type": "code",
+            "execution_count": 2,
+            "metadata": {},
+            "outputs": [
+                {"output_type": "execute_result", "execution_count": 2,
+                 "data": {"text/plain": ["0.870"]}, "metadata": {}},
+            ],
+            "source": ["0.870"],
+        },
+    ]
+
+    def notebook_run(self, tmp_path: Path) -> Capture:
+        return run_program(tmp_path, writes_notebook("analysis.ipynb", self.CELLS))[1]
+
+    def test_a_stream_line_is_located_verbatim(self, tmp_path: Path) -> None:
+        capture = self.notebook_run(tmp_path)
+        located = locate(notebook_cell("/0/text/0"), capture)
+        assert isinstance(located, Located)
+        assert located.text == "0.87\n"
+        assert type(located.value) is Decimal and located.value == Decimal("0.87")
+        assert located.half_unit == Decimal("0.005")
+        assert located.relpath == "analysis.ipynb#cell-0"
+        artifact = next(
+            a for a in capture.artifacts if a.relpath == "analysis.ipynb#cell-0"
+        )
+        assert located.sha256 == artifact.sha256
+
+    def test_an_execute_result_leaf_is_located(self, tmp_path: Path) -> None:
+        located = locate(
+            notebook_cell("/0/data/text/plain/0", "analysis.ipynb#cell-1"),
+            self.notebook_run(tmp_path),
+        )
+        assert located.text == "0.870"
+        assert type(located.value) is Decimal and located.value == Decimal("0.870")
+        assert located.half_unit == Decimal("0.0005")
+
+    def test_an_escaped_slash_key_still_resolves(self, tmp_path: Path) -> None:
+        located = locate(
+            notebook_cell("/0/data/text~1plain/0", "analysis.ipynb#cell-1"),
+            self.notebook_run(tmp_path),
+        )
+        assert located.text == "0.870"
+
+    def test_a_number_leaf_is_transported_as_its_json_text(self, tmp_path: Path) -> None:
+        located = locate(notebook_cell("/0/value"), self.notebook_run(tmp_path))
+        assert isinstance(located, Located)
+        assert located.text == "0.87"
+        assert type(located.value) is Decimal and located.value == Decimal("0.87")
+        assert located.half_unit == Decimal("0.005")
+
+    def test_an_unresolved_pointer_is_no_binding(self, tmp_path: Path) -> None:
+        capture = self.notebook_run(tmp_path)
+        assert cause_of(locate(notebook_cell("/9/text/0"), capture)) == causes.NO_BINDING
+
+    def test_a_list_leaf_is_unparseable(self, tmp_path: Path) -> None:
+        capture = self.notebook_run(tmp_path)
+        assert cause_of(locate(notebook_cell("/0/text"), capture)) == causes.UNPARSEABLE_VALUE
+
+    def test_a_missing_cell_artifact_is_no_binding(self, tmp_path: Path) -> None:
+        capture = self.notebook_run(tmp_path)
+        assert cause_of(
+            locate(notebook_cell("/0/text/0", "analysis.ipynb#cell-9"), capture)
+        ) == causes.NO_BINDING
+
+    def test_a_json_artifact_is_refused_before_anything_is_read(self, tmp_path: Path) -> None:
+        capture = json_run(tmp_path, '{"auc": 0.87}')
+        binding = notebook_cell("/0/text/0", "results.json")
+        assert binding.invalid
+        assert cause_of(locate(binding, capture)) == causes.BINDING_INVALID
+
+
 class TestTargets:
     def test_an_invalid_binding_is_binding_invalid(self, tmp_path: Path) -> None:
         capture = json_run(tmp_path, '{"auc": 0.87}')
@@ -207,6 +323,25 @@ class TestTargets:
             Capture, "read", lambda self, a: reads.append(a.relpath) or real_read(self, a)
         )
         assert cause_of(locate(pointer("/auc"), capture)) == causes.STALE_ARTIFACT
+        assert reads == []
+
+    def test_a_stale_notebook_makes_its_cells_stale_and_never_read(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        cells = [{
+            "cell_type": "code", "execution_count": 1, "metadata": {},
+            "outputs": [{"output_type": "stream", "name": "stdout", "text": ["0.87\n"]}],
+            "source": ["print(0.87)"],
+        }]
+        capture = stale_cell_capture(tmp_path, cells)
+        assert [s.relpath for s in capture.stale] == ["analysis.ipynb"]
+        assert any(a.relpath == "analysis.ipynb#cell-0" for a in capture.locatable)
+        reads: list[str] = []
+        real_read = Capture.read
+        monkeypatch.setattr(
+            Capture, "read", lambda self, a: reads.append(a.relpath) or real_read(self, a)
+        )
+        assert cause_of(locate(notebook_cell("/0/text/0"), capture)) == causes.STALE_ARTIFACT
         assert reads == []
 
     def test_a_tampered_store_raises_rather_than_becoming_a_cause(self, tmp_path: Path) -> None:

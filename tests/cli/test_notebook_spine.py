@@ -35,7 +35,14 @@ OK_BUILD = EnvBuild(ok=True, policy="best-effort", detail="stub")
 OLD = 1_000_000_000
 
 PAPER = "# Demo Notebook Paper\n\n## Results\n\nThe AUC was 0.91.\n"
-OUTPUTS = [{"output_type": "stream", "name": "stdout", "text": "AUC = 0.91\n"}]
+OUTPUTS = [
+    {
+        "output_type": "execute_result",
+        "execution_count": 1,
+        "metadata": {},
+        "data": {"text/plain": ["0.91"]},
+    }
+]
 COMMITTED_NOTEBOOK = json.dumps(
     {
         "cells": [
@@ -44,7 +51,7 @@ COMMITTED_NOTEBOOK = json.dumps(
                 "execution_count": None,
                 "metadata": {},
                 "outputs": [],
-                "source": ["print('AUC = 0.91')"],
+                "source": ["0.91"],
             }
         ],
         "nbformat": 4,
@@ -59,7 +66,7 @@ _EXECUTED_BODY = json.dumps(
                 "execution_count": 1,
                 "metadata": {},
                 "outputs": OUTPUTS,
-                "source": ["print('AUC = 0.91')"],
+                "source": ["0.91"],
             }
         ],
         "nbformat": 4,
@@ -75,7 +82,7 @@ STUB_JUPYTER = f"""#!/bin/sh
 cat > analysis.ipynb <<'PLUMB_NOTEBOOK_EOF'
 {_EXECUTED_BODY}
 PLUMB_NOTEBOOK_EOF
-printf 'AUC = 0.91\\n'
+printf '0.91\\n'
 """
 
 
@@ -108,14 +115,15 @@ def work_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 def paper_and_bindings(tmp_path: Path) -> tuple[Path, Path]:
-    """The S1 paper and a `<stdout>` binding for its one claim."""
+    """The S1 paper and a `notebook_cell` binding for its one claim."""
     paper = tmp_path / "paper.md"
     paper.write_text(PAPER, encoding="utf-8")
     claims, _ = extract_claims(PAPER)
     bindings = tmp_path / "bindings.json"
     bindings.write_bytes(
         bindings_json(
-            (claims[0], "<stdout>", {"kind": "stdout_regex", "pattern": r"AUC = (\S+)"})
+            (claims[0], "analysis.ipynb#cell-0",
+             {"kind": "notebook_cell", "pointer": "/0/data/text/plain/0"})
         )
     )
     return paper, bindings
@@ -153,7 +161,8 @@ class TestANotebookRunRecordsAndReplays:
         claims, _ = extract_claims(PAPER)
         assert len(claims) == 1
         bindings_bytes = bindings_json(
-            (claims[0], "<stdout>", {"kind": "stdout_regex", "pattern": r"AUC = (\S+)"})
+            (claims[0], "analysis.ipynb#cell-0",
+             {"kind": "notebook_cell", "pointer": "/0/data/text/plain/0"})
         )
         bindings = load_bindings(bindings_bytes, [claim.id for claim in claims])
         verdicts = verify_claims(claims, bindings, Completed(trace, capture))

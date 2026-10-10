@@ -27,10 +27,27 @@ from plumb.bundle import (
 )
 from plumb.bundle import causes as C
 from plumb.bundle.sshsig import SshSigner
+from plumb.intake.checkout import resolve_local
+from plumb.intake.env import EnvBuild
+from plumb.run import EntryPoint, run_and_capture
 from plumb.verify import DIVERGED, REPRODUCED
-from bundle_helpers import CLAIMS, PAPER, SOURCE, bindings_bytes, real_run
+from bundle_helpers import CLAIMS, OLD, PAPER, SOURCE, bindings_bytes, real_run
 
 ENV = "python==3.12.13\nnumpy==2.5.3\n"
+
+NOTEBOOK_PROGRAM = (
+    "import json, sys\n"
+    "n = {'cells': [{'cell_type': 'code', 'execution_count': 1, 'metadata': {}, "
+    "'outputs': [{'output_type': 'stream', 'name': 'stdout', 'text': ['0.91']}], "
+    "'source': ['print(0.91)']}], 'nbformat': 4, 'nbformat_minor': 5}\n"
+    "open('analysis.ipynb', 'w').write(json.dumps(n))\n"
+    "sys.stderr.write('warning: secret-token\\n')\n"
+)
+#: The F1 claim, bound to the cell's stream line through the notebook_cell locator.
+CELL_BINDING = json.dumps({"bindings": [
+    {"claim_id": CLAIMS[1].id, "artifact": "analysis.ipynb#cell-0",
+     "locator": {"kind": "notebook_cell", "pointer": "/0/text/0"}},
+]}).encode()
 
 
 @pytest.fixture
@@ -52,6 +69,19 @@ def verify(bundle: Path, signing_key, **kw):
 
 def causes_of(report) -> set[str]:
     return {cause for cause, _ in report.causes}
+
+
+def notebook_run(tmp_path: Path):
+    """A real run of a program that writes a synthetic executed notebook."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / "README.md").write_text("# demo\n")
+    for path in root.iterdir():
+        os.utime(path, (OLD, OLD))
+    checkout = resolve_local(root)
+    entry = EntryPoint(argv=("python", "-c", NOTEBOOK_PROGRAM), source="explicit")
+    build = EnvBuild(ok=True, policy="best-effort", detail="stub")
+    return run_and_capture(checkout, build, entry, run_dir=tmp_path / "run")
 
 
 class TestBuild:
@@ -134,6 +164,31 @@ class TestBuild:
         files = lambda root: {p.relative_to(root).as_posix(): p.read_bytes()
                               for p in root.rglob("*") if p.is_file()}
         assert files(again) == files(built)
+
+
+class TestANotebookCellBundle:
+    """A cell-bound claim's bundle carries only the bound cell object (PRD #7)."""
+
+    def test_only_the_bound_cell_object_joins_and_the_bundle_verifies(
+        self, tmp_path: Path, signing_key
+    ) -> None:
+        trace, capture = notebook_run(tmp_path)
+        out = tmp_path / "bundle"
+        build_bundle(
+            out, claims=[CLAIMS[1]], paper=PAPER.encode(), paper_format="markdown",
+            paper_source=None, include_paper=True, bindings=CELL_BINDING, trace=trace,
+            capture=capture, environment=ENV, source=SOURCE,
+            signer=SshSigner(signing_key[0], "plumb-test"),
+        )
+        cell = next(a for a in capture.locatable if a.relpath == "analysis.ipynb#cell-0")
+        whole = next(a for a in capture.locatable if a.relpath == "analysis.ipynb")
+        names = [path.name for path in (out / "objects").iterdir()]
+        assert names == [cell.sha256]
+        assert whole.sha256 not in names
+        report = verify(out, signing_key)
+        assert report.ok, report.causes
+        (verdict,) = report.verdicts.verdicts
+        assert verdict.verdict == REPRODUCED
 
 
 class TestVerify:

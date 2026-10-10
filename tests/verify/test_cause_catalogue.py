@@ -5,7 +5,9 @@ actually emits: a cause nothing produces is dead documentation, and a cause
 produced outside the set is refused by the record. This catalogue drives one
 real run whose outputs are shaped to trip each binding- and comparison-side cause
 once, unions it with the run-level causes the false-`DIVERGED` guard produces,
-and asserts the union is exactly `CAUSES`.
+and asserts the union is exactly `CAUSES`. One row trips its cause through the
+`notebook_cell` locator (D5: a row joins the catalogue, no name joins the
+vocabulary).
 """
 
 from __future__ import annotations
@@ -15,16 +17,21 @@ from pathlib import Path
 from plumb.verify import CAUSES, UNVERIFIED, Completed, load_bindings, verify_claims
 from plumb.verify import causes
 from test_false_diverged_guard import assert_guard
-from verify_helpers import bindings_json, claim, run_full
+from verify_helpers import bindings_json, claim, run_full, writes_notebook
 
-PROGRAM = """\
-import json, pathlib
-pathlib.Path("results.json").write_text(json.dumps(
-    {"auc": 0.87, "text": "n/a", "n": 10213, "z": 0.7}
-))
-print("v = 1")
-print("v = 2")
-"""
+PROGRAM = (
+    "import json, pathlib\n"
+    'pathlib.Path("results.json").write_text(json.dumps(\n'
+    '    {"auc": 0.87, "text": "n/a", "n": 10213, "z": 0.7}\n'
+    "))\n"
+    + writes_notebook(
+        "analysis.ipynb",
+        [{"cell_type": "code", "execution_count": 1, "metadata": {},
+          "outputs": [{"output_type": "stream", "name": "stdout", "text": ["0.5"]}],
+          "source": ["print(0.5)"]}],
+    )
+    + 'print("v = 1")\nprint("v = 2")\n'
+)
 
 
 def ptr(p: str) -> dict:
@@ -38,7 +45,10 @@ CASES = {
         claim("1", "v"), ("<stdout>", {"kind": "stdout_regex", "pattern": r"v = (\S+)"}),
     ),
     causes.BINDING_INVALID: (claim("0.87", "bad pointer"), ("results.json", ptr("auc"))),
-    causes.UNPARSEABLE_VALUE: (claim("0.5", "text"), ("results.json", ptr("/text"))),
+    causes.UNPARSEABLE_VALUE: (
+        claim("0.5", "cell text"),
+        ("analysis.ipynb#cell-0", {"kind": "notebook_cell", "pointer": "/0/text"}),
+    ),
     causes.STALE_ARTIFACT: (claim("0.5", "old"), ("old.json", ptr("/auc"))),
     causes.UNIT_UNDECLARED: (claim("87%", "pct"), ("results.json", ptr("/auc"))),
     causes.PRECISION_AMBIGUOUS: (claim("10,000", "n"), ("results.json", ptr("/n"))),
