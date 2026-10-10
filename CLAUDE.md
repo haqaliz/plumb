@@ -35,7 +35,7 @@ fixed-layout verdict table or canonical JSON (byte-identical across invocations)
 signed bundle with `--out` that `verify_bundle` accepts, and banks the run into the
 discrepancy corpus with `--bank` (2026-10-02: the live loop is closed; `corpus bank|report`
 fold records in and pool coverage/precision/recall with denominators and label-authority
-markers — the corpus holds 2 cases (details in the R1 note below). Exit 0 iff every claim decided; 1 on
+markers — the corpus holds 3 cases (details in the R1 note below). Exit 0 iff every claim decided; 1 on
 any `UNVERIFIED` or named cause (`RECORD_INVALID`, `KEY_MISSING`, `BUNDLE_REFUSED`, ...); 2 on
 usage; never a traceback, never `DIVERGED` on a harness failure. The AgroDesign record replays
 through the CLI: 86 claims, 85 `REPRODUCED`, 1 `DIVERGED`, `--json` byte-identical to the
@@ -103,14 +103,22 @@ returns records, never a second door to `Claim`), and the re-derived verdicts, w
 The AgroDesign bundle (`bundles/agrodesign/`) verifies, and `tools/bundle_replay.py` re-ran it
 from a clean clone byte-identical. **The Phase 0 gate is met** (2026-09-27): the one
 `DIVERGED` was reviewed by the owner and confirmed as a genuine reporting discrepancy. Met on one
-paper — **cross-paper coverage (R1) is now measured (2026-10-02)**: the corpus holds 2
-cases, 102 claims, 102 bound, 87 `REPRODUCED`, **15 `DIVERGED`**, precision/recall
-`1/15 (owner)` — AgroDesign (85/1; its one confirmed `DIVERGED` is the only confirmed
-discrepancy) and **Perrin, arXiv:2401.11842** (16 claims; this run 2/14 — the artifact is
+paper — **cross-paper coverage (R1) is now measured (2026-10-02)**: the corpus holds 3
+cases, 117 claims, 116 bound, 115 `REPRODUCED`, **1 `DIVERGED`**, 1 `UNVERIFIED`,
+precision/recall `1/15 (owner)` — AgroDesign (85/1; its one confirmed `DIVERGED` is the only
+confirmed discrepancy), **Perrin, arXiv:2401.11842** (16 claims; this run 2/14 — the artifact is
 **not run-to-run reproducible at the paper's written precision** (three full runs,
 values moved up to 0.017, four verdict flips; unseeded worker RNG; sampling noise
 ~0.005–0.010 vs written precision 0.001), so the review **refuted all 14 flagged
-divergences** — a reproducibility finding, not a paper error). A fixed-rule panel
+divergences** — a reproducibility finding, not a paper error), and **Burtsev,
+arXiv:2609.00137** (31 claims, 30/31 bound through `notebook_cell` locators — **30
+`REPRODUCED`, 1 `UNVERIFIED` (`NO_BINDING`), 0 `DIVERGED`**, 2026-10-10,
+`notebook-paper`): the **first notebook-computed paper through the spine**; a notebook-only
+repo run via the C3 notebook entry rule with a real env build, verdicts decided through HTML
+table-cell addressing (the N1 amendment: pandas Styler renders values only inside one
+`text/html` leaf, so a table-mode locator addresses `<td>` cells deterministically;
+`text/plain` Styler reprs embed process addresses and are never bound). C1 conformance on
+Burtsev: 0/31 (reported as conformance). A fixed-rule panel
 search probed 4 candidates and found
 1 additional runnable paper; evidence in `docs/planning/cross-paper-coverage/panel-run/screening.md`.
 C1's 86/86 on AgroDesign remains conformance to a curated rule on one paper. Details:
