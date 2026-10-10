@@ -1,0 +1,364 @@
+{
+ "bindings": [
+  {
+   "claim_id": "00240598d5556816175b147b5104a14ad19ac0d7cce7476c89b2c299e47b187c",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-28",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 0,
+     "column": 2
+    }
+   }
+  },
+  {
+   "claim_id": "158a361e94b0b85c9e6a529cceed4c321ed23222e0850a0ea7d770ca63443d86",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 4,
+     "column": 1
+    }
+   }
+  },
+  {
+   "claim_id": "16481907b53e471a82b91f37eae61d53f3543b2943d14c76e8953ed5fa1706be",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-28",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 2,
+     "column": 1
+    }
+   }
+  },
+  {
+   "claim_id": "39b9d81340b86fb48833e1b8ae0387dd96806381f90305380ff305e4ed4b7ab3",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 4,
+     "column": 3
+    }
+   }
+  },
+  {
+   "claim_id": "58d5df18541671438ff7906ecd882ad150dfd17ade07d62ed860399ee0f6ce8a",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 3,
+     "column": 4
+    }
+   }
+  },
+  {
+   "claim_id": "69879c0514ce705c0536aa4622fa2bcc84b9dff1049de0068ddf9a8b370e1b2c",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 2,
+     "column": 1
+    }
+   }
+  },
+  {
+   "claim_id": "6b05f11d1adcd331366d09214a57c34cc579cf05ab6b17ad2a6fb2f8d9539bf1",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 4,
+     "column": 2
+    }
+   }
+  },
+  {
+   "claim_id": "6d0b3263ccc7cd7d4779bd166b5d63ea0a472b93496347a60e3dc3ff3b1a93b0",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 2,
+     "column": 4
+    }
+   }
+  },
+  {
+   "claim_id": "70337ab4e19736a188f2f051248a5f5eb427b4a28f72816b29dfa8c7b45fd3f0",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 1,
+     "column": 2
+    }
+   }
+  },
+  {
+   "claim_id": "747ebaa2db46b21d4a5c1f8ccfb843ec970a8c7984d642656663c9b02432367c",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-28",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 1,
+     "column": 2
+    }
+   }
+  },
+  {
+   "claim_id": "7c29357e43f366dd5567ddb78c006e0ea5cf79389f2bfd5740771111598de555",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 1,
+     "column": 1
+    }
+   }
+  },
+  {
+   "claim_id": "7df62db8db218d9ce46674c2b7097406a051f7ebc34e48cdcbbf9db2375e385b",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-28",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 2,
+     "column": 3
+    }
+   }
+  },
+  {
+   "claim_id": "8115c4ef5ecba29c03ba30b5bd7a28d7ff34b4f218ede242e12f785754d166eb",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 3,
+     "column": 3
+    }
+   }
+  },
+  {
+   "claim_id": "8781075e0b334714e8ced3b757799b901cff132e5c5698517459dd674c188655",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 0,
+     "column": 3
+    }
+   }
+  },
+  {
+   "claim_id": "87e087377a4c2ed8cc6084e80da73273e2d4604e92ae5923d63f79cfd169f6a8",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 3,
+     "column": 1
+    }
+   }
+  },
+  {
+   "claim_id": "977f583dfaecefbb9e576d31644b19385e31447969fd43760858fac41d68913a",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-28",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 1,
+     "column": 1
+    }
+   }
+  },
+  {
+   "claim_id": "996d2d5b7c48f7bacb17c322f606be1d31f529a875f82eb3692a8ace51115410",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 2,
+     "column": 3
+    }
+   }
+  },
+  {
+   "claim_id": "b761d7c74df62ac62756b9bc50f4c0a4587cb387ee25aa1a9ce80966faa2bc6d",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 0,
+     "column": 4
+    }
+   }
+  },
+  {
+   "claim_id": "b99732494df1d5073be5efd89dd321a5ff2836ee7429717dfc8a656d31a7befa",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 4,
+     "column": 4
+    }
+   }
+  },
+  {
+   "claim_id": "bb0458ca04051d29b5e2da78c156364d790e5bff36438ca16f832ef2b58320cd",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 0,
+     "column": 1
+    }
+   }
+  },
+  {
+   "claim_id": "bbb6fa4939c00032a82ad807fb753753f6102fa3f75ac58ee9ce231f1a5b2e47",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 0,
+     "column": 2
+    }
+   }
+  },
+  {
+   "claim_id": "d4128caa9e205a2a9db7d7bd865eae9caca0e87fda879e4623da58b2eecb55ee",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 0,
+     "column": 4
+    }
+   }
+  },
+  {
+   "claim_id": "d718968389830253babcd615c9e0b0e1b000b88d5cc72ba2dceaf5137bb0443f",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 2,
+     "column": 2
+    }
+   }
+  },
+  {
+   "claim_id": "d96adca4edd2b497383981b5cabb5de596f821b744c9550751c0b98d8a06d6dd",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 1,
+     "column": 3
+    }
+   }
+  },
+  {
+   "claim_id": "e8c75491c1bab2550e2b98c09aef477a3c8939716f332c5a41211695e2993090",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 3,
+     "column": 2
+    }
+   }
+  },
+  {
+   "claim_id": "e9b1e883aa9e963c54b1d5c61ff34a4d26cce46d1689fefb68da4e49ad65164a",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-28",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 0,
+     "column": 3
+    }
+   }
+  },
+  {
+   "claim_id": "edd6cf6feeb92155f4a5d075974dac5e7473107105d6e0f8c4ef469fd70d9ba4",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-28",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 1,
+     "column": 3
+    }
+   }
+  },
+  {
+   "claim_id": "f03df22a3b682c7f90fe26441431e24c1b2cd34cf65fd16c5cae0d62d0717ac9",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-28",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 2,
+     "column": 2
+    }
+   }
+  },
+  {
+   "claim_id": "fc2d11e0aa6588ff2629779713f1a58581b17cf1b2079d880699f14579fb7b77",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 1,
+     "column": 4
+    }
+   }
+  },
+  {
+   "claim_id": "fc96511beeb96d391a956f89b4c287b25b9159fab6565bdd1374ce2db3177032",
+   "artifact": "Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-28",
+   "locator": {
+    "kind": "notebook_cell",
+    "pointer": "/0/data/text/html",
+    "table": {
+     "row": 0,
+     "column": 1
+    }
+   }
+  }
+ ]
+}

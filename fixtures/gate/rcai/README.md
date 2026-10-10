@@ -75,6 +75,63 @@ written-precision reading exists. The enumeration is fixed by `tools/rcai_spec.p
 committed before the dev-time run; no claim may be added after seeing which bind.
 `tests/gate/test_rcai_claims.py` pins the count, the verbatim spans and the distinct ids.
 
+## Bindings (P3/P4 — pre-registered, committed before any run)
+
+The reference notebook — the paper's own committed outputs — was fetched once at dev time
+(2026-10-10) from
+`https://raw.githubusercontent.com/burtsev/recursive-criticality-ai/main/Recursive_Criticality_of_AI_Self_Improvement.ipynb`
+(SHA-256 `17b3a0c5d407afa52d3ca49956324553a4d0cfba6b69103b6f8ba73f37b07fab`, 1,042,905
+bytes) to a path outside the repo; it is never committed, and **never executed** by tests
+or CI. The two pandas Styler tables are the `display_data` outputs of cells-array indices
+18 and 28; each cell's `text/plain` is a nondeterministic `Style at 0x…` repr, so the
+values live only in the `text/html` leaf and every binding is an N1 table-mode locator on
+the cell artifact `Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18|#cell-28`
+at pointer `/0/data/text/html`. The `<th>`-only header row is not a grid row, so grid
+column 0 is each row's scenario/configuration name.
+
+Grid map, Table 1 (`#cell-18`; row headers are the scenario, columns 1–4 the numeric
+columns):
+
+| row | (row,1) `a` `{:.1f}` | (row,2) `T_AGI` `{:.2f}` | (row,3) `T_ASI` `{:.2f}` | (row,4) `ΔT` `{:.2f}` |
+|---|---|---|---|---|
+| **0** No-RSI baseline | 0.0 | 24.00 | 96.00 | 72.00 |
+| **1** Smooth scaling | 0.5 | 21.35 | 74.13 | 52.79 |
+| **2** Weak supercriticality | 3.0 | 12.90 | 24.73 | 11.83 |
+| **3** Transient takeoff | 6.0 | 8.40 | 11.08 | 2.69 |
+| **4** Rapid AGI-to-ASI | 15.0 | 4.50 | 4.95 | 0.45 |
+
+Grid map, Table 2 (`#cell-28`, `precision=2`):
+
+| row | (row,1) `T_AGI` | (row,2) `T_ASI` | (row,3) `ΔT` |
+|---|---|---|---|
+| **0** Closed frontier-lab competition | 10.40 | 16.53 | 6.13 |
+| **1** Open competitive ecosystem | 9.75 | 12.58 | 2.82 |
+| **2** Global competition | 8.97 | 13.42 | 4.45 |
+
+Claims bound: the 29 table cells (20 Table 1 + 9 Table 2), each at (its row, its column),
+plus §3.3's prose statistic `72` at Table 1 (0, 4) — **30 of 31**. **Expected
+`NO_BINDING`** (fixed before any run): §4.1 closed laboratory leading actor reproduction
+number K_AA (prose) (`1.00`). Its computed value (`max_local_R` of the closed-lab
+configuration) is visible in cell 23's plain-DataFrame `text/html`, which is not one of
+the two Styler cells this rule pre-registers; the enumeration is not expanded after
+studying outputs (anti-inflation).
+
+Declared reading: the **written-precision band** for every binding — no `float_repr`
+flags in `bindings.json`. Both Stylers write fixed-format roundings (cell 18: `a` as
+`{:.1f}`, the rest `{:.2f}`; cell 28: `precision=2`), never shortest-repr digits, so the
+cell text is the artifact's written precision. The paper's `0`/`3`/`6`/`15` render
+`0.0`/`3.0`/`6.0`/`15.0` and prose `72` renders `72.00`; value-identity holds.
+`tests/gate/test_rcai_bindings.py` pins the file, the sorted claim ids, the grid
+addresses, the pairs above and the expected `NO_BINDING`.
+
+What the cells display (recorded for Phase 5's framing): cell 18 builds the No-RSI
+baseline row from literals (`0.0`, `24.0`, `96.0`, `72.0`) and the other four rows by
+simulation; cell 28's displayed summary is built from literals (the nine Table 2 numbers)
+— `strategic_threshold_computed`, the frame built from the executed appendix results, is
+computed but never displayed. The bindings target the outputs as the notebook displays
+them, so a verdict on a literal row reproduces the notebook's shown value, not a
+simulated one.
+
 ## Probe note (2026-10-10, dev-time, this machine)
 
 Clean full-notebook re-execution on the paper's repo: a fresh venv (Python 3.13, NumPy 2.1.x,
@@ -88,7 +145,9 @@ fallback notebook entry applies. Full-notebook wall time is measured and recorde
 
 ## Known limits
 
-- The code pin is not yet recorded here (Phase 4 fixes it at the probe commit); until then
-  this fixture carries the paper member and the rule-encoded claims only.
-- The `notebook_cell` bindings (Phase 3) are committed before any run — nothing in this
-  file pre-empts them.
+- The code pin is not yet recorded here (Phase 5 fixes it at the probe commit); until then
+  this fixture carries the paper member, the rule-encoded claims and the pre-registered
+  bindings only.
+- The `notebook_cell` bindings were committed before any run (the Phase 4 anti-inflation
+  boundary); the dev-time run and the record's `objects/` are Phase 5, so `trace.json`,
+  `verdicts.json`, `source.json`, `environment.txt` and `objects/` do not exist yet.

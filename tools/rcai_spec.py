@@ -1,18 +1,32 @@
 #!/usr/bin/env python3
-"""The RCAI gate fixture's claims: rule-encoded, grounded verbatim, fixed before any run.
+"""The RCAI gate fixture's claims and bindings: rule-encoded, fixed before any run.
 
-Offline, deterministic, and the single source for `fixtures/gate/rcai/claims.json`. The
-claim set follows the rule fixed in `docs/planning/notebook-paper/prd.md` (P2) and
-recorded verbatim in the fixture README: every numeric cell of Table 1 (the four
-reference scenarios and the no-RSI baseline) and Table 2 (the three strategic-market
-regimes), plus the unqualified numeric statistics stated in the results prose (§3.3 and
-§4.1). Each claim is located by searching for its row or phrase in the normalized paper
-text, so a span is found, never typed; a context that does not occur exactly once is an
-error.
+Offline, deterministic, and the single source for `fixtures/gate/rcai/claims.json` and
+`fixtures/gate/rcai/bindings.json`. The claim set follows the rule fixed in
+`docs/planning/notebook-paper/prd.md` (P2) and recorded verbatim in the fixture README:
+every numeric cell of Table 1 (the four reference scenarios and the no-RSI baseline) and
+Table 2 (the three strategic-market regimes), plus the unqualified numeric statistics
+stated in the results prose (§3.3 and §4.1). Each claim is located by searching for its
+row or phrase in the normalized paper text, so a span is found, never typed; a context
+that does not occur exactly once is an error.
 
 Statistics the prose qualifies with an approximation marker (`about`, `approximately`,
 `≃`) are excluded from the rule: the paper declines to state a precise value, so no
 written-precision reading exists. The exclusions are listed in the fixture README.
+
+The bindings half (P3, committed BEFORE the notebook is ever run) aims the claim set at the
+paper's own notebook outputs: the two pandas Styler tables are the `display_data` outputs
+of cells-array indices 18 and 28, whose values live only in the `text/html` leaf, so every
+locator is `notebook_cell` table mode (N1) on
+`Recursive_Criticality_of_AI_Self_Improvement.ipynb#cell-18|#cell-28` at pointer
+`/0/data/text/html`. The grid geometry is the table's row order (grid column 0 is the
+row's scenario/configuration name; a `<th>`-only header row is not a grid row) and the
+numeric columns left to right. The declared reading is the written-precision band for
+every binding — both Stylers write fixed-format roundings (`a` as `{:.1f}`, the rest
+`{:.2f}`; cell 28 `precision=2`), so no binding carries `float_repr`. §4.1's
+`KAA = 1.00` statistic has no cell among the two Styler outputs and stays unbound, an
+expected `NO_BINDING`. The reference notebook is dev-time evidence only (fetched to a path
+outside the repo; URL and SHA-256 in the fixture README), never executed by this generator.
 
 Run by hand: ``uv run tools/rcai_spec.py``.
 """
@@ -50,12 +64,23 @@ TABLE_2_ROWS = [
     ("Global competition", "Global competition 8.97 13.42 4.45"),
 ]
 
-#: (section, metric, context in the paper, value text) — the unqualified results statistics.
+#: The notebook and the pointer to the Styler leaf inside each cell's one output (its
+#: `text/plain` is a nondeterministic `Style at 0x…` repr; the values are in `text/html`).
+NOTEBOOK = "Recursive_Criticality_of_AI_Self_Improvement.ipynb"
+STYLER_POINTER = "/0/data/text/html"
+TABLE_1_CELL = 18
+TABLE_2_CELL = 28
+
+#: (section, metric, context in the paper, value text, grid target or None) — the
+#: unqualified results statistics. §3.3's `72` is the interval Table 1's no-RSI baseline
+#: row displays (`(row, column)` = (0, 4)); §4.1's `KAA = 1.00` is computed in cell 23,
+#: outside the two pre-registered Styler cells, so it stays unbound.
 PROSE = [
     ("3.3", "no-RSI AGI-to-ASI interval (prose)",
-     "compressing the AGI-to-ASI interval from72 years", "72"),
+     "compressing the AGI-to-ASI interval from72 years", "72",
+     (TABLE_1_CELL, 0, len(TABLE_1_COLUMNS))),
     ("4.1", "closed laboratory leading actor reproduction number K_AA (prose)",
-     "the local critical boundary, KAA = 1.00", "1.00"),
+     "the local critical boundary, KAA = 1.00", "1.00", None),
 ]
 
 
@@ -66,29 +91,45 @@ def unique_offset(text: str, context: str) -> int:
     return first
 
 
-def build(paper_text: str) -> list[dict]:
-    """The claim entries, in rule order: Table 1, Table 2, then the prose."""
+def build(paper_text: str) -> tuple[list[dict], list[dict]]:
+    """The claim entries and the binding entries, both in rule order."""
     entries: list[dict] = []
+    bindings: list[dict] = []
 
-    def add(text: str, metric: str, source: str, context: str, start: int) -> None:
+    def add(text: str, metric: str, source: str, context: str, start: int,
+            target: tuple[int, int, int] | None) -> None:
+        claim = Claim(parse_value(text), None, metric,
+                      CharSpan(start, start + len(text)), None, None)
         entries.append({"text": text, "metric": metric, "source": source, "context": context,
                         "start": start, "end": start + len(text)})
+        if target is None:
+            return
+        cell, row, column = target
+        bindings.append({
+            "claim_id": claim.id,
+            "artifact": f"{NOTEBOOK}#cell-{cell}",
+            "locator": {"kind": "notebook_cell", "pointer": STYLER_POINTER,
+                        "table": {"row": row, "column": column}},
+        })
 
-    for table, rows, columns in ((1, TABLE_1_ROWS, TABLE_1_COLUMNS),
-                                 (2, TABLE_2_ROWS, TABLE_2_COLUMNS)):
-        for scenario, row_text in rows:
+    for table, cell, rows, columns in ((1, TABLE_1_CELL, TABLE_1_ROWS, TABLE_1_COLUMNS),
+                                       (2, TABLE_2_CELL, TABLE_2_ROWS, TABLE_2_COLUMNS)):
+        for index, (scenario, row_text) in enumerate(rows):
             base = unique_offset(paper_text, row_text)
             cursor = len(scenario)
-            for column, value in zip(columns, row_text[len(scenario):].split()):
+            values = zip(range(1, len(columns) + 1), columns, row_text[len(scenario):].split())
+            for column, name, value in values:
                 at = row_text.index(value, cursor)
                 cursor = at + len(value)
-                add(value, f"Table {table} {scenario} {column}", "table", row_text, base + at)
+                add(value, f"Table {table} {scenario} {name}", "table", row_text,
+                    base + at, (cell, index, column))
 
-    for section, metric, context, value in PROSE:
+    for section, metric, context, value, target in PROSE:
         base = unique_offset(paper_text, context)
-        add(value, f"§{section} {metric}", "prose", context, base + context.index(value))
+        add(value, f"§{section} {metric}", "prose", context, base + context.index(value),
+            target)
 
-    return entries
+    return entries, bindings
 
 
 def claims_for(entries: list[dict]) -> list[Claim]:
@@ -101,15 +142,22 @@ def claims_for(entries: list[dict]) -> list[Claim]:
 
 def main() -> int:
     paper = normalize_text(pdf_to_markdown((FIXTURE / "paper.pdf").read_bytes()))
-    entries = build(paper)
+    entries, bindings = build(paper)
     claims = claims_for(entries)
     ids = {claim.id for claim in claims}
     if len(ids) != len(claims):
         raise ValueError("the rule produced two claims sharing an id")
+    if len({binding["claim_id"] for binding in bindings}) != len(bindings):
+        raise ValueError("the rule bound one claim twice")
     (FIXTURE / "claims.json").write_text(
         json.dumps({"claims": entries}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
     )
-    print(f"{len(entries)} claims, {len(ids)} distinct ids")
+    bindings.sort(key=lambda binding: binding["claim_id"])
+    (FIXTURE / "bindings.json").write_text(
+        json.dumps({"bindings": bindings}, ensure_ascii=False, indent=1) + "\n",
+        encoding="utf-8",
+    )
+    print(f"{len(entries)} claims, {len(ids)} distinct ids, {len(bindings)} bindings")
     return 0
 
 
