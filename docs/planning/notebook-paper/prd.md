@@ -62,6 +62,20 @@ class, and "notebook cell" as R1's named mitigation (`docs/ROADMAP.md:90`) is un
   into the canonical outputs arrays of the cells that compute the tables (probe
   enumeration: cells 18 and 28 — re-pinned against the executed record at fixture time).
   `float_repr: true` declared per binding where the cell wrote shortest-repr doubles.
+- **N1 — HTML table-cell addressing (engine amendment, owner-approved in-unit).** The
+  probe finding: pandas `Styler._repr_html_` renders the paper's values only inside a
+  single `text/html` string leaf (one `<td>` per value), and `text/plain` is a
+  nondeterministic `Style at 0x…` repr — under the D1/D2 grammar zero cells are
+  addressable, and this is the field's dominant notebook-rendering path (all three
+  screened candidates render this way). Amendment:
+  `{"kind": "notebook_cell", "pointer": "/0/data/text/html", "table": {"row": 2, "column": 2}}`
+  — when `table` is present the pointed leaf MUST be HTML; the leaf is split
+  deterministically on `<tr>` rows and `<td>` cells (tags stripped, text trimmed),
+  `(row, column)` 0-based pins exactly one cell; out-of-range or no `<td>` →
+  `NO_BINDING`; non-decimal cell text → `UNPARSEABLE_VALUE`; `float_repr` honored on the
+  shared parse path; no new causes (D5 of the locator PRD holds); the `(row, column)` is
+  user-written in the bindings file and auditable. `row`/`column` are exactly two
+  non-negative JSON integers; schema violations raise `BindingInvalid` at load.
 - **P4 — Environment built once, at dev time.** `tools/rcai_run.py` does the authorized
   fetch: resolve git at the pinned rev, describe environment, real `build_environment`
   (declared policy from README), real notebook execution via the C3 runner
