@@ -61,6 +61,20 @@ No HTML fallback was triggered; no converter code was touched (the 5 seated PDF 
 recovery floors are green — `tests/extract/`). `tests/gate/test_rcai_fixture.py` pins the
 member's SHA-256 and the token placement.
 
+## The claim rule (P2, fixed before the run)
+
+Every numeric cell of Table 1 (the four reference scenarios and the no-RSI baseline —
+**5 rows × 4 columns = 20 claims**) and Table 2 (the three strategic-market regimes —
+**3 rows × 3 columns = 9 claims**), plus the unqualified numeric statistics stated in the
+results prose: the no-RSI AGI-to-ASI interval `72` (§3.3) and the closed laboratory's
+leading-actor reproduction number `KAA = 1.00` (§4.1) — **31 claims**. Statistics the prose
+qualifies with an approximation marker are **excluded**: §3.3's `about 2.7`, `about 22`,
+`about 19.5`, `about 91`, and §4.1's `approximately 2.8`, `ρ(K) ≃ 1.15`,
+`approximately 9.0`, `about 4.4` — the paper declines a precise value, so no
+written-precision reading exists. The enumeration is fixed by `tools/rcai_spec.py` and
+committed before the dev-time run; no claim may be added after seeing which bind.
+`tests/gate/test_rcai_claims.py` pins the count, the verbatim spans and the distinct ids.
+
 ## Probe note (2026-10-10, dev-time, this machine)
 
 Clean full-notebook re-execution on the paper's repo: a fresh venv (Python 3.13, NumPy 2.1.x,
@@ -75,6 +89,6 @@ fallback notebook entry applies. Full-notebook wall time is measured and recorde
 ## Known limits
 
 - The code pin is not yet recorded here (Phase 4 fixes it at the probe commit); until then
-  this fixture carries the paper member only.
-- The claims rule (Phase 2) and the `notebook_cell` bindings (Phase 3) are committed before
-  any run — nothing in this file pre-empts them.
+  this fixture carries the paper member and the rule-encoded claims only.
+- The `notebook_cell` bindings (Phase 3) are committed before any run — nothing in this
+  file pre-empts them.
