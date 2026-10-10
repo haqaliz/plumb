@@ -117,16 +117,43 @@ NOTEBOOK_BINDING = load_bindings(
     [PAPER.id],
 )
 
+TABLE_CELLS = [
+    {
+        "cell_type": "code",
+        "execution_count": 1,
+        "metadata": {},
+        "outputs": [
+            {
+                "output_type": "display_data",
+                "data": {"text/html": ["<table><tr><td>0.95</td></tr></table>"]},
+                "metadata": {},
+            }
+        ],
+        "source": ["print(0.95)"],
+    },
+]
 
-def _leaked_stale_cell(tmp_path: Path) -> Completed:
+TABLE_BINDING = load_bindings(
+    bindings_json((
+        PAPER,
+        "analysis.ipynb#cell-0",
+        {"kind": "notebook_cell", "pointer": "/0/data/text/html",
+         "table": {"row": 0, "column": 0}},
+    )),
+    [PAPER.id],
+)
+
+
+def _leaked_stale_cell(tmp_path: Path, cells: list[dict] | None = None) -> Completed:
     """A committed, back-dated notebook the capture *also* lists as cell artifacts."""
+    cells = NOTEBOOK_CELLS if cells is None else cells
     checkout, result, capture, _ = run_full(
-        tmp_path, prints("done\n"), files={"analysis.ipynb": notebook_bytes(NOTEBOOK_CELLS)}
+        tmp_path, prints("done\n"), files={"analysis.ipynb": notebook_bytes(cells)}
     )
     (stale,) = capture.stale
     canonical = (
         json.dumps(
-            NOTEBOOK_CELLS[0]["outputs"], sort_keys=True, ensure_ascii=False,
+            cells[0]["outputs"], sort_keys=True, ensure_ascii=False,
             separators=(",", ":"), allow_nan=False,
         )
         + "\n"
@@ -177,6 +204,8 @@ SCENARIOS: list[tuple[str, str, Mapping[str, Binding],
     ("stale artifact, leaked into the capture", causes.STALE_ARTIFACT, BINDING, _leaked_stale),
     ("stale notebook cell, leaked into the capture", causes.STALE_ARTIFACT,
      NOTEBOOK_BINDING, _leaked_stale_cell),
+    ("stale notebook table cell, leaked into the capture", causes.STALE_ARTIFACT,
+     TABLE_BINDING, lambda t: _leaked_stale_cell(t, TABLE_CELLS)),
     ("no-output notebook cell", causes.NO_BINDING, NOTEBOOK_BINDING, _no_output_cell),
 ]
 
@@ -237,6 +266,14 @@ def test_the_notebook_binding_does_diverge_on_a_healthy_run(tmp_path: Path) -> N
     # notebook is fresh — the guard refuses it for staleness, not for nothing.
     run = _completed(tmp_path, writes_notebook("analysis.ipynb", NOTEBOOK_CELLS))
     (verdict,) = verify.verify_claims([PAPER], NOTEBOOK_BINDING, run).verdicts
+    assert verdict.verdict == DIVERGED
+
+
+def test_the_notebook_table_binding_does_diverge_on_a_healthy_run(tmp_path: Path) -> None:
+    # The control: the stale-table scenario's `<td>` 0.95 really diverges when
+    # the notebook is fresh — the guard refuses it for staleness, not for nothing.
+    run = _completed(tmp_path, writes_notebook("analysis.ipynb", TABLE_CELLS))
+    (verdict,) = verify.verify_claims([PAPER], TABLE_BINDING, run).verdicts
     assert verdict.verdict == DIVERGED
 
 

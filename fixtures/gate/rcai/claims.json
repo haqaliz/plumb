@@ -1,0 +1,252 @@
+{
+ "claims": [
+  {
+   "text": "0",
+   "metric": "Table 1 No-RSI baseline recursive gain a",
+   "source": "table",
+   "context": "No-RSI baseline 0 24.00 96.00 72.00",
+   "start": 31311,
+   "end": 31312
+  },
+  {
+   "text": "24.00",
+   "metric": "Table 1 No-RSI baseline AGI crossing T_AGI",
+   "source": "table",
+   "context": "No-RSI baseline 0 24.00 96.00 72.00",
+   "start": 31313,
+   "end": 31318
+  },
+  {
+   "text": "96.00",
+   "metric": "Table 1 No-RSI baseline ASI crossing T_ASI",
+   "source": "table",
+   "context": "No-RSI baseline 0 24.00 96.00 72.00",
+   "start": 31319,
+   "end": 31324
+  },
+  {
+   "text": "72.00",
+   "metric": "Table 1 No-RSI baseline AGI-to-ASI interval ΔT",
+   "source": "table",
+   "context": "No-RSI baseline 0 24.00 96.00 72.00",
+   "start": 31325,
+   "end": 31330
+  },
+  {
+   "text": "0.5",
+   "metric": "Table 1 Smooth scaling recursive gain a",
+   "source": "table",
+   "context": "Smooth scaling 0.5 21.35 74.13 52.79",
+   "start": 31346,
+   "end": 31349
+  },
+  {
+   "text": "21.35",
+   "metric": "Table 1 Smooth scaling AGI crossing T_AGI",
+   "source": "table",
+   "context": "Smooth scaling 0.5 21.35 74.13 52.79",
+   "start": 31350,
+   "end": 31355
+  },
+  {
+   "text": "74.13",
+   "metric": "Table 1 Smooth scaling ASI crossing T_ASI",
+   "source": "table",
+   "context": "Smooth scaling 0.5 21.35 74.13 52.79",
+   "start": 31356,
+   "end": 31361
+  },
+  {
+   "text": "52.79",
+   "metric": "Table 1 Smooth scaling AGI-to-ASI interval ΔT",
+   "source": "table",
+   "context": "Smooth scaling 0.5 21.35 74.13 52.79",
+   "start": 31362,
+   "end": 31367
+  },
+  {
+   "text": "3",
+   "metric": "Table 1 Weak supercriticality recursive gain a",
+   "source": "table",
+   "context": "Weak supercriticality 3 12.90 24.73 11.83",
+   "start": 31390,
+   "end": 31391
+  },
+  {
+   "text": "12.90",
+   "metric": "Table 1 Weak supercriticality AGI crossing T_AGI",
+   "source": "table",
+   "context": "Weak supercriticality 3 12.90 24.73 11.83",
+   "start": 31392,
+   "end": 31397
+  },
+  {
+   "text": "24.73",
+   "metric": "Table 1 Weak supercriticality ASI crossing T_ASI",
+   "source": "table",
+   "context": "Weak supercriticality 3 12.90 24.73 11.83",
+   "start": 31398,
+   "end": 31403
+  },
+  {
+   "text": "11.83",
+   "metric": "Table 1 Weak supercriticality AGI-to-ASI interval ΔT",
+   "source": "table",
+   "context": "Weak supercriticality 3 12.90 24.73 11.83",
+   "start": 31404,
+   "end": 31409
+  },
+  {
+   "text": "6",
+   "metric": "Table 1 Transient takeoff recursive gain a",
+   "source": "table",
+   "context": "Transient takeoff 6 8.40 11.08 2.69",
+   "start": 31428,
+   "end": 31429
+  },
+  {
+   "text": "8.40",
+   "metric": "Table 1 Transient takeoff AGI crossing T_AGI",
+   "source": "table",
+   "context": "Transient takeoff 6 8.40 11.08 2.69",
+   "start": 31430,
+   "end": 31434
+  },
+  {
+   "text": "11.08",
+   "metric": "Table 1 Transient takeoff ASI crossing T_ASI",
+   "source": "table",
+   "context": "Transient takeoff 6 8.40 11.08 2.69",
+   "start": 31435,
+   "end": 31440
+  },
+  {
+   "text": "2.69",
+   "metric": "Table 1 Transient takeoff AGI-to-ASI interval ΔT",
+   "source": "table",
+   "context": "Transient takeoff 6 8.40 11.08 2.69",
+   "start": 31441,
+   "end": 31445
+  },
+  {
+   "text": "15",
+   "metric": "Table 1 Rapid AGI-to-ASI recursive gain a",
+   "source": "table",
+   "context": "Rapid AGI-to-ASI 15 4.50 4.95 0.45",
+   "start": 31463,
+   "end": 31465
+  },
+  {
+   "text": "4.50",
+   "metric": "Table 1 Rapid AGI-to-ASI AGI crossing T_AGI",
+   "source": "table",
+   "context": "Rapid AGI-to-ASI 15 4.50 4.95 0.45",
+   "start": 31466,
+   "end": 31470
+  },
+  {
+   "text": "4.95",
+   "metric": "Table 1 Rapid AGI-to-ASI ASI crossing T_ASI",
+   "source": "table",
+   "context": "Rapid AGI-to-ASI 15 4.50 4.95 0.45",
+   "start": 31471,
+   "end": 31475
+  },
+  {
+   "text": "0.45",
+   "metric": "Table 1 Rapid AGI-to-ASI AGI-to-ASI interval ΔT",
+   "source": "table",
+   "context": "Rapid AGI-to-ASI 15 4.50 4.95 0.45",
+   "start": 31476,
+   "end": 31480
+  },
+  {
+   "text": "10.40",
+   "metric": "Table 2 Closed frontier-lab competition AGI crossing T_AGI",
+   "source": "table",
+   "context": "Closed frontier-lab competition 10.40 16.53 6.13",
+   "start": 36229,
+   "end": 36234
+  },
+  {
+   "text": "16.53",
+   "metric": "Table 2 Closed frontier-lab competition ASI crossing T_ASI",
+   "source": "table",
+   "context": "Closed frontier-lab competition 10.40 16.53 6.13",
+   "start": 36235,
+   "end": 36240
+  },
+  {
+   "text": "6.13",
+   "metric": "Table 2 Closed frontier-lab competition AGI-to-ASI interval ΔT",
+   "source": "table",
+   "context": "Closed frontier-lab competition 10.40 16.53 6.13",
+   "start": 36241,
+   "end": 36245
+  },
+  {
+   "text": "9.75",
+   "metric": "Table 2 Open competitive ecosystem AGI crossing T_AGI",
+   "source": "table",
+   "context": "Open competitive ecosystem 9.75 12.58 2.82",
+   "start": 36273,
+   "end": 36277
+  },
+  {
+   "text": "12.58",
+   "metric": "Table 2 Open competitive ecosystem ASI crossing T_ASI",
+   "source": "table",
+   "context": "Open competitive ecosystem 9.75 12.58 2.82",
+   "start": 36278,
+   "end": 36283
+  },
+  {
+   "text": "2.82",
+   "metric": "Table 2 Open competitive ecosystem AGI-to-ASI interval ΔT",
+   "source": "table",
+   "context": "Open competitive ecosystem 9.75 12.58 2.82",
+   "start": 36284,
+   "end": 36288
+  },
+  {
+   "text": "8.97",
+   "metric": "Table 2 Global competition AGI crossing T_AGI",
+   "source": "table",
+   "context": "Global competition 8.97 13.42 4.45",
+   "start": 36308,
+   "end": 36312
+  },
+  {
+   "text": "13.42",
+   "metric": "Table 2 Global competition ASI crossing T_ASI",
+   "source": "table",
+   "context": "Global competition 8.97 13.42 4.45",
+   "start": 36313,
+   "end": 36318
+  },
+  {
+   "text": "4.45",
+   "metric": "Table 2 Global competition AGI-to-ASI interval ΔT",
+   "source": "table",
+   "context": "Global competition 8.97 13.42 4.45",
+   "start": 36319,
+   "end": 36323
+  },
+  {
+   "text": "72",
+   "metric": "§3.3 no-RSI AGI-to-ASI interval (prose)",
+   "source": "prose",
+   "context": "compressing the AGI-to-ASI interval from72 years",
+   "start": 29945,
+   "end": 29947
+  },
+  {
+   "text": "1.00",
+   "metric": "§4.1 closed laboratory leading actor reproduction number K_AA (prose)",
+   "source": "prose",
+   "context": "the local critical boundary, KAA = 1.00",
+   "start": 36915,
+   "end": 36919
+  }
+ ]
+}

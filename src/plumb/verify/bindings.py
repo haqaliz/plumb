@@ -5,13 +5,16 @@ The file is JSON::
 
     {"bindings": [
       {"claim_id": "<Claim.id>",
-       "artifact": "results.json" | "<stdout>" | "out/table.csv",
-       "locator":  {"kind": "json_pointer", "pointer": "/metrics/auc"}
-                 | {"kind": "stdout_regex", "pattern": "AUC = (\\S+)"}
-                 | {"kind": "csv_cell", "column": "auc", "row": {"model": "A"}},
-       "tolerance": {"abs": "0.01"} | {"rel": "0.05"},   # optional
-       "scale": "100",                                    # optional
-       "float_repr": true}                                # optional
+"artifact": "results.json" | "<stdout>" | "out/table.csv",
+        "locator":  {"kind": "json_pointer", "pointer": "/metrics/auc"}
+                  | {"kind": "stdout_regex", "pattern": "AUC = (\\S+)"}
+                  | {"kind": "csv_cell", "column": "auc", "row": {"model": "A"}}
+                  | {"kind": "notebook_cell", "pointer": "/1/data/text/plain/0"}
+                  | {"kind": "notebook_cell", "pointer": "/0/data/text/html",
+                     "table": {"row": 2, "column": 2}}   # optional N1 cell address
+        "tolerance": {"abs": "0.01"} | {"rel": "0.05"},   # optional
+        "scale": "100",                                    # optional
+        "float_repr": true}                                # optional
     ]}
 
 **Two kinds of refusal.** Anything that makes the *file* untrustworthy raises
@@ -25,6 +28,12 @@ well-formed but unusable — a pointer that is not RFC 6901, a regex that does n
 compile or lacks exactly one group, a CSV selector without exactly one key, or a
 locator aimed at the wrong artifact kind — only sets `Binding.invalid`, and that
 one claim is `UNVERIFIED: BINDING_INVALID`.
+
+**`table` addresses one cell of a pointed HTML leaf (N1).** A `notebook_cell`
+locator over an HTML document — pandas Styler renders a table's values only as
+`<td>` cells — may add `"table": {"row": <int>, "column": <int>}` to pin
+exactly one cell of the `<tr>`/`<td>` grid. The integers must be non-negative;
+schema violations raise `BindingInvalid` at load.
 
 **`float_repr` declares how the artifact wrote its numbers.** pandas' `to_csv` and
 `json.dumps` write a binary64 as its *shortest round-trip repr*: the exact value 2.5 comes out
@@ -49,7 +58,7 @@ from typing import Any
 from plumb.verify.causes import BindingInvalid
 from plumb.verify.numbers import Tolerance, strict_decimal
 
-__all__ = ["Binding", "CsvCell", "JsonPointer", "NotebookCell", "StdoutRegex",
+__all__ = ["Binding", "CsvCell", "HtmlTable", "JsonPointer", "NotebookCell", "StdoutRegex",
            "load_bindings"]
 
 STDOUT = "<stdout>"
@@ -79,10 +88,19 @@ class CsvCell:
 
 
 @dataclass(frozen=True, slots=True)
+class HtmlTable:
+    """A 0-based (row, column) into the pointed HTML leaf's `<tr>`/`<td>` grid (N1)."""
+
+    row: int
+    column: int
+
+
+@dataclass(frozen=True, slots=True)
 class NotebookCell:
     """An RFC 6901 pointer into a notebook cell's canonical ``outputs`` array."""
 
     pointer: str
+    table: HtmlTable | None = None
 
 
 Locator = JsonPointer | StdoutRegex | CsvCell | NotebookCell
@@ -106,8 +124,10 @@ _LOCATOR_FIELDS = {
     "json_pointer": {"kind", "pointer"},
     "stdout_regex": {"kind", "pattern"},
     "csv_cell": {"kind", "column", "row"},
-    "notebook_cell": {"kind", "pointer"},
+    "notebook_cell": {"kind", "pointer", "table"},
 }
+#: The locator fields a kind may take, beyond its required set (`_LOCATOR_FIELDS`).
+_LOCATOR_OPTIONAL = {"notebook_cell": {"table"}}
 _POINTER = re.compile(r"(?:/(?:[^~/]|~[01])*)*")
 _CELL_ARTIFACT = re.compile(r".*\.ipynb#cell-\d+$")
 
@@ -197,10 +217,13 @@ def _locator(where: str, spec: Any) -> tuple[Locator, str | None]:
     if not isinstance(spec, dict) or spec.get("kind") not in _LOCATOR_FIELDS:
         raise BindingInvalid(f"{where}: locator must be an object with a known kind")
     kind = spec["kind"]
-    if set(spec) != _LOCATOR_FIELDS[kind]:
-        raise BindingInvalid(
-            f"{where}: a {kind} locator has exactly the fields {sorted(_LOCATOR_FIELDS[kind])}"
-        )
+    required = _LOCATOR_FIELDS[kind] - _LOCATOR_OPTIONAL.get(kind, frozenset())
+    if required - set(spec) or set(spec) - _LOCATOR_FIELDS[kind]:
+        message = f"a {kind} locator has exactly the fields {sorted(required)}"
+        optional = _LOCATOR_OPTIONAL.get(kind, frozenset())
+        if optional:
+            message += f" and the optional fields {sorted(optional)}"
+        raise BindingInvalid(f"{where}: {message}")
 
     if kind == "json_pointer":
         pointer = _string(where, spec, "pointer")
@@ -210,7 +233,8 @@ def _locator(where: str, spec: Any) -> tuple[Locator, str | None]:
     if kind == "notebook_cell":
         pointer = _string(where, spec, "pointer")
         ok = _POINTER.fullmatch(pointer) is not None
-        return NotebookCell(pointer), None if ok else f"not an RFC 6901 pointer: {pointer!r}"
+        cell = NotebookCell(pointer, _table(where, spec.get("table")))
+        return cell, None if ok else f"not an RFC 6901 pointer: {pointer!r}"
 
     if kind == "stdout_regex":
         pattern = _string(where, spec, "pattern")
@@ -249,6 +273,23 @@ def _string(where: str, spec: dict[str, Any], field: str) -> str:
     if not isinstance(value, str):
         raise BindingInvalid(f"{where}: locator {field} must be a string")
     return value
+
+
+def _table(where: str, spec: Any) -> HtmlTable | None:
+    if spec is None:
+        return None
+    if not isinstance(spec, dict) or set(spec) != {"row", "column"}:
+        raise BindingInvalid(f'{where}: table must be exactly {{"row": ..., "column": ...}}')
+    return HtmlTable(_table_index(where, "row", spec["row"]),
+                     _table_index(where, "column", spec["column"]))
+
+
+def _table_index(where: str, name: str, value: Any) -> int:
+    # JSON numbers arrive as Decimal (the file's parse hooks); only an integral
+    # value may name a grid cell.
+    if type(value) is not Decimal or value != value.to_integral() or value < 0:
+        raise BindingInvalid(f"{where}: table {name} must be a non-negative integer")
+    return int(value)
 
 
 def _decimal_string(where: str, name: str, value: Any) -> Decimal:

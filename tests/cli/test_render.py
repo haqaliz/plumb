@@ -35,7 +35,7 @@ from plumb.verify import (
     load_bindings,
     verify_claims,
 )
-from plumb.verify.bindings import CsvCell, JsonPointer, NotebookCell, StdoutRegex
+from plumb.verify.bindings import CsvCell, HtmlTable, JsonPointer, NotebookCell, StdoutRegex
 from plumb.verify.causes import NO_BINDING, WONT_RUN
 
 _THIS_DIR = Path(__file__).parent
@@ -400,6 +400,9 @@ class TestTheTableLayout:
                 _reproduced(claim_id="c", locator=JsonPointer("/auc"), located="0.87"),
                 _reproduced(claim_id="d", artifact="analysis.ipynb#cell-1",
                             locator=NotebookCell("/0/text/0"), located="0.87"),
+                _reproduced(claim_id="e", artifact="analysis.ipynb#cell-18",
+                            locator=NotebookCell("/0/data/text/html", HtmlTable(2, 2)),
+                            located="12.90"),
             ),
         )
         out = render_verdicts(verdicts, json=False).decode("utf-8")
@@ -408,6 +411,8 @@ class TestTheTableLayout:
         assert "stdout: AUC=(\\S+) → 0.87" in lines[3]
         assert "json: /auc → 0.87" in lines[4]
         assert "cell-1 /0/text/0 → 0.87" in lines[5]
+        # The table-mode address survives the 24-wide truncation.
+        assert "cell-18 r2c2 /0/data/te…" in lines[6]
 
 
 class TestTheSeamContract:

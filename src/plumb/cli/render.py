@@ -124,7 +124,10 @@ def _locator_text(verdict: Verdict) -> str:
         text = f"json: {locator.pointer}"
     elif isinstance(locator, NotebookCell):
         cell = verdict.artifact.rsplit("#", 1)[-1]
-        text = f"{cell} {locator.pointer}"
+        if locator.table is not None:
+            text = f"{cell} r{locator.table.row}c{locator.table.column} {locator.pointer}"
+        else:
+            text = f"{cell} {locator.pointer}"
     elif isinstance(locator, StdoutRegex):
         text = f"stdout: {locator.pattern}"
     elif isinstance(locator, CsvCell):

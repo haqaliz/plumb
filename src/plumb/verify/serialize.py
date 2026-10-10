@@ -73,7 +73,16 @@ def _locator(locator: Locator) -> dict[str, Any]:
     if isinstance(locator, JsonPointer):
         return {"kind": "json_pointer", "pointer": _str(locator.pointer, "pointer")}
     if isinstance(locator, NotebookCell):
-        return {"kind": "notebook_cell", "pointer": _str(locator.pointer, "pointer")}
+        document: dict[str, Any] = {
+            "kind": "notebook_cell",
+            "pointer": _str(locator.pointer, "pointer"),
+        }
+        if locator.table is not None:
+            document["table"] = {
+                "row": _int(locator.table.row, "row"),
+                "column": _int(locator.table.column, "column"),
+            }
+        return document
     if isinstance(locator, StdoutRegex):
         return {"kind": "stdout_regex", "pattern": _str(locator.pattern, "pattern")}
     if isinstance(locator, CsvCell):
@@ -103,6 +112,12 @@ def _band(value: object, field: str) -> list[str] | None:
 def _str(value: object, field: str) -> str:
     if not isinstance(value, str):
         raise TypeError(f"{field} must be a string, got {type(value).__name__}")
+    return value
+
+
+def _int(value: object, field: str) -> int:
+    if type(value) is not int:
+        raise TypeError(f"{field} must be an int, got {type(value).__name__}")
     return value
 
 
