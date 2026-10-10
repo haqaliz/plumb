@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1270 560" font-family="Menlo, Monaco, 'DejaVu Sans Mono', monospace">
+<rect x="0" y="0" width="1270" height="560" rx="14" fill="#0d1117"/>
+<rect x="1" y="1" width="1268" height="558" rx="13" fill="none" stroke="#30363d"/>
+<rect x="0" y="0" width="1270" height="46" rx="14" fill="#161b22"/>
+<rect x="0" y="32" width="1270" height="14" fill="#161b22"/>
+<circle cx="18" cy="23.0" r="6" fill="#30363d"/>
+<circle cx="40" cy="23.0" r="6" fill="#30363d"/>
+<circle cx="62" cy="23.0" r="6" fill="#30363d"/>
+<text x="76" y="29.0" font-size="15" fill="#8b949e">plumb corpus report   ·   the discrepancy corpus</text>
+<text x="28" y="74" font-size="15" fill="#8b949e">CASE                     | CLAIMS | BOUND | REPRODUCED | WITHIN-TOLERANCE | DIVERGED | UNVERIFIED | LABELED | CONFIRMED</text>
+<text x="28" y="97" font-size="15" fill="#30363d">-----------------------------------------------------------------------------------------------------------------------</text>
+<text x="28" y="120" font-size="15" fill="#e6edf3">3f7f808d2861cff8fe838a5… | 16     | 16    | 2          | 0                | 14       | 0          | 14      | 0        </text>
+<text x="28" y="143" font-size="15" fill="#e6edf3">941b556bea2792b1c24abd9… | 86     | 86    | 85         | 0                | 1        | 0          | 1       | 1        </text>
+<text x="28" y="166" font-size="15" fill="#e6edf3">db99db77e4e15da01fdd2b7… | 31     | 30    | 30         | 0                | 0        | 1          | 0       | 0        </text>
+<text x="28" y="189" font-size="15" fill="#e6edf3">total (3 cases)          | 133    | 132   | 117        | 0                | 15       | 1          | 15      | 1        </text>
+<text x="28" y="212" font-size="15" fill="#3fb950">  coverage: 132/133 bound</text>
+<text x="28" y="235" font-size="15" fill="#d29922">  precision: 1/15 (owner)</text>
+<text x="28" y="258" font-size="15" fill="#d29922">  recall: 1/15 (owner)</text>
+</svg>

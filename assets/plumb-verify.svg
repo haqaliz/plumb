@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1270 560" font-family="Menlo, Monaco, 'DejaVu Sans Mono', monospace">
+<rect x="0" y="0" width="1270" height="560" rx="14" fill="#0d1117"/>
+<rect x="1" y="1" width="1268" height="558" rx="13" fill="none" stroke="#30363d"/>
+<rect x="0" y="0" width="1270" height="46" rx="14" fill="#161b22"/>
+<rect x="0" y="32" width="1270" height="14" fill="#161b22"/>
+<circle cx="18" cy="23.0" r="6" fill="#30363d"/>
+<circle cx="40" cy="23.0" r="6" fill="#30363d"/>
+<circle cx="62" cy="23.0" r="6" fill="#30363d"/>
+<text x="76" y="29.0" font-size="15" fill="#8b949e">plumb verify --from-record fixtures/gate/rcai   ·   arXiv:2609.00137</text>
+<text x="28" y="74" font-size="15" fill="#8b949e">VERDICT         | CAUSE                    | CLAIM ID                 | REPORTED                 | REDERIVED                | ARTIFACT                 | LOCATOR                 </text>
+<text x="28" y="97" font-size="15" fill="#30363d">---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</text>
+<text x="28" y="120" font-size="15" fill="#3fb950">REPRODUCED      |                          | 00240598d5556816175b147… | 16.53                    | 16.53                    | Recursive_Criticality_o… | cell-28 r0c2 /0/data/te…</text>
+<text x="28" y="143" font-size="15" fill="#3fb950">REPRODUCED      |                          | 158a361e94b0b85c9e6a529… | 15                       | 15.0                     | Recursive_Criticality_o… | cell-18 r4c1 /0/data/te…</text>
+<text x="28" y="166" font-size="15" fill="#3fb950">REPRODUCED      |                          | 16481907b53e471a82b91f3… | 8.97                     | 8.97                     | Recursive_Criticality_o… | cell-28 r2c1 /0/data/te…</text>
+<text x="28" y="189" font-size="15" fill="#3fb950">REPRODUCED      |                          | 39b9d81340b86fb48833e1b… | 4.95                     | 4.95                     | Recursive_Criticality_o… | cell-18 r4c3 /0/data/te…</text>
+<text x="28" y="212" font-size="15" fill="#3fb950">REPRODUCED      |                          | 58d5df18541671438ff7906… | 2.69                     | 2.69                     | Recursive_Criticality_o… | cell-18 r3c4 /0/data/te…</text>
+<text x="28" y="235" font-size="15" fill="#3fb950">REPRODUCED      |                          | 69879c0514ce705c0536aa4… | 3                        | 3.0                      | Recursive_Criticality_o… | cell-18 r2c1 /0/data/te…</text>
+<text x="28" y="258" font-size="15" fill="#8b949e">…</text>
+<text x="28" y="281" font-size="15" fill="#8b949e">· full 31-row table, byte-identical on every replay of this record</text>
+<text x="28" y="304" font-size="15" fill="#e6edf3"></text>
+<text x="28" y="327" font-size="15" fill="#e6edf3">Summary</text>
+<text x="28" y="350" font-size="15" fill="#e6edf3">  claims: 31  bound: 30</text>
+<text x="28" y="373" font-size="15" fill="#3fb950">  REPRODUCED: 30  WITHIN-TOLERANCE: 0  DIVERGED: 0  UNVERIFIED: 1</text>
+<text x="28" y="396" font-size="15" fill="#8b949e">  by cause:</text>
+<text x="28" y="419" font-size="15" fill="#8b949e">    NO_BINDING: 1</text>
+</svg>

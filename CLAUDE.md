@@ -104,7 +104,9 @@ The AgroDesign bundle (`bundles/agrodesign/`) verifies, and `tools/bundle_replay
 from a clean clone byte-identical. **The Phase 0 gate is met** (2026-09-27): the one
 `DIVERGED` was reviewed by the owner and confirmed as a genuine reporting discrepancy. Met on one
 paper — **cross-paper coverage (R1) is now measured (2026-10-02)**: the corpus holds 3
-cases, 117 claims, 116 bound, 115 `REPRODUCED`, **1 `DIVERGED`**, 1 `UNVERIFIED`,
+cases, 133 claims, 132 bound, 117 `REPRODUCED`, 1 `UNVERIFIED`, **15 `DIVERGED` — of which
+14 were refuted on owner review (Perrin: the artifact is not run-to-run reproducible at
+written precision) and 1 confirmed (AgroDesign's third-decimal Shapiro-Wilk p)**,
 precision/recall `1/15 (owner)` — AgroDesign (85/1; its one confirmed `DIVERGED` is the only
 confirmed discrepancy), **Perrin, arXiv:2401.11842** (16 claims; this run 2/14 — the artifact is
 **not run-to-run reproducible at the paper's written precision** (three full runs,

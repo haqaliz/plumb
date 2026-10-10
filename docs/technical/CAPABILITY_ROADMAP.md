@@ -238,8 +238,8 @@ model cannot hand you for free.
 content-addressed, write-once, replay-validated case under gitignored `corpus/local/`;
 `plumb verify --bank` (2026-10-02, `cross-paper-coverage`) closes the live loop. The
 **R1 measurement exists (2026-10-02; extended 2026-10-10)**: the bank holds **3 cases,
-117 claims, 116 bound, 115 `REPRODUCED`, 1 `DIVERGED`, 1 `UNVERIFIED`, precision/recall
-`1/15 (owner)`** —
+133 claims, 132 bound, 117 `REPRODUCED`, 1 `UNVERIFIED`, 15 `DIVERGED` — of which 14 were
+refuted on owner review and 1 confirmed, precision/recall `1/15 (owner)`** —
 AgroDesign (86: 85/1; its one confirmed `DIVERGED` is the only confirmed discrepancy),
 **Perrin** (arXiv:2401.11842, 16 claims; this run 2/14 — the artifact is **not
 run-to-run reproducible at the paper's written precision** (three full runs, values
