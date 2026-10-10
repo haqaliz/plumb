@@ -9,7 +9,7 @@
 Point Plumb at a paper and the code behind it. It pins the code, builds an environment, **re-runs the artifacts**, re-derives the paper's quantitative claims from what the run actually produced, and renders an honest verdict per claim — `REPRODUCED` / `WITHIN-TOLERANCE` / `DIVERGED` / `UNVERIFIED` — decided by *re-execution*, never by a model's opinion of the paper.
 
 [![Status](https://img.shields.io/badge/status-alpha%20·%20engine%20built-3fb950)](docs/ROADMAP.md)
-[![License](https://img.shields.io/badge/license-not%20yet%20chosen-8b949e)](.)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Built with uv](https://img.shields.io/badge/built%20with-uv-DE5FE9?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
 [![One runtime dep](https://img.shields.io/badge/runtime%20deps-one%20(pypdf)-3fb950)](pyproject.toml)
