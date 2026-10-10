@@ -110,8 +110,11 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   `*.ipynb` is the fallback entry point (only when no `[project.scripts]` entry and no root
   `main.py`), executed through the checkout's own `jupyter nbconvert --execute --inplace`;
   each fresh notebook is captured whole-file (`notebook`) plus per-cell `notebook_cell`
-  artifacts (`<relpath>#cell-<i>`, canonical `outputs` JSON), freshness-guarded. The C4
-  `notebook_cell` locator is the named follow-on.
+  artifacts (`<relpath>#cell-<i>`, canonical `outputs` JSON), freshness-guarded. **The C4
+  `notebook_cell` locator is built** (2026-10-10): a binding aims an RFC 6901 pointer at a
+  `#cell-<i>` artifact's canonical outputs array (`text/plain` mime keys resolve literally);
+  staleness is resolved cell → file and never read; record/replay/bank/bundle carry the
+  binding as verbatim bytes.
 
 ### C4 — Binding & verdict (`src/plumb/verify/`) — the moat
 

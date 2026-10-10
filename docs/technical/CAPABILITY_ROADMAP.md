@@ -146,7 +146,10 @@ are `ENTRYPOINT_AMBIGUOUS`, never a guess), executed through the checkout's own
 `WONT_RUN`); every fresh `.ipynb` is captured whole-file (`notebook`) plus one
 `notebook_cell` artifact per output-bearing cell (`<relpath>#cell-<i>`, the canonical
 `outputs` JSON), freshness-guarded and undecomposable-safe, all offline-tested with a stub
-`jupyter`. **The C4 `notebook_cell` locator is the named follow-on. Not built:** resource caps
+`jupyter`. **The C4 `notebook_cell` locator is built** (2026-10-10, `notebook-cell-locator`):
+a pointer into a cell's canonical `outputs` array (`text/plain` keys literal), staleness
+resolved cell→file and never read, kinds disjoint from `json_pointer`, no new causes.
+**Not built:** resource caps
 beyond the timeout, and container isolation. C4's first slice (2026-09-25) consumes the trace and capture; verdicts
 ran on a real paper for the first time on 2026-09-26 (AgroDesign, see C4); the Phase 0 gate
 now has its signed bundle (C6, 2026-09-27), and with the owner's review of the `DIVERGED` the
@@ -199,8 +202,10 @@ trace and objects. Two engine gaps it exposed, fixed test-first: bindings may de
 without it the paper's `2.500` was a false `ARTIFACT_PRECISION_COARSER`), and `parse_trace`
 reads a `RunTrace` back.
 
-**Not built:** a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved),
-comparison of `PlusMinus`/`Interval`/`Range`/`Approximate`, notebook-cell locators.
+**Not built:** a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved).
+**The `notebook_cell` locator landed 2026-10-10** (`notebook-cell-locator`): a pointer into a
+cell's canonical outputs array, stale cells resolve to their notebook file and are never
+read, kinds stay disjoint from `json_pointer`.
 **The `plumb verify` CLI is built** (2026-09-27, `verify-cli`): `plumb verify <paper> <repo>
 [--rev REV] [--bindings FILE] [--out DIR] [--from-record DIR] [--no-env-build] [--signer-key
 PATH] [--no-paper] [--json]` runs the C1→C2→C3→C4→C6 spine live (local dir / git URL / archive;
