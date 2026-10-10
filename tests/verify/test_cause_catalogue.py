@@ -27,7 +27,12 @@ PROGRAM = (
     + writes_notebook(
         "analysis.ipynb",
         [{"cell_type": "code", "execution_count": 1, "metadata": {},
-          "outputs": [{"output_type": "stream", "name": "stdout", "text": ["0.5"]}],
+          "outputs": [{"output_type": "stream", "name": "stdout", "text": ["0.5"]},
+                      {"output_type": "display_data",
+                       "data": {"text/html": ["<table><thead><tr><th>x</th></tr></thead>"
+                                              "<tbody><tr><td>n/a</td></tr></tbody>"
+                                              "</table>"]},
+                       "metadata": {}}],
           "source": ["print(0.5)"]}],
     )
     + 'print("v = 1")\nprint("v = 2")\n'
@@ -46,8 +51,10 @@ CASES = {
     ),
     causes.BINDING_INVALID: (claim("0.87", "bad pointer"), ("results.json", ptr("auc"))),
     causes.UNPARSEABLE_VALUE: (
-        claim("0.5", "cell text"),
-        ("analysis.ipynb#cell-0", {"kind": "notebook_cell", "pointer": "/0/text"}),
+        claim("0.5", "cell table text"),
+        ("analysis.ipynb#cell-0",
+         {"kind": "notebook_cell", "pointer": "/1/data/text/html",
+          "table": {"row": 0, "column": 0}}),
     ),
     causes.STALE_ARTIFACT: (claim("0.5", "old"), ("old.json", ptr("/auc"))),
     causes.UNIT_UNDECLARED: (claim("87%", "pct"), ("results.json", ptr("/auc"))),

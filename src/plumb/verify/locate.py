@@ -33,6 +33,15 @@ approximation. NaN and Infinity are refused, as is any leaf that is not a number
 or a plain decimal string. A notebook cell's number leaf is transported the same
 way — its JSON text via `json.dumps(leaf, allow_nan=False)`, the shortest
 round-trip of the bytes the artifact wrote (D7).
+
+**HTML table cells (N1).** A `table` field on a `notebook_cell` binding declares
+that the pointed node is an HTML document — a string, or nbformat's element list
+of a multiline mime payload, joined in order — and pins exactly one `<td>` by
+`(row, column)`. The grid's rows are the `<tr>` segments that carry a `<td>`, so
+a `<th>`-only header row does not consume a row index; the addressed cell's text
+flows through the same `_number` path, `float_repr` included. An out-of-range
+address or an HTML leaf without a `<td>` is `NO_BINDING`; a node that cannot be
+HTML text is `UNPARSEABLE_VALUE`.
 """
 
 from __future__ import annotations
@@ -49,6 +58,7 @@ from plumb.run.capture import Artifact, Capture
 from plumb.verify.bindings import (
     Binding,
     CsvCell,
+    HtmlTable,
     JsonPointer,
     NotebookCell,
     StdoutRegex,
@@ -102,7 +112,7 @@ def locate(binding: Binding, capture: Capture) -> Located | Unlocated:
     elif isinstance(locator, StdoutRegex):
         found = _stdout(data, locator.pattern)
     elif isinstance(locator, NotebookCell):
-        found = _notebook_cell(data, locator.pointer)
+        found = _notebook_cell(data, locator.pointer, locator.table)
     else:
         found = _csv(data, locator)
     if isinstance(found, Unlocated):
@@ -220,8 +230,15 @@ def _json(data: bytes, pointer: str) -> str | Unlocated:
 # --------------------------------------------------------------------------------
 
 
-def _notebook_cell(data: bytes, pointer: str) -> str | Unlocated:
-    """The leaf `pointer` names in a cell's canonical outputs array (D1, D7)."""
+def _notebook_cell(
+    data: bytes, pointer: str, table: HtmlTable | None = None
+) -> str | Unlocated:
+    """The leaf `pointer` names in a cell's canonical outputs array (D1, D7).
+
+    With `table` (N1) the pointed node is an HTML document — a string, or the
+    element list nbformat writes for a multiline mime payload, joined in order —
+    and the `(row, column)` `<td>` cell is the located text.
+    """
     try:
         outputs = json.loads(data.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -229,11 +246,46 @@ def _notebook_cell(data: bytes, pointer: str) -> str | Unlocated:
     node = _walk(outputs, pointer, literal_slash=True)
     if isinstance(node, Unlocated):
         return node
+    if table is not None:
+        return _html_cell(node, pointer, table)
     if isinstance(node, str):
         return node
     if isinstance(node, bool) or not isinstance(node, (int, float)):
         return Unlocated(UNPARSEABLE_VALUE, f"pointer {pointer!r} holds {type(node).__name__}")
     return json.dumps(node, allow_nan=False)
+
+
+_TR = re.compile(r"<tr[^>]*>")
+_TD = re.compile(r"<td[^>]*>")
+_TAG = re.compile(r"<[^>]+>")
+
+
+def _html_cell(node: Any, pointer: str, table: HtmlTable) -> str | Unlocated:
+    """The `(row, column)` cell of `node`'s `<tr>`/`<td>` grid.
+
+    Rows are the `<tr>` segments carrying a `<td>` (a `<th>`-only header row is
+    not a grid row), 0-based in document order; cells are a row's `<td>`
+    segments, tags stripped and text trimmed; no candidate or an out-of-range
+    address is `NO_BINDING`, non-HTML nodes are `UNPARSEABLE_VALUE` (N1).
+    """
+    if isinstance(node, str):
+        html = node
+    elif isinstance(node, list) and all(isinstance(line, str) for line in node):
+        html = "".join(node)
+    else:
+        return Unlocated(UNPARSEABLE_VALUE, f"pointer {pointer!r} does not hold HTML text")
+    if _TD.search(html) is None:
+        return Unlocated(NO_BINDING, "the pointed HTML holds no <td> cell")
+    parts = _TR.split(html)
+    rows = parts if len(parts) == 1 else [row for row in parts[1:] if _TD.search(row)]
+    if table.row >= len(rows):
+        return Unlocated(NO_BINDING, f"the pointed HTML has no table row {table.row}")
+    cells = [_TAG.sub("", cell).strip() for cell in _TD.split(rows[table.row])[1:]]
+    if table.column >= len(cells):
+        return Unlocated(
+            NO_BINDING, f"table row {table.row} has no column {table.column}"
+        )
+    return cells[table.column]
 
 
 # --------------------------------------------------------------------------------

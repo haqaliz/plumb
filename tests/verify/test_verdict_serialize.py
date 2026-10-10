@@ -30,7 +30,7 @@ D = Decimal
 
 _BUILD = '''
 from decimal import Decimal as D
-from plumb.verify.bindings import CsvCell, JsonPointer, NotebookCell, StdoutRegex
+from plumb.verify.bindings import CsvCell, HtmlTable, JsonPointer, NotebookCell, StdoutRegex
 from plumb.verify.verdict import Verdict, VerdictSet
 
 def build():
@@ -53,6 +53,12 @@ def build():
                 located_text="0.8700", sha256="ab" * 32, run_id="cd" * 32,
                 rederived=D("0.8700"), band=(D("0.8695"), D("0.8705")), tolerance_band=None,
                 delta=D("0.0000"), threshold=None, tolerance_threshold=None),
+        Verdict(claim_id="e", verdict="REPRODUCED", cause=None, reported_text="12.90",
+                artifact="analysis.ipynb#cell-18",
+                locator=NotebookCell("/0/data/text/html", HtmlTable(2, 2)),
+                located_text="12.90", sha256="ab" * 32, run_id="cd" * 32,
+                rederived=D("12.900"), band=(D("12.895"), D("12.905")), tolerance_band=None,
+                delta=D("0.000"), threshold=None, tolerance_threshold=None),
     ))
 '''
 exec(_BUILD)  # defines build() here too, so in-process and child bytes are compared
@@ -61,20 +67,26 @@ exec(_BUILD)  # defines build() here too, so in-process and child bytes are comp
 def test_the_document_shape() -> None:
     document = json.loads(serialize_verdicts(build()))  # noqa: F821
     assert set(document) == {"run_id", "verdicts", "coverage"}
-    first, second, third, fourth = document["verdicts"]
+    first, second, third, fourth, fifth = document["verdicts"]
     assert first["locator"] == {"kind": "json_pointer", "pointer": "/m/auc"}
     assert second["locator"] == {"kind": "csv_cell", "column": "auc", "row": {"model": "A"}}
     assert third["locator"] == {"kind": "stdout_regex", "pattern": r"p = (\S+)"}
     assert fourth["locator"] == {"kind": "notebook_cell", "pointer": "/1/data/text/plain/0"}
+    assert fifth["locator"] == {
+        "kind": "notebook_cell", "pointer": "/0/data/text/html",
+        "table": {"row": 2, "column": 2},
+    }
     assert fourth["artifact"] == "analysis.ipynb#cell-1"
+    assert fifth["artifact"] == "analysis.ipynb#cell-18"
+    assert b'"table":{"column":2,"row":2}' in serialize_verdicts(build())  # noqa: F821
     assert first["band"] == ["0.8695", "0.8705"]
     assert first["rederived"] == "0.8700" and first["delta"] == "0.0000"
     assert second["rederived"] == "1.5E+3" and second["delta"] == "-1E-7"
     assert first["review_required"] is False and first["bound"] is True
     assert third["cause"] == "NO_BINDING" and third["bound"] is False
     assert document["coverage"] == {
-        "claims": 4, "bound": 3,
-        "by_verdict": {REPRODUCED: 2, WITHIN_TOLERANCE: 1, DIVERGED: 0, UNVERIFIED: 1},
+        "claims": 5, "bound": 4,
+        "by_verdict": {REPRODUCED: 3, WITHIN_TOLERANCE: 1, DIVERGED: 0, UNVERIFIED: 1},
         "by_cause": {"NO_BINDING": 1},
     }
 

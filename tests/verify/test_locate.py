@@ -46,6 +46,10 @@ def notebook_cell(p: str, artifact: str = "analysis.ipynb#cell-0"):
     return bind(artifact, {"kind": "notebook_cell", "pointer": p})
 
 
+def notebook_table(p: str, table: dict, artifact: str = "analysis.ipynb#cell-0"):
+    return bind(artifact, {"kind": "notebook_cell", "pointer": p, "table": table})
+
+
 def json_run(tmp_path: Path, text: str) -> Capture:
     return run_program(tmp_path, writes("results.json", text))[1]
 
@@ -297,6 +301,226 @@ class TestNotebookCell:
         binding = notebook_cell("/0/text/0", "results.json")
         assert binding.invalid
         assert cause_of(locate(binding, capture)) == causes.BINDING_INVALID
+
+
+TABLE_HTML = (
+    '<style type="text/css">\n</style>\n<table id="T_1" class="dataframe">\n'
+    "  <thead>\n"
+    '    <tr style="text-align: right;">\n'
+    '      <th class="blank level0" >&nbsp;</th>\n'
+    '      <th class="col_heading level0 col0" >Scenario</th>\n'
+    '      <th class="col_heading level0 col1" >a</th>\n'
+    '      <th class="col_heading level0 col2" >T_AGI (yr)</th>\n'
+    '      <th class="col_heading level0 col3" >T_ASI (yr)</th>\n'
+    '      <th class="col_heading level0 col4" >ΔT_AGI→ASI (yr)</th>\n'
+    "    </tr>\n"
+    "  </thead>\n"
+    "  <tbody>\n"
+    "    <tr>\n"
+    '      <th class="row_heading level0 row0" >0</th>\n'
+    '      <td class="data row0 col0" >No-RSI baseline</td>\n'
+    '      <td class="data row0 col1" >0.0</td>\n'
+    '      <td class="data row0 col2" >24.00</td>\n'
+    '      <td class="data row0 col3" >96.00</td>\n'
+    '      <td class="data row0 col4" >72.00</td>\n'
+    "    </tr>\n"
+    "    <tr>\n"
+    '      <th class="row_heading level0 row1" >1</th>\n'
+    '      <td class="data row1 col0" >Smooth scaling</td>\n'
+    '      <td class="data row1 col1" >0.5</td>\n'
+    '      <td class="data row1 col2" >21.35</td>\n'
+    '      <td class="data row1 col3" >74.13</td>\n'
+    '      <td class="data row1 col4" >52.79</td>\n'
+    "    </tr>\n"
+    "    <tr>\n"
+    '      <th class="row_heading level0 row2" >2</th>\n'
+    '      <td class="data row2 col0" >Weak supercriticality</td>\n'
+    '      <td class="data row2 col1" >3.0</td>\n'
+    '      <td class="data row2 col2" >12.90</td>\n'
+    '      <td class="data row2 col3" >24.73</td>\n'
+    '      <td class="data row2 col4" >11.83</td>\n'
+    "    </tr>\n"
+    "  </tbody>\n"
+    "</table>\n"
+)
+
+#: nbformat stores a multiline mime payload as one string per line (keepends).
+TABLE_HTML_LINES = list(TABLE_HTML.splitlines(True))
+
+TABLE_CELLS = [
+    {
+        "cell_type": "code",
+        "execution_count": 1,
+        "metadata": {},
+        "outputs": [
+            {
+                "output_type": "display_data",
+                "data": {
+                    "text/html": TABLE_HTML_LINES,
+                    "text/plain": ["<pandas.core.style.Styler object at 0x2a1>"],
+                },
+                "metadata": {},
+            }
+        ],
+        "source": ["df.style"],
+    },
+]
+
+
+class TestNotebookTable:
+    """N1: `table` pins one `<td>` of the pointed HTML leaf's grid."""
+
+    @pytest.mark.parametrize(
+        ("row", "column", "text"),
+        [(0, 2, "24.00"), (0, 3, "96.00"), (0, 4, "72.00"), (2, 2, "12.90")],
+    )
+    def test_addresses_the_grid_cell_verbatim(
+        self, tmp_path: Path, row: int, column: int, text: str
+    ) -> None:
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", TABLE_CELLS))[1]
+        located = locate(
+            notebook_table("/0/data/text/html", {"row": row, "column": column}), capture
+        )
+        assert isinstance(located, Located)
+        assert located.text == text
+        assert type(located.value) is Decimal and located.value == Decimal(text)
+        assert located.half_unit == Decimal("0.005")
+
+    def test_a_cell_carries_the_artifact_relpath_and_hash(self, tmp_path: Path) -> None:
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", TABLE_CELLS))[1]
+        located = locate(
+            notebook_table("/0/data/text/html", {"row": 2, "column": 2}), capture
+        )
+        assert isinstance(located, Located)
+        assert located.relpath == "analysis.ipynb#cell-0"
+        artifact = next(
+            a for a in capture.artifacts if a.relpath == "analysis.ipynb#cell-0"
+        )
+        assert located.sha256 == artifact.sha256
+
+    def test_the_header_row_does_not_consume_a_row_index(self, tmp_path: Path) -> None:
+        # The `<thead>` `<th>`-only row is not a grid row (the converted table
+        # grid's data rows are 0-based), so row 0 is the first data row.
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", TABLE_CELLS))[1]
+        located = locate(
+            notebook_table("/0/data/text/html", {"row": 0, "column": 2}), capture
+        )
+        assert isinstance(located, Located)
+        assert located.text == "24.00"
+
+    def test_a_single_string_html_leaf_is_addressed(self, tmp_path: Path) -> None:
+        cells = [{
+            "cell_type": "code", "execution_count": 1, "metadata": {},
+            "outputs": [{"output_type": "display_data",
+                         "data": {"text/html": "<table><tr><td>0.87</td></tr></table>"},
+                         "metadata": {}}],
+            "source": ["s"],
+        }]
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", cells))[1]
+        located = locate(
+            notebook_table("/0/data/text/html", {"row": 0, "column": 0}), capture
+        )
+        assert isinstance(located, Located)
+        assert located.text == "0.87"
+        assert located.half_unit == Decimal("0.005")
+
+    def test_a_cell_containing_markup_yields_the_stripped_text(self, tmp_path: Path) -> None:
+        cells = [{
+            "cell_type": "code", "execution_count": 1, "metadata": {},
+            "outputs": [{"output_type": "display_data",
+                         "data": {"text/html": "<table><tr><td><b>12.90</b></td></tr></table>"},
+                         "metadata": {}}],
+            "source": ["s"],
+        }]
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", cells))[1]
+        located = locate(
+            notebook_table("/0/data/text/html", {"row": 0, "column": 0}), capture
+        )
+        assert isinstance(located, Located)
+        assert located.text == "12.90"
+
+    def test_an_entity_in_a_cell_is_not_decoded(self, tmp_path: Path) -> None:
+        cells = [{
+            "cell_type": "code", "execution_count": 1, "metadata": {},
+            "outputs": [{"output_type": "display_data",
+                         "data": {"text/html": "<table><tr><td>&nbsp;</td></tr></table>"},
+                         "metadata": {}}],
+            "source": ["s"],
+        }]
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", cells))[1]
+        located = locate(
+            notebook_table("/0/data/text/html", {"row": 0, "column": 0}), capture
+        )
+        assert isinstance(located, Unlocated)
+        assert located.cause == causes.UNPARSEABLE_VALUE
+
+    @pytest.mark.parametrize(("row", "column"), [(3, 0), (9, 9), (0, 5)])
+    def test_an_out_of_range_cell_is_no_binding(
+        self, tmp_path: Path, row: int, column: int
+    ) -> None:
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", TABLE_CELLS))[1]
+        assert cause_of(
+            locate(notebook_table("/0/data/text/html", {"row": row, "column": column}),
+                   capture)
+        ) == causes.NO_BINDING
+
+    def test_a_leaf_without_a_td_is_no_binding(self, tmp_path: Path) -> None:
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", TABLE_CELLS))[1]
+        assert cause_of(
+            locate(notebook_table("/0/data/text/plain/0", {"row": 0, "column": 0}),
+                   capture)
+        ) == causes.NO_BINDING
+
+    def test_a_table_shape_without_a_single_td_is_no_binding(self, tmp_path: Path) -> None:
+        cells = [{
+            "cell_type": "code", "execution_count": 1, "metadata": {},
+            "outputs": [{"output_type": "display_data",
+                         "data": {"text/html": "<table><tr><th>x</th></tr></table>"},
+                         "metadata": {}}],
+            "source": ["s"],
+        }]
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", cells))[1]
+        assert cause_of(
+            locate(notebook_table("/0/data/text/html", {"row": 0, "column": 0}), capture)
+        ) == causes.NO_BINDING
+
+    def test_a_pointed_plain_text_leaf_without_a_td_is_no_binding(
+        self, tmp_path: Path
+    ) -> None:
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", TABLE_CELLS))[1]
+        assert cause_of(
+            locate(notebook_table("/0/data/text/plain", {"row": 0, "column": 0}), capture)
+        ) == causes.NO_BINDING
+
+    def test_a_pointed_node_that_cannot_be_html_is_unparseable(self, tmp_path: Path) -> None:
+        cells = [{
+            "cell_type": "code", "execution_count": 1, "metadata": {},
+            "outputs": [{"output_type": "display_data",
+                         "data": {"text/html": ["<table><tr><td>0.87</td></tr></table>", 7]},
+                         "metadata": {}}],
+            "source": ["s"],
+        }]
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", cells))[1]
+        assert cause_of(
+            locate(notebook_table("/0/data/text/html", {"row": 0, "column": 0}), capture)
+        ) == causes.UNPARSEABLE_VALUE
+
+    def test_float_repr_gives_a_zero_half_unit(self, tmp_path: Path) -> None:
+        raw_bindings = json.dumps({
+            "bindings": [{
+                "claim_id": "c", "artifact": "analysis.ipynb#cell-0",
+                "locator": {"kind": "notebook_cell", "pointer": "/0/data/text/html",
+                            "table": {"row": 2, "column": 2}},
+                "float_repr": True,
+            }],
+        }).encode()
+        binding = load_bindings(raw_bindings, ["c"])["c"]
+        capture = run_program(tmp_path, writes_notebook("analysis.ipynb", TABLE_CELLS))[1]
+        located = locate(binding, capture)
+        assert isinstance(located, Located)
+        assert located.text == "12.90"
+        assert located.value == Decimal("12.90")
+        assert located.half_unit == 0
 
 
 class TestTargets:
