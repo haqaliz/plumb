@@ -33,6 +33,7 @@ def esc(text: str) -> str:
 def svg_head(width: int, height: int) -> str:
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '
+        f'width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" font-family="{FONT}">'
     )
 
@@ -131,10 +132,8 @@ def build_corpus_card() -> None:
     (ASSETS / "plumb-corpus.svg").write_text(svg, encoding="utf-8")
 
 
-LOGO = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect x="0" y="0" width="128" height="128" rx="26" fill="#0d1117"/>
-  <rect x="1" y="1" width="126" height="126" rx="25" fill="none" stroke="#30363d"/>
-  <line x1="64" y1="14" x2="64" y2="62" stroke="#3fb950" stroke-width="4" stroke-linecap="round"/>
+LOGO = """<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <line x1="64" y1="8" x2="64" y2="62" stroke="#3fb950" stroke-width="4" stroke-linecap="round"/>
   <circle cx="64" cy="62" r="2.5" fill="#3fb950"/>
   <path d="M64 69
            c-11 0 -19 7 -19 17
@@ -148,6 +147,19 @@ LOGO = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
 </svg>
 """
 
+# The mark's shapes, inlined (no <image> href — rasterizers must not depend on it).
+MARK_SHAPES = LOGO.split("<svg", 1)[1].rsplit("</svg>", 1)[0]
+
+
+def rasterize(names: dict[str, int]) -> None:
+    """SVG -> PNG with rsvg-convert (no letterboxing — qlmanage letterboxes on white)."""
+    for name, width in names.items():
+        subprocess.run(
+            ["rsvg-convert", "-w", str(width), "-o", str(ASSETS / f"{name}.png"),
+             str(ASSETS / f"{name}.svg")],
+            check=True, capture_output=True,
+        )
+
 
 def build_social_card() -> None:
     """1280x640 social preview: the mark, wordmark, tagline, and the real pooled number."""
@@ -155,11 +167,8 @@ def build_social_card() -> None:
     out = [svg_head(W, H)]
     out.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="{BG}"/>')
     out.append(f'<rect x="0" y="0" width="{W}" height="10" fill="{GREEN}"/>')
-    # the mark, centered
-    out.append(
-        f'<image x="{W/2-64}" y="86" width="128" height="128" '
-        f'href="plumb-logo.svg" xlink:href="plumb-logo.svg"/>'
-    )
+    # the mark, inlined and scaled — no <image> dependency
+    out.append(f'<g transform="translate({W/2-64}, 86) scale(1)">{MARK_SHAPES}</g>')
     out.append(f'<text x="{W/2}" y="266" font-size="64" font-weight="bold" fill="{FG}" '
                f'text-anchor="middle">Plumb</text>')
     out.append(
@@ -168,7 +177,7 @@ def build_social_card() -> None:
     )
     out.append(
         f'<text x="{W/2}" y="352" font-size="19" fill="{DIM}" text-anchor="middle">'
-        f'Re-runs a paper&apos;s own artifacts on your compute &mdash; a per-claim, reproducible verdict</text>'
+        f'Re-runs a paper&apos;s own artifacts on your compute — a per-claim, reproducible verdict</text>'
     )
     # the real pooled number
     stats = [
@@ -190,11 +199,6 @@ def build_social_card() -> None:
     )
     out.append("</svg>")
     (ASSETS / "plumb-social.svg").write_text("\n".join(out), encoding="utf-8")
-    subprocess.run(
-        ["qlmanage", "-t", "-s", "1280", "-o", str(ASSETS), str(ASSETS / "plumb-social.svg")],
-        check=True, capture_output=True,
-    )
-    (ASSETS / "plumb-social.svg.png").rename(ASSETS / "plumb-social.png")
 
 
 def main() -> int:
@@ -203,11 +207,12 @@ def main() -> int:
     build_verify_card()
     build_corpus_card()
     build_social_card()
-    for name in ("plumb-logo", "plumb-verify", "plumb-corpus"):
-        subprocess.run(
-            ["qlmanage", "-t", "-s", "1600", "-o", str(ASSETS), str(ASSETS / f"{name}.svg")],
-            check=True, capture_output=True,
-        )
+    rasterize({
+        "plumb-logo": 512,
+        "plumb-verify": 1600,
+        "plumb-corpus": 1600,
+        "plumb-social": 1280,
+    })
     print("assets:" + ", ".join(sorted(p.name for p in ASSETS.iterdir())))
     return 0
 
