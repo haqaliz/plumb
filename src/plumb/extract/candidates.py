@@ -81,6 +81,7 @@ from plumb.extract.location import CharSpan, normalize_text
 from plumb.extract.ordering import location_sort_key
 from plumb.extract.tables import (
     TableCell,
+    is_plausible_row_label,
     nearest_table_index,
     parse_captioned_tables,
     parse_tables,
@@ -303,8 +304,12 @@ class Candidate:
       `Table 1 Treatment MS` (`tables.parse_captioned_tables`); an ordinary pipe cell
       carries `Table {n} {row label} {column header}` — `Table {n}` from the caption
       line above the table when there is one — or just `{row label} {column header}`
-      (`tables.pipe_cell_name`). `None` for a pipe cell with neither label nor header,
-      and for every candidate outside a table.
+      (`tables.pipe_cell_name`). A pipe cell is named only when its column-0 row label
+      is plausible (`tables.is_plausible_row_label`: a letter and no `±`/`=`), its
+      row-0 column header is non-empty, **and** the resulting name is itself plausible —
+      so a synthesized table's malformed cells, where the label or header is a value
+      expression (`0.144137 ARDP 0.08 ± 0.07 …`), are left unnamed. Otherwise `None`, as
+      it is for a header or row-label cell and for every candidate outside a table.
 
     There is no `confidence` and no `is_claim`. Both would be a judgement this phase is
     forbidden to make — the first is a model's opinion standing in for a re-derived
@@ -560,12 +565,23 @@ def extract_candidates(raw: str) -> tuple[Candidate, ...]:
     for table in tables:
         index = nearest_table_index(text, table.span.start)
         for cell, label, header in pipe_cell_context(table):
-            if cell.row >= 1 and cell.column >= 1:
-                name = pipe_cell_name(label, header, table_index=index)
-                named.append((cell, name or None))
+            name = pipe_cell_name(label, header, table_index=index)
+            if (
+                cell.row >= 1
+                and cell.column >= 1
+                and header
+                and is_plausible_row_label(label)
+                and is_plausible_row_label(name)
+            ):
+                named.append((cell, name))
             else:
                 # A header or row-label cell names the column or row, and is not a
-                # data cell a metric can be attached to.
+                # data cell a metric can be attached to. A data cell is named only with
+                # a plausible row label, a non-empty column header, and a name that is
+                # not itself a value expression: the PDF converter's synthesized tables
+                # can put a whole data row (or a `±` column) into the label and header,
+                # so `0.144137 ARDP 0.08 ± 0.07 …` is a value, not a name, and the cell
+                # is left unnamed rather than given a garbage metric.
                 named.append((cell, None))
     named.extend((c.cell, c.header) for table in captioned for c in table)
     named.sort(key=lambda pair: (pair[0].span.start, pair[0].span.end))

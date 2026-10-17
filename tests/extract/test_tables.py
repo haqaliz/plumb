@@ -17,6 +17,7 @@ from plumb.extract.location import CharSpan, normalize_text
 from plumb.extract.tables import (
     Table,
     TableCell,
+    is_plausible_row_label,
     nearest_table_index,
     parse_captioned_tables,
     parse_tables,
@@ -248,6 +249,33 @@ class TestPipeCellName:
 
     def test_all_parts_empty_is_the_empty_string(self) -> None:
         assert pipe_cell_name("", "") == ""
+
+
+class TestIsPlausibleRowLabel:
+    """A row label that names a row, not a data row the PDF converter concatenated.
+
+    A `Table N` cell is named only when its column-0 cell reads as a label: at least one
+    letter, and no `±` or `=` (a bare number already fails the letter test). The PDF
+    converter's synthesized tables can have a malformed column 0 — an entire concatenated
+    data row, `0.144137 ARDP 0.08 ± 0.07 …` — and naming a cell from that attaches a
+    garbage metric."""
+    @pytest.mark.parametrize("label", ["Date orientation", "AUC", "Model 2", "Age, y"])
+    def test_a_label_with_a_letter_is_plausible(self, label: str) -> None:
+        assert is_plausible_row_label(label) is True
+
+    @pytest.mark.parametrize(
+        "label",
+        [
+            "0.144137 ARDP 0.08 ± 0.07",
+            "AUC = 0.87",
+            "0.5",
+            "",
+        ],
+    )
+    def test_a_value_expression_or_a_bare_number_is_not_a_label(
+        self, label: str
+    ) -> None:
+        assert is_plausible_row_label(label) is False
 
 
 class TestEscapedPipes:

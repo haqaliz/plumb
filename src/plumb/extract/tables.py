@@ -56,6 +56,7 @@ __all__ = [
     "Table",
     "TableCell",
     "nearest_table_index",
+    "is_plausible_row_label",
     "parse_captioned_tables",
     "parse_tables",
     "pipe_cell_context",
@@ -351,6 +352,22 @@ def pipe_cell_name(
     """
     parts = (f"Table {table_index}" if table_index else "", row_label, column_header)
     return " ".join(part for part in parts if part)
+
+
+def is_plausible_row_label(text: str) -> bool:
+    """Does a pipe table's column-0 cell read as a row label, or as data?
+
+    Not every column-0 cell is a label. The PDF converter synthesizes pipe tables from
+    typeset ones, and a main-text table can come out with a malformed column 0: an
+    entire data row concatenated into the label cell (`0.144137 ARDP 0.08 ± 0.07 …`).
+    Naming a cell from that attaches a garbage metric, so a label must contain at least
+    one letter (a bare number names nothing) and no `±` or `=` (both are value
+    expressions, never a word of a row's name). Everything else is plausible; a false
+    negative costs a name, which is the safe direction.
+    """
+    if not any(char.isalpha() for char in text):
+        return False
+    return "±" not in text and "=" not in text
 
 
 # --- the second form: caption-led whitespace tables ------------------------------------
