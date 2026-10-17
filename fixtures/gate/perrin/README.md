@@ -108,6 +108,28 @@ CSVs are never read (stale, `CLAUDE.md` #5).
   (all 9 reported methods) and p=100 (7 methods; SIDES/SeqBT excluded — the paper's
   "–" cells).
 
+## Probe (2026-10-17): poetry-env-policy
+
+A dev-time probe (`tools/poetry_env_probe.py`, run by hand — never imported by tests, never in
+CI; needs the network at dev time) rebuilt this checkout through the engine's C2 runner to
+confirm the empty-venv problem is gone. Against `https://github.com/owkin/hte.git` @
+`76ce145f42fd37a91b389d8c8762de167647f82f` (tree hash `git-tree
+cffacea9e978f062a59c2ae37a8bbe0a00389186`, matching this fixture's `trace.json`), the descriptor
+classified the project `poetry` — detail `poetry project (poetry.lock present); build via uv pip
+install of the checkout` — instead of `best-effort`, and the real build succeeded
+(`ok=True policy=poetry`) into a non-empty environment of **134 packages** (`uv pip freeze`). The
+silent empty-`uv sync` venv this paper's earlier run recorded is therefore fixed by
+construction: a poetry-only checkout is now classified and built, and a zero-exit build that
+installs nothing under a dependency-declaring policy is a named `EnvBuildFailed`, never a silent
+pass.
+
+This probe is a **classification/build probe, not a paper re-run.** It built at the descriptor's
+default pin (Python 3.11) with **current** PyPI versions and **no** `--exclude-newer` boundary,
+so it says nothing about the paper's numbers. The paper-era environment remains unbuildable
+(`qdldl`/arm64, above) and the earliest buildable boundary is unchanged (2024-06-18): the
+recorded drift therefore stands, and the committed fixture bytes are unchanged
+(`environment.txt`, `trace.json`, `objects/`, `verdicts.json`, `drift.json`).
+
 ## Known limits
 
 - The verified claims are a scoped, rule-defined subset of the paper's headline numbers

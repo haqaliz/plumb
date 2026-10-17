@@ -1,9 +1,10 @@
 """Manifest scanning: what a checkout looks like (I3).
 
 `scan_manifests(checkout)` records which dependency and entry-point manifests
-exist at the checkout root — `uv.lock`, `pyproject.toml`, `requirements*.txt`,
-`environment.yml`, `Makefile`, `main.py`, `*.ipynb` — so C3 can later pick
-entry points and notebook capture can find candidate notebooks. Manifests are
+exist at the checkout root — `uv.lock`, `poetry.lock`, `pyproject.toml`,
+`requirements*.txt`, `environment.yml`, `Makefile`, `main.py`, `*.ipynb` — so
+C3 can later pick entry points and notebook capture can find candidate
+notebooks. Manifests are
 read at the root only: a nested `pyproject.toml` is a different package and
 belongs to that project's own intake, not this checkout's, and a nested
 notebook belongs to that subproject, not this checkout's.
@@ -27,6 +28,7 @@ class ManifestScan:
     """The manifests present at a checkout's root, as relative paths."""
 
     uv_lock: Path | None
+    poetry_lock: Path | None
     pyproject: Path | None
     requirements: tuple[Path, ...]
     environment_yml: Path | None
@@ -47,6 +49,7 @@ def scan_manifests(checkout: Checkout) -> ManifestScan:
 
     return ManifestScan(
         uv_lock=present("uv.lock"),
+        poetry_lock=present("poetry.lock"),
         pyproject=present("pyproject.toml"),
         requirements=tuple(path.relative_to(root) for path in requirements),
         environment_yml=present("environment.yml"),

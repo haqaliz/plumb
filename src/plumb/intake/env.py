@@ -59,6 +59,15 @@ _ISOLATION_POSTURE = (
 
 _REQUIRES_PYTHON = re.compile(r'requires-python\s*=\s*["\']([^"\']+)["\']')
 
+#: A concrete interpreter version (`3`, `3.11`, `3.11.9`) — the only pin shape
+#: `uv venv --python` accepts; a specifier (`>=3.9`) is left for uv to resolve.
+_CONCRETE_PYTHON_PIN = re.compile(r"^\d+(\.\d+){0,2}$")
+
+#: Policies that declare dependencies: a zero-exit build under one of these
+#: that installed nothing is a failed build, never a silent empty environment.
+#: `best-effort` is exempt (a dependency-less project is legitimate).
+_DEPENDENCY_POLICIES = ("lockfile", "poetry", "declared")
+
 #: Environment-variable name fragments considered secret-bearing and scrubbed
 #: from the runner's env, so a build command never inherits the user's keys.
 _SECRET_FRAGMENTS = (
@@ -78,7 +87,7 @@ class EnvDescriptor:
 
     python_pin: str
     python_pin_source: str  # ".python-version" | "pyproject.toml" | "default"
-    policy: str  # "lockfile" | "declared" | "best-effort"
+    policy: str  # "lockfile" | "poetry" | "declared" | "best-effort"
     policy_detail: str
     isolation_posture: str
     tool_versions: tuple[tuple[str, str], ...]  # sorted (tool, version) pairs
@@ -172,23 +181,32 @@ def uv_sync_runner(
     """The real (dev-time) runner: executes the recorded policy via `uv`.
 
     Runs only when explicitly requested — `tools/demo_env_build.py` is the
-    only caller in this repo. `uv sync` is pull-only (installs the checkout's
-    pinned deps) and never egresses user data (constraint #2).
+    only caller in this repo. `uv sync`/`uv pip install` are pull-only (install
+    the checkout's pinned deps) and never egress user data (constraint #2).
     """
-    command = _policy_command(checkout, descriptor)
-    result = subprocess.run(
-        command,
-        cwd=str(checkout.checkout_dir),
-        env=_scrubbed_env(),
-        capture_output=True,
-        timeout=timeout_seconds,
-        check=False,
-    )
-    out = result.stdout.decode("utf-8", "replace").strip()
-    err = result.stderr.decode("utf-8", "replace").strip()
-    if result.returncode != 0:
-        detail = err or out or "uv exited non-zero"
-        return EnvBuild(ok=False, policy=descriptor.policy, detail=detail)
+    out = err = ""
+    for command in _policy_commands(checkout, descriptor):
+        result = subprocess.run(
+            command,
+            cwd=str(checkout.checkout_dir),
+            env=_scrubbed_env(),
+            capture_output=True,
+            timeout=timeout_seconds,
+            check=False,
+        )
+        out = result.stdout.decode("utf-8", "replace").strip()
+        err = result.stderr.decode("utf-8", "replace").strip()
+        if result.returncode != 0:
+            detail = err or out or "uv exited non-zero"
+            return EnvBuild(ok=False, policy=descriptor.policy, detail=detail)
+    if descriptor.policy in _DEPENDENCY_POLICIES and _venv_is_empty(
+        checkout.checkout_dir.resolve() / ".venv"
+    ):
+        return EnvBuild(
+            ok=False,
+            policy=descriptor.policy,
+            detail="the dependency policy installed nothing; the environment is empty",
+        )
     return EnvBuild(ok=True, policy=descriptor.policy, detail=out or err)
 
 
@@ -214,6 +232,12 @@ def _python_pin(checkout_dir: Path) -> tuple[str, str]:
 def _dependency_policy(manifests: ManifestScan) -> tuple[str, str]:
     if manifests.uv_lock is not None:
         return "lockfile", "uv sync (uv.lock present)"
+    if manifests.poetry_lock is not None:
+        return (
+            "poetry",
+            "poetry project (poetry.lock present); build via uv pip install of "
+            "the checkout",
+        )
     if manifests.requirements:
         names = ", ".join(str(path) for path in manifests.requirements)
         return "declared", f"install declared deps ({names})"
@@ -253,11 +277,42 @@ def _scrubbed_env() -> dict[str, str]:
     return scrubbed
 
 
-def _policy_command(checkout: Checkout, descriptor: EnvDescriptor) -> list[str]:
-    """The uv command that executes the recorded policy."""
+def _policy_commands(checkout: Checkout, descriptor: EnvDescriptor) -> list[list[str]]:
+    """The ordered uv commands that execute the recorded policy."""
     project = ["--project", str(checkout.checkout_dir)]
     if descriptor.policy == "lockfile":
-        return ["uv", "sync", *project]
+        return [["uv", "sync", *project]]
     if descriptor.policy == "declared":
-        return ["uv", "pip", "install", *[str(path) for path in descriptor.manifests.requirements]]
-    return ["uv", "sync", *project]
+        return [["uv", "pip", "install", *[str(path) for path in descriptor.manifests.requirements]]]
+    if descriptor.policy == "poetry":
+        venv = checkout.checkout_dir.resolve() / ".venv"
+        return [
+            ["uv", "venv", *_venv_python_arg(descriptor.python_pin), str(venv)],
+            [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                str(venv / "bin" / "python"),
+                str(checkout.checkout_dir),
+            ],
+        ]
+    return [["uv", "sync", *project]]
+
+
+def _venv_python_arg(pin: str) -> list[str]:
+    """`--python <pin>` only for a concrete version, never a specifier."""
+    return ["--python", pin] if _CONCRETE_PYTHON_PIN.match(pin) else []
+
+
+def _venv_is_empty(venv: Path) -> bool:
+    """True when the venv holds no installed distribution at all.
+
+    Distribution-level, not third-party-level: a project that installs only its
+    own package still writes a `.dist-info` and is not empty. A venv with no
+    `site-packages` directory counts as empty.
+    """
+    for site in venv.glob("lib/python*/site-packages"):
+        if any(site.glob("*.dist-info")) or any(site.glob("*.egg-info")):
+            return False
+    return True

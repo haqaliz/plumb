@@ -61,11 +61,17 @@ the other named causes. Notebook capture is built (2026-10-08): a root `.ipynb` 
 resolves a local path, a git URL with `--rev`, or a tar.gz/zip archive into a pinned
 `Checkout` with a recorded tree hash (`plumb` bytes framing over sorted `(relpath, bytes)`, or
 the repo's own `HEAD^{tree}` for git sources, reconciled by the `scheme` field), scans
-manifests, and describes the environment — lockfile-first → declared → best-effort dependency
-policy, python pin (`.python-version` → `pyproject.toml` → default), isolation posture, and
-`git`/`uv` tool versions. Resolution and description are offline-tested (`file://` repos,
-synthetic archives, a stubbed env runner); the **one real `uv sync`** runs only via
-`tools/demo_env_build.py` at dev time, never in tests or CI. Failures are named causes
+manifests (including `poetry.lock`), and describes the environment — dependency policy by
+precedence `uv.lock` → `poetry.lock` → `requirements*.txt` → `best-effort`, so a poetry-only
+repo is classified `"poetry"` and built via `uv pip install` of the checkout, not a silent empty
+`uv sync`; python pin (`.python-version` → `pyproject.toml` → default), isolation posture, and
+`git`/`uv` tool versions. A zero-exit build that installs nothing under a dependency-declaring
+policy (`lockfile`/`poetry`/`declared`) is a named failure (`EnvBuildFailed`), never a silent
+empty environment; `best-effort` is exempt, the guard is mutation-checked, and
+`build_environment` is unchanged. Resolution and description are offline-tested (`file://`
+repos, synthetic archives, a stubbed env runner); the **one real build** (`uv sync` or the
+poetry `uv pip install` path) runs only via `tools/demo_env_build.py` at dev time, never in
+tests or CI. Failures are named causes
 (`SourceNotFound`, `RevNotFound`, `UnsupportedArchive`, `EnvBuildFailed`) — the future
 `UNVERIFIED` input. **PDF input is built** (the `seam`, `columns`
 and last-mile aspects, 2026-09-22): `extract_claims(pdf_to_markdown(pdf))` equals the
