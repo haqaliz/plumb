@@ -22,6 +22,7 @@ from plumb.extract.candidates import (
     extract_candidates,
 )
 from plumb.extract.location import CharSpan, normalize_text
+from plumb.extract.pipeline import extract_claims
 from plumb.extract.selection import (
     CAUSE_AXIS_LABEL,
     CAUSE_DOI_DIGITS,
@@ -367,5 +368,44 @@ class TestCellHeaders:
         c = Candidate(
             text="412", span=CharSpan(0, 3), context="412",
             section_hint=SECTION_TABLE, cell_header="Table 2 Treatment N",
+        )
+        assert rejected(c).cause == CAUSE_NO_NAMED_METRIC
+
+    def test_an_in_cell_metric_wins_over_the_header(self) -> None:
+        # A pipe cell that already names its own quantity keeps that name: the header
+        # is only a fallback. The `Claim.id` is pinned so a header-wins regression is
+        # caught even though the claim still exists.
+        document = (
+            "## Results\n\nTable 1: Outcomes.\n\n"
+            "| Metric | Value |\n|---|---|\n| p-value | p < 0.001 |\n"
+        )
+        (claim,) = extract_claims(document)[0]
+        assert claim.metric == "p"
+        assert claim.id == (
+            "21a2f42910dd6b4fd7dfc8e03050529881e94db5f8e840e8a33d1ed7ff510ece"
+        )
+
+    def test_a_bare_pipe_cell_takes_its_header_metric(self) -> None:
+        document = (
+            "## Results\n\nTable 2: Groups.\n\n"
+            "| Metric | Value |\n|---|---|\n| AUC | 0.87 |\n"
+        )
+        (claim,) = extract_claims(document)[0]
+        assert claim.reported_value.text == "0.87"
+        assert claim.metric == "Table 2 AUC Value"
+
+    def test_a_bare_sample_size_column_header_yields_no_metric(self) -> None:
+        c = Candidate(
+            text="412", span=CharSpan(0, 3), context="412",
+            section_hint=SECTION_TABLE, cell_header="Table 2 Treatment n",
+        )
+        assert rejected(c).cause == CAUSE_NO_NAMED_METRIC
+
+    def test_an_empty_header_yields_no_metric(self) -> None:
+        # An empty header is no name at all: the candidate lands on the selection
+        # cause, never admitted with an empty metric (the gate's `unnamed_metric`).
+        c = Candidate(
+            text="412", span=CharSpan(0, 3), context="412",
+            section_hint=SECTION_TABLE, cell_header="",
         )
         assert rejected(c).cause == CAUSE_NO_NAMED_METRIC
