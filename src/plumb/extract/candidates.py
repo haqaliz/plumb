@@ -79,7 +79,14 @@ from typing import Final
 
 from plumb.extract.location import CharSpan, normalize_text
 from plumb.extract.ordering import location_sort_key
-from plumb.extract.tables import TableCell, parse_captioned_tables, parse_tables
+from plumb.extract.tables import (
+    TableCell,
+    nearest_table_index,
+    parse_captioned_tables,
+    parse_tables,
+    pipe_cell_context,
+    pipe_cell_name,
+)
 
 __all__ = [
     "Candidate",
@@ -291,10 +298,13 @@ class Candidate:
       one. What a human reads to decide whether this is a claim.
     - `section_hint` — one of `SECTION_HINTS`, derived structurally. A *hint*: it says
       where in the document the number is, never what it means.
-    - `cell_header` — for a cell of a caption-led whitespace table only, the names the
-      paper wrote for it: `Table 1 Treatment MS` (`tables.parse_captioned_tables`).
-      Words read off the caption, row and header line — structure, not a judgement.
-      `None` everywhere else, pipe-table cells included.
+    - `cell_header` — for a table cell, the names the paper wrote for it, derived
+      structurally and never inferred. A caption-led whitespace cell carries
+      `Table 1 Treatment MS` (`tables.parse_captioned_tables`); an ordinary pipe cell
+      carries `Table {n} {row label} {column header}` — `Table {n}` from the caption
+      line above the table when there is one — or just `{row label} {column header}`
+      (`tables.pipe_cell_name`). `None` for a pipe cell with neither label nor header,
+      and for every candidate outside a table.
 
     There is no `confidence` and no `is_claim`. Both would be a judgement this phase is
     forbidden to make — the first is a model's opinion standing in for a re-derived
@@ -546,9 +556,17 @@ def extract_candidates(raw: str) -> tuple[Candidate, ...]:
     tables = parse_tables(text)
     captioned = parse_captioned_tables(text)
     # Both table forms feed one cell cursor, so it must see their cells in span order.
-    named: list[tuple[TableCell, str | None]] = [
-        (cell, None) for table in tables for cell in table.cells
-    ]
+    named: list[tuple[TableCell, str | None]] = []
+    for table in tables:
+        index = nearest_table_index(text, table.span.start)
+        for cell, label, header in pipe_cell_context(table):
+            if cell.row >= 1 and cell.column >= 1:
+                name = pipe_cell_name(label, header, table_index=index)
+                named.append((cell, name or None))
+            else:
+                # A header or row-label cell names the column or row, and is not a
+                # data cell a metric can be attached to.
+                named.append((cell, None))
     named.extend((c.cell, c.header) for table in captioned for c in table)
     named.sort(key=lambda pair: (pair[0].span.start, pair[0].span.end))
     cells: tuple[TableCell, ...] = tuple(cell for cell, _ in named)

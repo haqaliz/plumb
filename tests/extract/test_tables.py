@@ -17,9 +17,11 @@ from plumb.extract.location import CharSpan, normalize_text
 from plumb.extract.tables import (
     Table,
     TableCell,
+    nearest_table_index,
     parse_captioned_tables,
     parse_tables,
     pipe_cell_context,
+    pipe_cell_name,
 )
 
 # A table with a leading and trailing pipe, an alignment row carrying colons, an empty
@@ -192,6 +194,60 @@ class TestPipeCellContext:
         (context,) = pipe_cell_context(table)
 
         assert context == (cell, "", "")
+
+
+class TestNearestTableIndex:
+    """A pipe table has no caption field, so `Table {n}` is hunted on the lines above it.
+
+    Deterministic and bounded: the nearest preceding line matching the same `Table N`
+    caption the whitespace parser reads, within a small fixed window; otherwise no
+    number. No fuzzy matching.
+    """
+
+    def test_a_caption_above_the_table_is_found(self) -> None:
+        text = normalize_text("Table 2: Blinded results.\n\n| a | b |\n|---|---|\n| x | 1 |\n")
+        (table,) = parse_tables(text)
+
+        assert nearest_table_index(text, table.span.start) == "2"
+
+    def test_no_caption_above_the_table_is_none(self) -> None:
+        text = normalize_text("## Results\n\n| a | b |\n|---|---|\n| x | 1 |\n")
+        (table,) = parse_tables(text)
+
+        assert nearest_table_index(text, table.span.start) is None
+
+    def test_a_caption_further_than_the_window_is_not_used(self) -> None:
+        text = normalize_text(
+            "Table 7: Far away.\nA\nB\nC\nD\n\n| a | b |\n|---|---|\n| x | 1 |\n"
+        )
+        (table,) = parse_tables(text)
+
+        assert nearest_table_index(text, table.span.start) is None
+
+    def test_the_nearest_caption_wins(self) -> None:
+        text = normalize_text(
+            "Table 1: Old.\n\nTable 2: New.\n\n| a | b |\n|---|---|\n| x | 1 |\n"
+        )
+        (table,) = parse_tables(text)
+
+        assert nearest_table_index(text, table.span.start) == "2"
+
+
+class TestPipeCellName:
+    """The name builder: `Table {n} {row} {column}`, degrading to the non-empty parts."""
+
+    def test_every_part_is_joined(self) -> None:
+        assert pipe_cell_name("AUC", "Value", table_index="2") == "Table 2 AUC Value"
+
+    def test_without_a_table_index_the_caption_part_is_omitted(self) -> None:
+        assert pipe_cell_name("AUC", "Value") == "AUC Value"
+
+    def test_a_missing_part_is_skipped(self) -> None:
+        assert pipe_cell_name("AUC", "") == "AUC"
+        assert pipe_cell_name("", "Value", table_index="3") == "Table 3 Value"
+
+    def test_all_parts_empty_is_the_empty_string(self) -> None:
+        assert pipe_cell_name("", "") == ""
 
 
 class TestEscapedPipes:

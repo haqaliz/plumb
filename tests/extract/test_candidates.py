@@ -755,10 +755,29 @@ class TestCaptionedTableCells:
         assert prose.cell_header is None
         assert prose.context == "The accuracy was 0.87 overall."
 
-    def test_a_pipe_table_cell_has_no_header(self) -> None:
+    def test_a_pipe_table_cell_has_a_header(self) -> None:
         document = "## Results\n\n| AUC | 0.87 |\n|---|---|\n| F1 | 0.91 |\n"
         (cell,) = [c for c in extract_candidates(document) if c.text == "0.91"]
         assert cell.section_hint == SECTION_TABLE
+        assert cell.cell_header == "F1 0.87"
+
+    def test_a_near_captioned_pipe_cell_is_named_by_table_row_and_column(self) -> None:
+        document = (
+            "## Results\n\n"
+            "Table 2: Blinded results.\n\n"
+            "| Metric | Value |\n|---|---|\n| AUC | 0.87 |\n"
+        )
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.87"]
+        assert cell.cell_header == "Table 2 AUC Value"
+
+    def test_an_uncaptioned_pipe_cell_is_named_by_row_and_column(self) -> None:
+        document = "## Results\n\n| Metric | Value |\n|---|---|\n| AUC | 0.87 |\n"
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.87"]
+        assert cell.cell_header == "AUC Value"
+
+    def test_a_pipe_cell_with_neither_label_nor_header_has_no_name(self) -> None:
+        document = "## Results\n\n|  |  |\n|---|---|\n|  | 0.5 |\n"
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.5"]
         assert cell.cell_header is None
 
     def test_the_header_must_be_a_string_or_none(self) -> None:

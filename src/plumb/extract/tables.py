@@ -55,9 +55,11 @@ __all__ = [
     "CaptionedTable",
     "Table",
     "TableCell",
+    "nearest_table_index",
     "parse_captioned_tables",
     "parse_tables",
     "pipe_cell_context",
+    "pipe_cell_name",
 ]
 
 
@@ -313,6 +315,42 @@ def pipe_cell_context(table: Table) -> tuple[tuple[TableCell, str, str], ...]:
         (cell, labels.get(cell.row, ""), headers.get(cell.column, ""))
         for cell in table.cells
     )
+
+
+#: How many lines above a pipe table a `Table N` caption is looked for. Small and
+#: fixed so the lookup stays deterministic: a caption wrapped over several lines, or a
+#: table separated by a paragraph, is not "near" and is left unnamed rather than
+#: misnamed.
+_CAPTION_WINDOW = 4
+
+
+def nearest_table_index(text: str, offset: int) -> str | None:
+    """The `N` of the nearest `Table N` caption line above `offset`, or `None`.
+
+    A pipe table carries no caption of its own, so its number has to be read off the
+    lines above it. Only the caption the whitespace parser accepts counts
+    (`Table N:` / `Table N.`), only lines that end before `offset`, and only within a
+    small fixed window — nearest first. Deterministic, never fuzzy.
+    """
+    preceding = [region for region in _line_regions(text) if region[1] <= offset]
+    for start, end in reversed(preceding[-_CAPTION_WINDOW:]):
+        match = _CAPTION.fullmatch(text[start:end])
+        if match is not None:
+            return match.group(1)
+    return None
+
+
+def pipe_cell_name(
+    row_label: str, column_header: str, *, table_index: str | None = None
+) -> str:
+    """A pipe cell's name: `Table {n} {row label} {column header}`, empty parts dropped.
+
+    The caption part is present only when a `Table N` line sits above the table
+    (`nearest_table_index`). All parts empty is the empty string, which a caller
+    renders as `None` (`candidates.py`).
+    """
+    parts = (f"Table {table_index}" if table_index else "", row_label, column_header)
+    return " ".join(part for part in parts if part)
 
 
 # --- the second form: caption-led whitespace tables ------------------------------------
