@@ -296,3 +296,10 @@ the earliest buildable boundary is used (Perrin). **Engine gaps the probes named
 (unbuilt):** C3 notebook-cell capture (a named follow-on since 2026-09-23), a C2 poetry
 env policy (`uv sync` silently yields an empty venv for poetry-only projects — a silent
 success that must not pass for a built env), and figure-with-data locators.
+
+**Update (2026-10-17):** the C2 poetry env policy is now **built**
+(`src/plumb/intake/env.py`): a `poetry.lock` checkout is classified `"poetry"` and built via
+`uv pip install`, and a build that installs nothing under a dependency-declaring policy is a
+named `EnvBuildFailed` rather than a silent pass. The dev-time Perrin re-probe on that policy —
+classified `poetry`, built non-empty (134 packages) — is recorded in
+`fixtures/gate/perrin/README.md` (probe note, 2026-10-17). The remaining named gaps stand.
