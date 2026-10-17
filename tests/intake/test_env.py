@@ -113,6 +113,21 @@ class TestScanManifests:
         scan = scan_manifests(resolve_local(checkout_dir))
         assert scan.requirements == (Path("requirements-prod.txt"), Path("requirements.txt"))
 
+    def test_detects_a_poetry_lock(self, tmp_path: Path) -> None:
+        checkout_dir = make_checkout(tmp_path / "proj", {"poetry.lock": b"# lock\n"})
+        scan = scan_manifests(resolve_local(checkout_dir))
+        assert scan.poetry_lock == Path("poetry.lock")
+
+    def test_a_poetry_lock_is_reported_absent_as_none(self, tmp_path: Path) -> None:
+        checkout_dir = make_checkout(tmp_path / "proj", {"notes.md": b"hi"})
+        scan = scan_manifests(resolve_local(checkout_dir))
+        assert scan.poetry_lock is None
+
+    def test_a_poetry_lock_is_root_only(self, tmp_path: Path) -> None:
+        checkout_dir = make_checkout(tmp_path / "proj", {"sub/poetry.lock": b"# lock\n"})
+        scan = scan_manifests(resolve_local(checkout_dir))
+        assert scan.poetry_lock is None
+
 
 class TestDependencyPolicy:
     def test_lockfile_wins_when_uv_lock_is_present(self, tmp_path: Path) -> None:
