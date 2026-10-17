@@ -149,7 +149,7 @@ recorded drift therefore stands, and the committed fixture bytes are unchanged
   (see `tests/gate/test_perrin_recovery.py`); this paper's C1 extraction may differ from
   the curated set (layout-heavy tables) — the number is reported, not tuned.
 
-## C1 recovery (measured 2026-10-02, reported as measured — never tuned)
+## C1 recovery (measured 2026-10-02; re-measured 2026-10-17 — as measured, never tuned)
 
 `extract_claims(pdf_to_markdown(paper.pdf))` vs the curated set, matched by **place and
 value** (`tests/gate/test_perrin_recovery.py`):
@@ -157,9 +157,9 @@ value** (`tests/gate/test_perrin_recovery.py`):
 | | |
 |---|---|
 | recall | 1.000 — all 16 curated cells recovered (16/16) |
-| precision | 0.207 — 103 of 498 extracted claims are real paper cells (against the full rule: curated + the 217 runtime-gated members, which are true positives, not defects) |
-| extras | 395 layout numerals — β coefficients, section numbers, list markers — genuine extraction noise on this layout-heavy paper, reported, not retuned |
-| shared ids | 71 of 319 distinct ids span multiple locations, all same-value repeats (value-identity dedup, never two different values under one id) |
+| precision | 0.087 — 103 of 1184 extracted claims are real paper cells (against the full rule: curated + the 217 runtime-gated members, which are true positives, not defects) |
+| extras | 1081 — layout numerals (β coefficients, section numbers, list markers) plus, after 2026-10-17, the PDF converter's synthesized pipe-table cells: the paper's main-text result tables rendered as GFM rows, genuine numbers the curated rule (Tables 1–4) does not cover, now named by `feat(cell-naming)`; reported, not retuned |
+| shared ids | 127 of 917 distinct ids span multiple locations, all same-value repeats (value-identity dedup, never two different values under one id) |
 
 ## The number (this fixture)
 

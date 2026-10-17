@@ -9,10 +9,14 @@ precision is measured against it, so the runtime-gated cells count as true posit
 never defects.
 
 Measured 2026-10-02: **recall 1.000** (16/16 curated recovered), **precision 0.207**
-(103/498 extracted claims are real paper cells; the 395 extras are layout numerals —
-β coefficients, section numbers, list markers). The numbers are reported as measured
-in the fixture README; they are not tuned to a floor (`docs/technical/CAPABILITY_ROADMAP.md`
-C1 claim-recovery framing).
+(103/498 extracted claims are real paper cells; the 395 extras were layout numerals —
+β coefficients, section numbers, list markers). **Re-measured 2026-10-17** after
+pipe-table cells were named (`feat(cell-naming)`): recall is unchanged (16/16, no
+committed claim moved), while precision fell to **0.087** (103/1184) because the PDF
+converter's synthesized pipe tables (the paper's main-text result tables) now yield
+named cells — genuine paper numbers the narrow curated rule (Tables 1–4) does not
+cover. The numbers are reported as measured in the fixture README; they are not tuned
+to a floor (`docs/technical/CAPABILITY_ROADMAP.md` C1 claim-recovery framing).
 """
 
 from __future__ import annotations
@@ -32,7 +36,7 @@ from plumb.pdf import pdf_to_markdown
 FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "gate" / "perrin"
 
 RECALL = 1.0  # 16/16 curated cells recovered, place+value
-PRECISION = 0.207  # 103/498 against the full rule (curated + runtime-gated members)
+PRECISION = 0.087  # 103/1184 against the full rule (curated + runtime-gated members)
 
 
 @pytest.fixture(scope="module")
