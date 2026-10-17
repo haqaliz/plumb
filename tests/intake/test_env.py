@@ -32,6 +32,7 @@ from plumb.intake.env import (
     EnvBuild,
     build_environment,
     describe_environment,
+    uv_sync_runner,
 )
 from plumb.intake.manifest import scan_manifests
 
@@ -420,3 +421,105 @@ class TestBuildEnvironment:
         checkout_dir, descriptor = self._descriptor(tmp_path, {"uv.lock": b"", "pyproject.toml": b"[project]\n"})
         with pytest.raises(EnvBuildFailed):
             build_environment(resolve_local(checkout_dir), descriptor)
+
+
+def _fake_uv_success(*args, **kwargs) -> subprocess.CompletedProcess:
+    return subprocess.CompletedProcess(args=[], returncode=0, stdout=b"", stderr=b"")
+
+
+def _checkout_with_venv(
+    root: Path, files: dict[str, bytes], *, populated: bool
+) -> Path:
+    checkout_dir = make_checkout(root, files)
+    site = checkout_dir / ".venv" / "lib" / "python3.11" / "site-packages"
+    site.mkdir(parents=True)
+    if populated:
+        (site / "foo-1.0.dist-info").mkdir()
+    return checkout_dir
+
+
+def _descriptor(checkout):
+    return describe_environment(checkout, tool_versions={"git": "git version 2.47.0", "uv": "uv 0.5.0"})
+
+
+def _assert_the_empty_environment_is_refused(checkout, descriptor) -> None:
+    build = uv_sync_runner(checkout, descriptor)
+    assert not build.ok, "an empty environment was recorded as a build"
+
+
+class TestEmptyEnvironmentGuard:
+    def test_an_empty_environment_is_not_a_build(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        env_module = importlib.import_module("plumb.intake.env")
+        monkeypatch.setattr(env_module.subprocess, "run", _fake_uv_success)
+        checkout_dir = _checkout_with_venv(tmp_path / "proj", {"poetry.lock": b"# lock\n"}, populated=False)
+        checkout = resolve_local(checkout_dir)
+        descriptor = _descriptor(checkout)
+        assert descriptor.policy == "poetry"
+        build = uv_sync_runner(checkout, descriptor)
+        assert build.ok is False
+        assert "empty" in build.detail
+        with pytest.raises(EnvBuildFailed):
+            build_environment(checkout, descriptor, runner=uv_sync_runner)
+
+    def test_an_empty_lockfile_environment_is_not_a_build(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        env_module = importlib.import_module("plumb.intake.env")
+        monkeypatch.setattr(env_module.subprocess, "run", _fake_uv_success)
+        checkout_dir = _checkout_with_venv(
+            tmp_path / "proj", {"uv.lock": b"version = 1\n"}, populated=False
+        )
+        checkout = resolve_local(checkout_dir)
+        descriptor = _descriptor(checkout)
+        assert descriptor.policy == "lockfile"
+        assert uv_sync_runner(checkout, descriptor).ok is False
+
+    def test_a_populated_environment_is_a_build(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        env_module = importlib.import_module("plumb.intake.env")
+        monkeypatch.setattr(env_module.subprocess, "run", _fake_uv_success)
+        checkout_dir = _checkout_with_venv(tmp_path / "proj", {"poetry.lock": b"# lock\n"}, populated=True)
+        checkout = resolve_local(checkout_dir)
+        descriptor = _descriptor(checkout)
+        assert uv_sync_runner(checkout, descriptor).ok is True
+
+    def test_best_effort_empty_is_not_failed(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        env_module = importlib.import_module("plumb.intake.env")
+        monkeypatch.setattr(env_module.subprocess, "run", _fake_uv_success)
+        checkout_dir = _checkout_with_venv(tmp_path / "proj", {"main.py": b"print('hi')\n"}, populated=False)
+        checkout = resolve_local(checkout_dir)
+        descriptor = _descriptor(checkout)
+        assert descriptor.policy == "best-effort"
+        assert uv_sync_runner(checkout, descriptor).ok is True
+
+    def test_a_missing_site_packages_is_empty(self, tmp_path: Path) -> None:
+        env_module = importlib.import_module("plumb.intake.env")
+        assert env_module._venv_is_empty(tmp_path / ".venv") is True
+
+    def test_a_dist_info_directory_makes_a_venv_non_empty(self, tmp_path: Path) -> None:
+        env_module = importlib.import_module("plumb.intake.env")
+        venv = tmp_path / ".venv"
+        site = venv / "lib" / "python3.11" / "site-packages"
+        site.mkdir(parents=True)
+        assert env_module._venv_is_empty(venv) is True
+        (site / "foo-1.0.dist-info").mkdir()
+        assert env_module._venv_is_empty(venv) is False
+
+
+class TestMutations:
+    def test_disabling_the_empty_guard_breaks_it(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        env_module = importlib.import_module("plumb.intake.env")
+        monkeypatch.setattr(env_module.subprocess, "run", _fake_uv_success)
+        monkeypatch.setattr(env_module, "_venv_is_empty", lambda venv: False)
+        checkout_dir = _checkout_with_venv(tmp_path / "proj", {"poetry.lock": b"# lock\n"}, populated=False)
+        checkout = resolve_local(checkout_dir)
+        descriptor = _descriptor(checkout)
+        with pytest.raises(AssertionError, match="recorded as a build"):
+            _assert_the_empty_environment_is_refused(checkout, descriptor)

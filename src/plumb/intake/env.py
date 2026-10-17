@@ -63,6 +63,11 @@ _REQUIRES_PYTHON = re.compile(r'requires-python\s*=\s*["\']([^"\']+)["\']')
 #: `uv venv --python` accepts; a specifier (`>=3.9`) is left for uv to resolve.
 _CONCRETE_PYTHON_PIN = re.compile(r"^\d+(\.\d+){0,2}$")
 
+#: Policies that declare dependencies: a zero-exit build under one of these
+#: that installed nothing is a failed build, never a silent empty environment.
+#: `best-effort` is exempt (a dependency-less project is legitimate).
+_DEPENDENCY_POLICIES = ("lockfile", "poetry", "declared")
+
 #: Environment-variable name fragments considered secret-bearing and scrubbed
 #: from the runner's env, so a build command never inherits the user's keys.
 _SECRET_FRAGMENTS = (
@@ -194,6 +199,14 @@ def uv_sync_runner(
         if result.returncode != 0:
             detail = err or out or "uv exited non-zero"
             return EnvBuild(ok=False, policy=descriptor.policy, detail=detail)
+    if descriptor.policy in _DEPENDENCY_POLICIES and _venv_is_empty(
+        checkout.checkout_dir.resolve() / ".venv"
+    ):
+        return EnvBuild(
+            ok=False,
+            policy=descriptor.policy,
+            detail="the dependency policy installed nothing; the environment is empty",
+        )
     return EnvBuild(ok=True, policy=descriptor.policy, detail=out or err)
 
 
@@ -290,3 +303,16 @@ def _policy_commands(checkout: Checkout, descriptor: EnvDescriptor) -> list[list
 def _venv_python_arg(pin: str) -> list[str]:
     """`--python <pin>` only for a concrete version, never a specifier."""
     return ["--python", pin] if _CONCRETE_PYTHON_PIN.match(pin) else []
+
+
+def _venv_is_empty(venv: Path) -> bool:
+    """True when the venv holds no installed distribution at all.
+
+    Distribution-level, not third-party-level: a project that installs only its
+    own package still writes a `.dist-info` and is not empty. A venv with no
+    `site-packages` directory counts as empty.
+    """
+    for site in venv.glob("lib/python*/site-packages"):
+        if any(site.glob("*.dist-info")) or any(site.glob("*.egg-info")):
+            return False
+    return True
