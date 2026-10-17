@@ -97,18 +97,33 @@ environment on the **user's compute**.
 **Depends on:** nothing. **Guardrail:** constraint #2 — everything stays local; nothing is
 fetched to a third party the user didn't authorize.
 
-**Status (2026-09-22):** the deterministic intake spine is built under `src/plumb/intake/` —
-tree hashing (a `plumb` bytes framing over sorted `(relpath, bytes)`, and the repo's own
-`HEAD^{tree}` for git sources, one `TreeHash(scheme, digest)` record), source resolution
-(`resolve_local` / `resolve_git` with `--rev` / `resolve_archive` → `Checkout(checkout_dir,
-tree_hash, source_record)`), manifest scan, and the environment descriptor (`describe_environment`
-with a lockfile-first → declared → best-effort policy, python pin from `.python-version` →
-`pyproject.toml` → default, isolation posture, and `git`/`uv` tool versions). Named causes
-(`SourceNotFound`, `RevNotFound`, `UnsupportedArchive`, `EnvBuildFailed`) map to the future
-`UNVERIFIED` causes. The boundary is honest: resolution and the descriptor are **offline-tested**
-(`file://` repos, synthetic tar/zip archives, stub env runner), while the **one real `uv sync`**
-runs only via `tools/demo_env_build.py` at dev time (its output is recorded as evidence in the
-PR, not in CI). C3 consumes this checkout + descriptor (built 2026-09-23, see below); C4's
+**Status (2026-09-22; env policy extended 2026-10-17, `poetry-env-policy`):** the deterministic
+intake spine is built under `src/plumb/intake/` — tree hashing (a `plumb` bytes framing over
+sorted `(relpath, bytes)`, and the repo's own `HEAD^{tree}` for git sources, one
+`TreeHash(scheme, digest)` record), source resolution (`resolve_local` / `resolve_git` with
+`--rev` / `resolve_archive` → `Checkout(checkout_dir, tree_hash, source_record)`), manifest
+scan (which now records `poetry.lock` alongside `uv.lock`, `manifest.py:31`), and the
+environment descriptor (`describe_environment` with a precedence of `uv.lock` → `"lockfile"` >
+`poetry.lock` → `"poetry"` > `requirements*.txt` → `"declared"` > `"best-effort"`
+(`env.py:232-247`), python pin from `.python-version` → `pyproject.toml` → default, isolation
+posture, and `git`/`uv` tool versions). A poetry-only checkout is no longer routed into a
+best-effort `uv sync` that modern uv resolves to an empty venv: the real runner builds it as
+`uv venv` + `uv pip install <checkout>` (`env.py:287-299`), and `build_environment`
+(`env.py:144-172`) is unchanged, so stub runners and `--no-env-build` keep their behaviour.
+Because a zero-exit build that installs nothing is a silent pass, `uv_sync_runner` now inspects
+`checkout_dir/.venv` after a successful build and returns `ok=False` under any
+dependency-declaring policy (`lockfile`/`poetry`/`declared`), which the existing gate turns into
+`EnvBuildFailed`; `best-effort` is exempt, since a dependency-less project is legitimate
+(`env.py:66-69`, `env.py:202-209`, `_venv_is_empty` at `env.py:308-318`). The guard is
+mutation-checked (disabling `_venv_is_empty` fails the suite,
+`tests/intake/test_env.py:514`). Named causes (`SourceNotFound`, `RevNotFound`,
+`UnsupportedArchive`, `EnvBuildFailed`) map to the future `UNVERIFIED` causes. The boundary is
+honest: resolution and the descriptor are **offline-tested** (`file://` repos, synthetic tar/zip
+archives, stub env runner), while the **one real build** (`uv sync` or the poetry
+`uv pip install` path) runs only via `tools/demo_env_build.py` at dev time (its output is
+recorded as evidence in the PR, not in CI). The real poetry build and the Perrin re-probe at its
+recorded drift boundary remain a separate dev-time aspect; nothing here claims Perrin's drift
+cleared. C3 consumes this checkout + descriptor (built 2026-09-23, see below); C4's
 first slice consumes C3 (2026-09-25), but **no real paper has run through it, so the Phase 0
 gate is not met.**
 
@@ -257,11 +272,14 @@ software papers without numbers, figure-dominant results — evidence in
 `docs/planning/cross-paper-coverage/panel-run/screening.md`). Perrin's environment
 required recorded drift (earliest buildable `--exclude-newer` boundary; the M4a
 cross-check was inconclusive by construction — no second runnable env exists on this
-machine). Growing the corpus is blocked by named engine gaps: a poetry env policy (C2's
-best-effort `uv sync` silently produces an empty venv for poetry-only projects),
-figure-with-data locators, and notebook papers whose values sit only in pandas Styler
-HTML *without* the table-mode locator (built 2026-10-10, N1). The precision/recall
-benchmark over a public corpus stays Phase 2.
+machine). Growing the corpus is blocked by named engine gaps: figure-with-data locators, and
+notebook papers whose values sit only in pandas Styler HTML *without* the table-mode locator
+(built 2026-10-10, N1). The poetry env policy that was formerly named here as a blocker now
+exists (2026-10-17, `poetry-env-policy`): a poetry-only checkout is classified `"poetry"` and
+built via `uv pip install`, and an empty dependency environment is a named failure rather than a
+silent pass. That removes the empty-venv route; the Perrin re-probe at its recorded drift
+boundary is a separate dev-time aspect, and no claim is made here that the drift cleared. The
+precision/recall benchmark over a public corpus stays Phase 2.
 
 ## C6. Signed, replayable reproduction bundle
 

@@ -76,20 +76,28 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
 
 - Resolve a **local path**, an `https` **git URL** with `--rev`, or an archive into a pinned
   checkout; record the **tree hash**.
-- Build a reproducible environment on the **user's compute** (pinned interpreter + deps;
-  lockfile-first, then declared deps, then a best-effort resolve that is recorded as such).
+- Build a reproducible environment on the **user's compute** (pinned interpreter + deps; policy
+  precedence `uv.lock` → `"lockfile"` > `poetry.lock` → `"poetry"` > `requirements*.txt` →
+  `"declared"` > `"best-effort"`, the last recorded as such). A poetry checkout is built through
+  `uv venv` + `uv pip install <checkout>`, not a bare `uv sync`.
+- **Empty-env guard:** a zero-exit build under a dependency-declaring policy
+  (`lockfile`/`poetry`/`declared`) that installed nothing is `EnvBuildFailed`, never a silent
+  empty environment; `best-effort` is exempt. The guard is mutation-checked.
 - Nothing is uploaded. An LLM assist, if enabled, is BYOK. Untrusted repo code runs under the
   user's chosen isolation (documented; the isolation posture is recorded in the bundle).
-- **Status (2026-09-22):** the deterministic intake spine is built — tree hashing (plumb bytes
-  framing over sorted `(relpath, bytes)`, and the repo's own `HEAD^{tree}` for git sources,
-  reconciled by the `scheme` field), source resolution (`resolve_local` / `resolve_git` /
-  `resolve_archive` → `Checkout`), manifest scan, and the environment descriptor
-  (`describe_environment`: lockfile-first → declared → best-effort policy, python pin, isolation
-  posture, tool versions). Resolution is offline-tested (`file://` repos, synthetic archives);
-  the **one** real `uv sync` runs only via `tools/demo_env_build.py` at dev time, never in
-  tests or CI. The named causes (`SourceNotFound`, `RevNotFound`, `UnsupportedArchive`,
-  `EnvBuildFailed`) are the future `UNVERIFIED` input. The env builder (real pinned environment
-  on untrusted code) beyond that dev-time sync is not yet built.
+- **Status (2026-09-22; env policy extended 2026-10-17):** the deterministic intake spine is
+  built — tree hashing (plumb bytes framing over sorted `(relpath, bytes)`, and the repo's own
+  `HEAD^{tree}` for git sources, reconciled by the `scheme` field), source resolution
+  (`resolve_local` / `resolve_git` / `resolve_archive` → `Checkout`), manifest scan (including
+  `poetry.lock`), and the environment descriptor (`describe_environment`: `uv.lock`/`poetry.lock`/
+  `requirements*.txt`/best-effort precedence, python pin, isolation posture, tool versions).
+  Resolution is offline-tested (`file://` repos, synthetic archives); the real build (`uv sync`,
+  or `uv venv` + `uv pip install <checkout>` for poetry) runs only via `tools/demo_env_build.py`
+  at dev time, never in tests or CI, and `build_environment` itself is unchanged. An empty
+  environment under a dependency-declaring policy is `EnvBuildFailed` (the guard lives in the
+  real runner; stub runners are unaffected). The named causes (`SourceNotFound`, `RevNotFound`,
+  `UnsupportedArchive`, `EnvBuildFailed`) are the future `UNVERIFIED` input. The env builder
+  (real pinned environment on untrusted code) beyond that dev-time path is not yet built.
 
 ### C3 — Execution & result capture (`src/plumb/run/`)
 
