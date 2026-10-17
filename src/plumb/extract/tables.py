@@ -376,7 +376,8 @@ def pipe_cell_name(
 # `column k`. A row label that ends in a number
 # (`Model 2 0.87`) reads the number as a cell — undecidable from the text; the header
 # check then falls back to ordinals rather than misnaming. Pipe tables are never
-# re-read here, and their cells stay unnamed.
+# re-read here; their cells are named separately (`pipe_cell_context`,
+# `pipe_cell_name`) and never become captioned cells.
 
 _CAPTION = re.compile(r"Table (\d+)[:.](?:\s.*)?")
 _ATX = re.compile(r"#{1,6}(?:[ \t]|$)")
