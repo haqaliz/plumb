@@ -81,8 +81,16 @@ the literal heading `"experimental validation"` maps to `results`; a number behi
 0.001; a new selection cause `layout_numeral` refuses heading numbers, page-number lines and
 list markers, and a conventional significance level is a `hyperparameter`; and caption-led
 **whitespace tables** (`tables.parse_captioned_tables`) name each cell `Table {n} {row}
-{column}` through a new `Candidate.cell_header`. Pipe-table cells stay unnamed (a named
-follow-on), and no fixture claim moved on either path. Read the 86/86 as conformance to a
+{column}` through a new `Candidate.cell_header`. **Ordinary pipe-table cells are now named too**
+(`pipe-table-cell-naming`, 2026-10-18): a pipe data cell carries `Table {n} {row} {column}` (or
+`{row} {column}` without a caption) when its column-0 row label is plausible and its row-0 column
+header is non-empty, and in `select` a cell's own in-cell metric always wins over the header
+(the header is a fallback). Critically, this is scoped so it adds no garbage: the PDF converter
+synthesizes GFM tables whose column 0 or header can be a whole data row, so a cell whose derived
+name is itself a value expression (`0.144137 ARDP 0.08 ± 0.07 …`) is left unnamed — Perrin's C1
+precision is unchanged at **0.207** (103/498), and the pdf-seam and AgroDesign recovery floors
+hold. It unblocks C7's GRIM slice (the `PMC12780771` Table 2 `Date orientation` cell `3.72 (0.57)`
+is now table-named), and no fixture claim moved on any path. Read the 86/86 as conformance to a
 curated rule on one paper, not extraction coverage: cross-paper recovery is unmeasured (R1),
 and Table 8 (header row rendered as a heading) is named from prose.
 
