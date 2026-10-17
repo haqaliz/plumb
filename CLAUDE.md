@@ -99,7 +99,7 @@ p, `review_required`, unchanged in an environment resolved as of the code's date
 claims are curated by a fixed rule and grounded verbatim; **C1 recovered 0 of them when the gate
 was met, and now recovers 86/86** (claim-recovery, 2026-09-27: §4's title reads as results,
 `p ¡ 0.001` is refused, layout numerals are refused by name, and caption-led whitespace tables
-name each cell by table, row and column — 86 claims, 86 distinct ids; no fixture claim moved). Two engine gaps it exposed were fixed test-first (`float_repr`
+name each cell by table, row and column — 86 claims, 86 distinct ids; no fixture claim moved). **Ordinary pipe-table cells are named too** (`pipe-table-cell-naming`, 2026-10-18: a pipe data cell carries `Table {n} {row} {column}`, or `{row} {column}` without a caption, when its row label is plausible and its column header non-empty; an in-cell metric wins over the header, and the PDF converter's synthesized tables — whose label or header can be a whole data row — are left unnamed, so Perrin's C1 precision holds at 0.207 and the pdf-seam/AgroDesign floors stand; this unblocks C7). Two engine gaps it exposed were fixed test-first (`float_repr`
 bindings for shortest-repr floats; `parse_trace`). The Phase 0 gate's **number exists**, and
 **C6's first slice is built** (2026-09-27): `src/plumb/bundle/` writes a hash-listed directory
 signed with `ssh-keygen -Y` (no crypto dependency; deterministic), and `verify_bundle` checks the
