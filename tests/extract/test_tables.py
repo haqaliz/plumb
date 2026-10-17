@@ -19,6 +19,7 @@ from plumb.extract.tables import (
     TableCell,
     parse_captioned_tables,
     parse_tables,
+    pipe_cell_context,
 )
 
 # A table with a leading and trailing pipe, an alignment row carrying colons, an empty
@@ -152,6 +153,45 @@ class TestTableShape:
         assert len(tables[0].cells) == 9
         assert len(tables[1].cells) == 4
         assert tables[0].span.end < tables[1].span.start
+
+
+class TestPipeCellContext:
+    """One source of truth for a pipe cell's row label and column header.
+
+    The same derivation the label file already makes (`labelling._cell_contexts`) —
+    extracted here so `candidates` and `labelling` cannot drift. An absent label or
+    header is the empty string, never a guess.
+    """
+
+    def test_a_data_cell_carries_its_row_label_and_column_header(self) -> None:
+        (table,) = parse_tables(DOCUMENT)
+        by_text = {
+            cell.text: (label, header)
+            for cell, label, header in pipe_cell_context(table)
+        }
+
+        # The row-0 cell of the column, and the column-0 cell of the row.
+        assert by_text["0.87"] == ("AUC", "Value")
+        assert by_text["12.5"] == ("Rate", "Value")
+
+    def test_a_column_the_header_never_declared_is_empty(self) -> None:
+        # A ragged row with more cells than its header: there is genuinely no header
+        # cell above the last number.
+        document = "| a | b |\n|---|---|\n| x | 1 | 2 |\n"
+        (table,) = parse_tables(document)
+        by_text = {
+            cell.text: (label, header)
+            for cell, label, header in pipe_cell_context(table)
+        }
+
+        assert by_text["2"] == ("x", "")
+
+    def test_a_missing_label_or_header_is_the_empty_string(self) -> None:
+        cell = TableCell(text="0.87", span=CharSpan(0, 4), row=1, column=1)
+        table = Table(cells=(cell,), span=CharSpan(0, 4))
+        (context,) = pipe_cell_context(table)
+
+        assert context == (cell, "", "")
 
 
 class TestEscapedPipes:

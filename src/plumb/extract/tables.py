@@ -57,6 +57,7 @@ __all__ = [
     "TableCell",
     "parse_captioned_tables",
     "parse_tables",
+    "pipe_cell_context",
 ]
 
 
@@ -292,6 +293,26 @@ def parse_tables(raw: str) -> tuple[Table, ...]:
         index = cursor
 
     return tuple(tables)
+
+
+def pipe_cell_context(table: Table) -> tuple[tuple[TableCell, str, str], ...]:
+    """Every cell of a pipe `table` with its row label and column header.
+
+    The row label is the cell's column-0 text and the column header its row-0 text —
+    the same derivation the label file needs (`labelling._cell_contexts`), kept in one
+    place so the two consumers cannot drift. `row` and `column` are the parser's, so
+    this is a lookup, never a guess about what a column means.
+
+    An absent label or header is the empty string rather than `None`: the name builder
+    (`pipe_cell_name`) joins the non-empty parts, and "there is no header cell" is a
+    distinction only the label file draws.
+    """
+    headers = {cell.column: cell.text for cell in table.cells if cell.row == 0}
+    labels = {cell.row: cell.text for cell in table.cells if cell.column == 0}
+    return tuple(
+        (cell, labels.get(cell.row, ""), headers.get(cell.column, ""))
+        for cell in table.cells
+    )
 
 
 # --- the second form: caption-led whitespace tables ------------------------------------
