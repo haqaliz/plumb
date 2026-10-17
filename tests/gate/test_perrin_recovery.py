@@ -9,10 +9,20 @@ precision is measured against it, so the runtime-gated cells count as true posit
 never defects.
 
 Measured 2026-10-02: **recall 1.000** (16/16 curated recovered), **precision 0.207**
-(103/498 extracted claims are real paper cells; the 395 extras are layout numerals —
-β coefficients, section numbers, list markers). The numbers are reported as measured
-in the fixture README; they are not tuned to a floor (`docs/technical/CAPABILITY_ROADMAP.md`
-C1 claim-recovery framing).
+(103/498 extracted claims are real paper cells; the 395 extras were layout numerals —
+β coefficients, section numbers, list markers). **Re-measured 2026-10-17** after
+pipe-table cells were named (`feat(cell-naming)`): recall is unchanged (16/16, no
+committed claim moved), while precision fell to **0.087** (103/1184) because the PDF
+converter's synthesized pipe tables (the paper's main-text result tables) now yield
+named cells — genuine paper numbers the narrow curated rule (Tables 1–4) does not
+cover. **Re-measured 2026-10-18** after the naming was narrowed (name a pipe cell only
+when its row label is plausible, its column header is non-empty, and the derived name
+is not itself a value expression): precision is back to **0.207** (103/498) — every
+synthesized-table cell is refused, because the converter puts a whole data row / a `±`
+column into the label and header, so the name (`0.144137 ARDP 0.08 ± 0.07 …`) is a
+value expression and is left unnamed rather than given a garbage metric. The numbers
+are reported as measured in the fixture README; they are not tuned to a floor
+(`docs/technical/CAPABILITY_ROADMAP.md` C1 claim-recovery framing).
 """
 
 from __future__ import annotations

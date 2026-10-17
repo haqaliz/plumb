@@ -80,7 +80,7 @@ from typing import Any, Final
 from plumb.extract.candidates import SECTION_TABLE, Candidate
 from plumb.extract.location import normalize_text
 from plumb.extract.ordering import location_sort_key
-from plumb.extract.tables import parse_tables
+from plumb.extract.tables import parse_tables, pipe_cell_context
 
 __all__ = [
     "LABELLING_FORMAT",
@@ -321,7 +321,8 @@ def _cell_contexts(text: str) -> tuple[_CellContext, ...]:
     """Every table cell in document order, with the header and label it sits under.
 
     `TableCell` already carries `row` and `column` — row 0 is the header and the
-    delimiter row consumes no index — so the lookup is two dictionaries per table and
+    delimiter row consumes no index — so `pipe_cell_context` does the lookup and this
+    only re-draws its empty-string default as `None` for an undeclared column or row:
     no guessing about what a column means.
 
     `None` rather than `""` when the author's header row never declared this column: a
@@ -336,16 +337,16 @@ def _cell_contexts(text: str) -> tuple[_CellContext, ...]:
     """
     contexts: list[_CellContext] = []
     for table in parse_tables(text):
-        headers = {cell.column: cell.text for cell in table.cells if cell.row == 0}
-        labels = {cell.row: cell.text for cell in table.cells if cell.column == 0}
+        declared_columns = {cell.column for cell in table.cells if cell.row == 0}
+        declared_rows = {cell.row for cell in table.cells if cell.column == 0}
         contexts.extend(
             (
                 cell.span.start,
                 cell.span.end,
-                headers.get(cell.column),
-                labels.get(cell.row),
+                header if cell.column in declared_columns else None,
+                label if cell.row in declared_rows else None,
             )
-            for cell in table.cells
+            for cell, label, header in pipe_cell_context(table)
         )
     return tuple(contexts)
 

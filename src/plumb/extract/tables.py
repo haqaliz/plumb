@@ -55,8 +55,12 @@ __all__ = [
     "CaptionedTable",
     "Table",
     "TableCell",
+    "nearest_table_index",
+    "is_plausible_row_label",
     "parse_captioned_tables",
     "parse_tables",
+    "pipe_cell_context",
+    "pipe_cell_name",
 ]
 
 
@@ -294,6 +298,78 @@ def parse_tables(raw: str) -> tuple[Table, ...]:
     return tuple(tables)
 
 
+def pipe_cell_context(table: Table) -> tuple[tuple[TableCell, str, str], ...]:
+    """Every cell of a pipe `table` with its row label and column header.
+
+    The row label is the cell's column-0 text and the column header its row-0 text —
+    the same derivation the label file needs (`labelling._cell_contexts`), kept in one
+    place so the two consumers cannot drift. `row` and `column` are the parser's, so
+    this is a lookup, never a guess about what a column means.
+
+    An absent label or header is the empty string rather than `None`: the name builder
+    (`pipe_cell_name`) joins the non-empty parts, and "there is no header cell" is a
+    distinction only the label file draws.
+    """
+    headers = {cell.column: cell.text for cell in table.cells if cell.row == 0}
+    labels = {cell.row: cell.text for cell in table.cells if cell.column == 0}
+    return tuple(
+        (cell, labels.get(cell.row, ""), headers.get(cell.column, ""))
+        for cell in table.cells
+    )
+
+
+#: How many lines above a pipe table a `Table N` caption is looked for. Small and
+#: fixed so the lookup stays deterministic: a caption wrapped over several lines, or a
+#: table separated by a paragraph, is not "near" and is left unnamed rather than
+#: misnamed.
+_CAPTION_WINDOW = 4
+
+
+def nearest_table_index(text: str, offset: int) -> str | None:
+    """The `N` of the nearest `Table N` caption line above `offset`, or `None`.
+
+    A pipe table carries no caption of its own, so its number has to be read off the
+    lines above it. Only the caption the whitespace parser accepts counts
+    (`Table N:` / `Table N.`), only lines that end before `offset`, and only within a
+    small fixed window — nearest first. Deterministic, never fuzzy.
+    """
+    preceding = [region for region in _line_regions(text) if region[1] <= offset]
+    for start, end in reversed(preceding[-_CAPTION_WINDOW:]):
+        match = _CAPTION.fullmatch(text[start:end])
+        if match is not None:
+            return match.group(1)
+    return None
+
+
+def pipe_cell_name(
+    row_label: str, column_header: str, *, table_index: str | None = None
+) -> str:
+    """A pipe cell's name: `Table {n} {row label} {column header}`, empty parts dropped.
+
+    The caption part is present only when a `Table N` line sits above the table
+    (`nearest_table_index`). All parts empty is the empty string, which a caller
+    renders as `None` (`candidates.py`).
+    """
+    parts = (f"Table {table_index}" if table_index else "", row_label, column_header)
+    return " ".join(part for part in parts if part)
+
+
+def is_plausible_row_label(text: str) -> bool:
+    """Does a pipe table's column-0 cell read as a row label, or as data?
+
+    Not every column-0 cell is a label. The PDF converter synthesizes pipe tables from
+    typeset ones, and a main-text table can come out with a malformed column 0: an
+    entire data row concatenated into the label cell (`0.144137 ARDP 0.08 ± 0.07 …`).
+    Naming a cell from that attaches a garbage metric, so a label must contain at least
+    one letter (a bare number names nothing) and no `±` or `=` (both are value
+    expressions, never a word of a row's name). Everything else is plausible; a false
+    negative costs a name, which is the safe direction.
+    """
+    if not any(char.isalpha() for char in text):
+        return False
+    return "±" not in text and "=" not in text
+
+
 # --- the second form: caption-led whitespace tables ------------------------------------
 #
 # A PDF text layer turns a typeset table into lines of words and numbers under its
@@ -317,7 +393,8 @@ def parse_tables(raw: str) -> tuple[Table, ...]:
 # `column k`. A row label that ends in a number
 # (`Model 2 0.87`) reads the number as a cell — undecidable from the text; the header
 # check then falls back to ordinals rather than misnaming. Pipe tables are never
-# re-read here, and their cells stay unnamed.
+# re-read here; their cells are named separately (`pipe_cell_context`,
+# `pipe_cell_name`) and never become captioned cells.
 
 _CAPTION = re.compile(r"Table (\d+)[:.](?:\s.*)?")
 _ATX = re.compile(r"#{1,6}(?:[ \t]|$)")

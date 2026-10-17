@@ -457,8 +457,12 @@ def _header_metric(header: str) -> str | None:
 
     The column name is the header's ending, so the N-token test applies as it does to
     prose; a row labelled `n` is caught by the bare word. The wider N-token list is not
-    applied to row labels — `Model` or `Group` names a row of results.
+    applied to row labels — `Model` or `Group` names a row of results. An empty header
+    is no name at all: `None`, so the cell lands on the selection cause rather than
+    being admitted with an empty metric (the gate's `unnamed_metric`).
     """
+    if not header.strip():
+        return None
     if _ends_with_n_token(header) or _SAMPLE_SIZE_WORD.search(header):
         return None
     return header
@@ -534,10 +538,11 @@ def select(
     ) or _ET_AL.search(context) or _SURNAME_YEAR.search(context):
         return _reject(CAUSE_RELATED_WORK, candidate)
 
-    if candidate.cell_header is not None:
+    metric = metric_of(candidate, normalized_text=normalized_text)
+    if metric is None and candidate.cell_header is not None:
+        # The cell header is a fallback, never an override: an in-cell metric keeps
+        # its name, so no claim that had one changes id when cells gain headers.
         metric = _header_metric(candidate.cell_header)
-    else:
-        metric = metric_of(candidate, normalized_text=normalized_text)
     if metric is None:
         return _reject(CAUSE_NO_NAMED_METRIC, candidate)
 

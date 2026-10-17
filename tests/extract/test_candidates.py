@@ -16,6 +16,7 @@ membership, never from what a number appears to mean, so a paper with no heading
 """
 
 from dataclasses import FrozenInstanceError
+from pathlib import Path
 import time
 
 import pytest
@@ -755,11 +756,76 @@ class TestCaptionedTableCells:
         assert prose.cell_header is None
         assert prose.context == "The accuracy was 0.87 overall."
 
-    def test_a_pipe_table_cell_has_no_header(self) -> None:
+    def test_a_pipe_table_cell_has_a_header(self) -> None:
         document = "## Results\n\n| AUC | 0.87 |\n|---|---|\n| F1 | 0.91 |\n"
         (cell,) = [c for c in extract_candidates(document) if c.text == "0.91"]
         assert cell.section_hint == SECTION_TABLE
+        assert cell.cell_header == "F1 0.87"
+
+    def test_a_near_captioned_pipe_cell_is_named_by_table_row_and_column(self) -> None:
+        document = (
+            "## Results\n\n"
+            "Table 2: Blinded results.\n\n"
+            "| Metric | Value |\n|---|---|\n| AUC | 0.87 |\n"
+        )
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.87"]
+        assert cell.cell_header == "Table 2 AUC Value"
+
+    def test_an_uncaptioned_pipe_cell_is_named_by_row_and_column(self) -> None:
+        document = "## Results\n\n| Metric | Value |\n|---|---|\n| AUC | 0.87 |\n"
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.87"]
+        assert cell.cell_header == "AUC Value"
+
+    def test_a_pipe_cell_with_neither_label_nor_header_has_no_name(self) -> None:
+        document = "## Results\n\n|  |  |\n|---|---|\n|  | 0.5 |\n"
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.5"]
         assert cell.cell_header is None
+
+    def test_a_pipe_cell_whose_row_label_is_a_value_expression_has_no_name(self) -> None:
+        # The PDF converter synthesizes pipe tables from typeset tables; its main-text
+        # tables can have a malformed column 0, so the "row label" is an entire
+        # concatenated data row (`0.144137 ARDP 0.08 ± 0.07 …`). Naming the cell would
+        # attach a garbage metric, so a label carrying `±` is not a label.
+        document = (
+            "## Results\n\n"
+            "|  |  |\n|---|---|\n"
+            "| 0.144137 ARDP 0.08 ± 0.07 | 0.10 |\n"
+        )
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.10"]
+        assert cell.section_hint == SECTION_TABLE
+        assert cell.cell_header is None
+
+    def test_a_pipe_cell_whose_row_label_has_an_equals_sign_has_no_name(self) -> None:
+        document = (
+            "## Results\n\n|  |  |\n|---|---|\n| AUC = 0.87 | 0.10 |\n"
+        )
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.10"]
+        assert cell.cell_header is None
+
+    def test_a_pipe_cell_whose_column_header_is_a_value_expression_has_no_name(
+        self,
+    ) -> None:
+        # The synthesized tables put the ± values in the column header, so the label
+        # alone (`AUC`) looks clean but the name (`AUC ± 0.07`) is a value expression.
+        document = (
+            "## Results\n\n|  |  |\n|---|---|\n| AUC | ± 0.07 |\n"
+        )
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.07"]
+        assert cell.cell_header is None
+
+    def test_a_pipe_cell_with_an_empty_column_header_has_no_name(self) -> None:
+        document = "## Results\n\n|  |  |\n|---|---|\n| AUC | 0.87 |\n"
+        (cell,) = [c for c in extract_candidates(document) if c.text == "0.87"]
+        assert cell.cell_header is None
+
+    def test_a_pipe_cell_with_a_clean_label_and_header_is_named(self) -> None:
+        document = (
+            "## Results\n\n"
+            "| Metric | Value |\n|---|---|\n"
+            "| Date orientation | 3.72 |\n"
+        )
+        (cell,) = [c for c in extract_candidates(document) if c.text == "3.72"]
+        assert cell.cell_header == "Date orientation Value"
 
     def test_the_header_must_be_a_string_or_none(self) -> None:
         with pytest.raises(TypeError):
@@ -767,3 +833,27 @@ class TestCaptionedTableCells:
                 text="1", span=CharSpan(0, 1), context="1",
                 section_hint=SECTION_TABLE, cell_header=3,  # type: ignore[arg-type]
             )
+
+
+class TestTheC7FixtureTargetIsNamed:
+    """The C7 target: PMC12780771's Table 2 `M (SD)` cells must stay metric-named
+    (`docs/planning/pipe-table-cell-naming/prd.md`; GRIM has nothing to run on an
+    unnamed cell). The Table 2 caption is an ATX heading (`### Table 2.`), which the
+    pipe-table caption lookup does not treat as a `Table N` line, so the name carries
+    the row label and row-0 column header without a `Table N` prefix — but it is a
+    table-derived metric, never prose."""
+
+    def test_the_date_orientation_mean_is_named_by_its_table_row_and_column(self) -> None:
+        text = normalize_text(
+            (Path("fixtures/papers") / "PMC12780771.md").read_text(encoding="utf-8")
+        )
+        marker = text.find("Date orientation")
+        (cell,) = [
+            candidate
+            for candidate in extract_candidates(text)
+            if candidate.text == "3.72"
+            and marker < candidate.span.start < marker + 40
+        ]
+
+        assert cell.section_hint == SECTION_TABLE
+        assert cell.cell_header == "Date orientation Dementia status"

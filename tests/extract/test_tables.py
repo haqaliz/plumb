@@ -17,8 +17,12 @@ from plumb.extract.location import CharSpan, normalize_text
 from plumb.extract.tables import (
     Table,
     TableCell,
+    is_plausible_row_label,
+    nearest_table_index,
     parse_captioned_tables,
     parse_tables,
+    pipe_cell_context,
+    pipe_cell_name,
 )
 
 # A table with a leading and trailing pipe, an alignment row carrying colons, an empty
@@ -152,6 +156,126 @@ class TestTableShape:
         assert len(tables[0].cells) == 9
         assert len(tables[1].cells) == 4
         assert tables[0].span.end < tables[1].span.start
+
+
+class TestPipeCellContext:
+    """One source of truth for a pipe cell's row label and column header.
+
+    The same derivation the label file already makes (`labelling._cell_contexts`) —
+    extracted here so `candidates` and `labelling` cannot drift. An absent label or
+    header is the empty string, never a guess.
+    """
+
+    def test_a_data_cell_carries_its_row_label_and_column_header(self) -> None:
+        (table,) = parse_tables(DOCUMENT)
+        by_text = {
+            cell.text: (label, header)
+            for cell, label, header in pipe_cell_context(table)
+        }
+
+        # The row-0 cell of the column, and the column-0 cell of the row.
+        assert by_text["0.87"] == ("AUC", "Value")
+        assert by_text["12.5"] == ("Rate", "Value")
+
+    def test_a_column_the_header_never_declared_is_empty(self) -> None:
+        # A ragged row with more cells than its header: there is genuinely no header
+        # cell above the last number.
+        document = "| a | b |\n|---|---|\n| x | 1 | 2 |\n"
+        (table,) = parse_tables(document)
+        by_text = {
+            cell.text: (label, header)
+            for cell, label, header in pipe_cell_context(table)
+        }
+
+        assert by_text["2"] == ("x", "")
+
+    def test_a_missing_label_or_header_is_the_empty_string(self) -> None:
+        cell = TableCell(text="0.87", span=CharSpan(0, 4), row=1, column=1)
+        table = Table(cells=(cell,), span=CharSpan(0, 4))
+        (context,) = pipe_cell_context(table)
+
+        assert context == (cell, "", "")
+
+
+class TestNearestTableIndex:
+    """A pipe table has no caption field, so `Table {n}` is hunted on the lines above it.
+
+    Deterministic and bounded: the nearest preceding line matching the same `Table N`
+    caption the whitespace parser reads, within a small fixed window; otherwise no
+    number. No fuzzy matching.
+    """
+
+    def test_a_caption_above_the_table_is_found(self) -> None:
+        text = normalize_text("Table 2: Blinded results.\n\n| a | b |\n|---|---|\n| x | 1 |\n")
+        (table,) = parse_tables(text)
+
+        assert nearest_table_index(text, table.span.start) == "2"
+
+    def test_no_caption_above_the_table_is_none(self) -> None:
+        text = normalize_text("## Results\n\n| a | b |\n|---|---|\n| x | 1 |\n")
+        (table,) = parse_tables(text)
+
+        assert nearest_table_index(text, table.span.start) is None
+
+    def test_a_caption_further_than_the_window_is_not_used(self) -> None:
+        text = normalize_text(
+            "Table 7: Far away.\nA\nB\nC\nD\n\n| a | b |\n|---|---|\n| x | 1 |\n"
+        )
+        (table,) = parse_tables(text)
+
+        assert nearest_table_index(text, table.span.start) is None
+
+    def test_the_nearest_caption_wins(self) -> None:
+        text = normalize_text(
+            "Table 1: Old.\n\nTable 2: New.\n\n| a | b |\n|---|---|\n| x | 1 |\n"
+        )
+        (table,) = parse_tables(text)
+
+        assert nearest_table_index(text, table.span.start) == "2"
+
+
+class TestPipeCellName:
+    """The name builder: `Table {n} {row} {column}`, degrading to the non-empty parts."""
+
+    def test_every_part_is_joined(self) -> None:
+        assert pipe_cell_name("AUC", "Value", table_index="2") == "Table 2 AUC Value"
+
+    def test_without_a_table_index_the_caption_part_is_omitted(self) -> None:
+        assert pipe_cell_name("AUC", "Value") == "AUC Value"
+
+    def test_a_missing_part_is_skipped(self) -> None:
+        assert pipe_cell_name("AUC", "") == "AUC"
+        assert pipe_cell_name("", "Value", table_index="3") == "Table 3 Value"
+
+    def test_all_parts_empty_is_the_empty_string(self) -> None:
+        assert pipe_cell_name("", "") == ""
+
+
+class TestIsPlausibleRowLabel:
+    """A row label that names a row, not a data row the PDF converter concatenated.
+
+    A `Table N` cell is named only when its column-0 cell reads as a label: at least one
+    letter, and no `±` or `=` (a bare number already fails the letter test). The PDF
+    converter's synthesized tables can have a malformed column 0 — an entire concatenated
+    data row, `0.144137 ARDP 0.08 ± 0.07 …` — and naming a cell from that attaches a
+    garbage metric."""
+    @pytest.mark.parametrize("label", ["Date orientation", "AUC", "Model 2", "Age, y"])
+    def test_a_label_with_a_letter_is_plausible(self, label: str) -> None:
+        assert is_plausible_row_label(label) is True
+
+    @pytest.mark.parametrize(
+        "label",
+        [
+            "0.144137 ARDP 0.08 ± 0.07",
+            "AUC = 0.87",
+            "0.5",
+            "",
+        ],
+    )
+    def test_a_value_expression_or_a_bare_number_is_not_a_label(
+        self, label: str
+    ) -> None:
+        assert is_plausible_row_label(label) is False
 
 
 class TestEscapedPipes:

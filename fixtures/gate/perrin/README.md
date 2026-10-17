@@ -149,7 +149,7 @@ recorded drift therefore stands, and the committed fixture bytes are unchanged
   (see `tests/gate/test_perrin_recovery.py`); this paper's C1 extraction may differ from
   the curated set (layout-heavy tables) — the number is reported, not tuned.
 
-## C1 recovery (measured 2026-10-02, reported as measured — never tuned)
+## C1 recovery (measured 2026-10-02; re-measured 2026-10-17 and 2026-10-18 — as measured, never tuned)
 
 `extract_claims(pdf_to_markdown(paper.pdf))` vs the curated set, matched by **place and
 value** (`tests/gate/test_perrin_recovery.py`):
@@ -160,6 +160,15 @@ value** (`tests/gate/test_perrin_recovery.py`):
 | precision | 0.207 — 103 of 498 extracted claims are real paper cells (against the full rule: curated + the 217 runtime-gated members, which are true positives, not defects) |
 | extras | 395 layout numerals — β coefficients, section numbers, list markers — genuine extraction noise on this layout-heavy paper, reported, not retuned |
 | shared ids | 71 of 319 distinct ids span multiple locations, all same-value repeats (value-identity dedup, never two different values under one id) |
+
+Re-measurement history: naming every pipe data cell (2026-10-17, `feat(cell-naming)`) fell
+to 0.087 (103/1184) because the PDF converter's synthesized main-text result tables became
+named cells. The naming was then narrowed (2026-10-18): a pipe data cell is named only when
+its column-0 row label is plausible (`tables.is_plausible_row_label`), its row-0 column
+header is non-empty, and the derived name is not itself a value expression — the converter
+puts a whole data row / a `±` column into the label and header, so names like
+`0.144137 ARDP 0.08 ± 0.07 …` are values, not names, and are left unnamed. Precision is back
+to 0.207 (103/498); the re-measurement is reported here, not tuned to a floor.
 
 ## The number (this fixture)
 

@@ -59,6 +59,11 @@ artifacts. `C8` (hosted layer) wraps the whole pipeline as a managed, BYOK servi
   similar), which are **not** claims.
   - The **`metric`** is required: C4 aims a locator at a *named quantity*, and without it the
     binder would have to re-interpret prose at bind time.
+  - A **table cell** is named from its table: the caption-led whitespace path writes
+    `Table {n} {row} {column}`, and ordinary Markdown pipe-table cells are named the same way
+    (`pipe-table-cell-naming`, 2026-10-18), scoped so a cell whose derived name is itself a value
+    expression (a synthesized table's malformed label/header) is left unnamed. In `select` a
+    cell's own in-cell metric wins over the header, which is a fallback.
   - The **`id`** is derived from `(reported value text, metric, units)` and **excludes
     `location`**, so that merging duplicate mentions of one result does not change identity.
   - The reported value keeps the paper's **verbatim text** alongside a `Decimal`. Note
