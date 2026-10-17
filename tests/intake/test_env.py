@@ -17,7 +17,10 @@ callback.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 
@@ -30,6 +33,38 @@ from plumb.intake.env import (
     describe_environment,
 )
 from plumb.intake.manifest import scan_manifests
+
+_THIS_DIR = Path(__file__).parent
+_SRC = _THIS_DIR.parents[1] / "src"
+
+_POETRY_SEEDS = ("0", "1", "12345", "random")
+
+_CHILD_PROGRAM = """\
+import sys
+
+sys.path.insert(0, sys.argv[1])
+sys.path.insert(0, sys.argv[2])
+
+from test_env import child_main
+
+child_main()
+"""
+
+
+def child_main() -> None:
+    import tempfile
+
+    from plumb.intake.env import describe_environment
+
+    root = Path(tempfile.mkdtemp()) / "proj"
+    root.mkdir(parents=True)
+    (root / "poetry.lock").write_bytes(b"# lock\n")
+    descriptor = describe_environment(
+        resolve_local(root),
+        tool_versions={"git": "git version 2.47.0", "uv": "uv 0.5.0"},
+    )
+    sys.stdout.buffer.write(descriptor.to_text().encode("utf-8"))
+
 
 
 def make_checkout(root: Path, files: dict[str, bytes]) -> Path:
@@ -157,6 +192,59 @@ class TestDependencyPolicy:
         descriptor = describe_environment(resolve_local(checkout_dir), tool_versions={})
         assert descriptor.policy == "best-effort"
         assert "best-effort" in descriptor.policy_detail
+
+    def test_a_poetry_lock_is_the_poetry_policy(self, tmp_path: Path) -> None:
+        checkout_dir = make_checkout(tmp_path / "proj", {"poetry.lock": b"# lock\n"})
+        descriptor = describe_environment(resolve_local(checkout_dir), tool_versions={})
+        assert descriptor.policy == "poetry"
+        assert "poetry.lock" in descriptor.policy_detail
+
+    def test_uv_lock_beats_a_poetry_lock(self, tmp_path: Path) -> None:
+        checkout_dir = make_checkout(
+            tmp_path / "proj", {"uv.lock": b"version = 1\n", "poetry.lock": b"# lock\n"}
+        )
+        descriptor = describe_environment(resolve_local(checkout_dir), tool_versions={})
+        assert descriptor.policy == "lockfile"
+
+    def test_poetry_beats_requirements(self, tmp_path: Path) -> None:
+        checkout_dir = make_checkout(
+            tmp_path / "proj", {"poetry.lock": b"# lock\n", "requirements.txt": b"numpy==2.0\n"}
+        )
+        descriptor = describe_environment(resolve_local(checkout_dir), tool_versions={})
+        assert descriptor.policy == "poetry"
+
+
+class TestDescriptorDeterminism:
+    def test_the_poetry_render_is_byte_identical_across_processes(self) -> None:
+        outputs = {}
+        for seed in _POETRY_SEEDS:
+            env = {**os.environ, "PYTHONHASHSEED": seed, "PYTHONDONTWRITEBYTECODE": "1"}
+            result = subprocess.run(
+                [sys.executable, "-c", _CHILD_PROGRAM, str(_THIS_DIR), str(_SRC)],
+                env=env,
+                capture_output=True,
+                timeout=120,
+                check=False,
+            )
+            assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+            outputs[seed] = result.stdout
+        assert len(set(outputs.values())) == 1, outputs
+        assert b"resolved by 'poetry'" in outputs["0"]
+
+    def test_the_best_effort_render_is_unchanged(self, tmp_path: Path) -> None:
+        checkout_dir = make_checkout(tmp_path / "proj", {"main.py": b"print('hi')\n"})
+        descriptor = describe_environment(
+            resolve_local(checkout_dir),
+            tool_versions={"git": "git version 2.47.0", "uv": "uv 0.5.0"},
+        )
+        assert descriptor.to_text() == (
+            "# resolved by 'best-effort' (no lockfile or declared deps; best-effort "
+            "resolve recorded as such) on python pin '3.11' (default); isolation: "
+            "subprocess runner; cwd = checkout; env scrubbed (secret-bearing "
+            "variables removed); timeout 1800s; no network except the recorded env "
+            "build itself (pull-only, never egress); container isolation deferred; "
+            "tools: git=git version 2.47.0, uv=uv 0.5.0"
+        )
 
 
 class TestPythonPin:

@@ -78,7 +78,7 @@ class EnvDescriptor:
 
     python_pin: str
     python_pin_source: str  # ".python-version" | "pyproject.toml" | "default"
-    policy: str  # "lockfile" | "declared" | "best-effort"
+    policy: str  # "lockfile" | "poetry" | "declared" | "best-effort"
     policy_detail: str
     isolation_posture: str
     tool_versions: tuple[tuple[str, str], ...]  # sorted (tool, version) pairs
@@ -214,6 +214,12 @@ def _python_pin(checkout_dir: Path) -> tuple[str, str]:
 def _dependency_policy(manifests: ManifestScan) -> tuple[str, str]:
     if manifests.uv_lock is not None:
         return "lockfile", "uv sync (uv.lock present)"
+    if manifests.poetry_lock is not None:
+        return (
+            "poetry",
+            "poetry project (poetry.lock present); build via uv pip install of "
+            "the checkout",
+        )
     if manifests.requirements:
         names = ", ".join(str(path) for path in manifests.requirements)
         return "declared", f"install declared deps ({names})"
