@@ -17,6 +17,7 @@ callback.
 
 from __future__ import annotations
 
+import importlib
 import os
 from pathlib import Path
 import subprocess
@@ -245,6 +246,75 @@ class TestDescriptorDeterminism:
             "build itself (pull-only, never egress); container isolation deferred; "
             "tools: git=git version 2.47.0, uv=uv 0.5.0"
         )
+
+
+class TestPolicyCommands:
+    @staticmethod
+    def _env_module():
+        return importlib.import_module("plumb.intake.env")
+
+    def _descriptor(self, checkout_dir: Path):
+        return describe_environment(resolve_local(checkout_dir), tool_versions={})
+
+    def test_a_poetry_checkout_builds_via_uv_venv_then_uv_pip_install(self, tmp_path: Path) -> None:
+        env_module = self._env_module()
+        checkout_dir = make_checkout(tmp_path / "proj", {"poetry.lock": b"# lock\n"})
+        checkout = resolve_local(checkout_dir)
+        commands = env_module._policy_commands(checkout, self._descriptor(checkout_dir))
+        assert len(commands) == 2
+        venv_command, install_command = commands
+        assert venv_command[:2] == ["uv", "venv"]
+        assert install_command[:3] == ["uv", "pip", "install"]
+        assert "--python" in install_command
+        assert install_command[-1] == str(checkout.checkout_dir)
+
+    def test_a_lockfile_checkout_is_a_single_uv_sync(self, tmp_path: Path) -> None:
+        env_module = self._env_module()
+        checkout_dir = make_checkout(tmp_path / "proj", {"uv.lock": b"version = 1\n"})
+        checkout = resolve_local(checkout_dir)
+        commands = env_module._policy_commands(checkout, self._descriptor(checkout_dir))
+        assert len(commands) == 1
+        assert commands[0][:2] == ["uv", "sync"]
+        assert "--project" in commands[0]
+
+    def test_a_best_effort_checkout_is_a_single_uv_sync(self, tmp_path: Path) -> None:
+        env_module = self._env_module()
+        checkout_dir = make_checkout(tmp_path / "proj", {"main.py": b"print('hi')\n"})
+        checkout = resolve_local(checkout_dir)
+        commands = env_module._policy_commands(checkout, self._descriptor(checkout_dir))
+        assert len(commands) == 1
+        assert commands[0][:2] == ["uv", "sync"]
+
+    def test_a_concrete_python_pin_is_passed_to_uv_venv(self, tmp_path: Path) -> None:
+        env_module = self._env_module()
+        checkout_dir = make_checkout(
+            tmp_path / "proj",
+            {"poetry.lock": b"# lock\n", ".python-version": b"3.10\n"},
+        )
+        checkout = resolve_local(checkout_dir)
+        commands = env_module._policy_commands(checkout, self._descriptor(checkout_dir))
+        assert commands[0] == [
+            "uv",
+            "venv",
+            "--python",
+            "3.10",
+            str(checkout.checkout_dir.resolve() / ".venv"),
+        ]
+
+    def test_a_specifier_python_pin_is_not_passed_to_uv_venv(self, tmp_path: Path) -> None:
+        env_module = self._env_module()
+        checkout_dir = make_checkout(
+            tmp_path / "proj",
+            {
+                "poetry.lock": b"# lock\n",
+                "pyproject.toml": b'[project]\nrequires-python = ">=3.9"\n',
+            },
+        )
+        checkout = resolve_local(checkout_dir)
+        descriptor = self._descriptor(checkout_dir)
+        assert descriptor.python_pin == ">=3.9"
+        commands = env_module._policy_commands(checkout, descriptor)
+        assert commands[0] == ["uv", "venv", str(checkout.checkout_dir.resolve() / ".venv")]
 
 
 class TestPythonPin:

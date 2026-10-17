@@ -59,6 +59,10 @@ _ISOLATION_POSTURE = (
 
 _REQUIRES_PYTHON = re.compile(r'requires-python\s*=\s*["\']([^"\']+)["\']')
 
+#: A concrete interpreter version (`3`, `3.11`, `3.11.9`) — the only pin shape
+#: `uv venv --python` accepts; a specifier (`>=3.9`) is left for uv to resolve.
+_CONCRETE_PYTHON_PIN = re.compile(r"^\d+(\.\d+){0,2}$")
+
 #: Environment-variable name fragments considered secret-bearing and scrubbed
 #: from the runner's env, so a build command never inherits the user's keys.
 _SECRET_FRAGMENTS = (
@@ -172,23 +176,24 @@ def uv_sync_runner(
     """The real (dev-time) runner: executes the recorded policy via `uv`.
 
     Runs only when explicitly requested — `tools/demo_env_build.py` is the
-    only caller in this repo. `uv sync` is pull-only (installs the checkout's
-    pinned deps) and never egresses user data (constraint #2).
+    only caller in this repo. `uv sync`/`uv pip install` are pull-only (install
+    the checkout's pinned deps) and never egress user data (constraint #2).
     """
-    command = _policy_command(checkout, descriptor)
-    result = subprocess.run(
-        command,
-        cwd=str(checkout.checkout_dir),
-        env=_scrubbed_env(),
-        capture_output=True,
-        timeout=timeout_seconds,
-        check=False,
-    )
-    out = result.stdout.decode("utf-8", "replace").strip()
-    err = result.stderr.decode("utf-8", "replace").strip()
-    if result.returncode != 0:
-        detail = err or out or "uv exited non-zero"
-        return EnvBuild(ok=False, policy=descriptor.policy, detail=detail)
+    out = err = ""
+    for command in _policy_commands(checkout, descriptor):
+        result = subprocess.run(
+            command,
+            cwd=str(checkout.checkout_dir),
+            env=_scrubbed_env(),
+            capture_output=True,
+            timeout=timeout_seconds,
+            check=False,
+        )
+        out = result.stdout.decode("utf-8", "replace").strip()
+        err = result.stderr.decode("utf-8", "replace").strip()
+        if result.returncode != 0:
+            detail = err or out or "uv exited non-zero"
+            return EnvBuild(ok=False, policy=descriptor.policy, detail=detail)
     return EnvBuild(ok=True, policy=descriptor.policy, detail=out or err)
 
 
@@ -259,11 +264,29 @@ def _scrubbed_env() -> dict[str, str]:
     return scrubbed
 
 
-def _policy_command(checkout: Checkout, descriptor: EnvDescriptor) -> list[str]:
-    """The uv command that executes the recorded policy."""
+def _policy_commands(checkout: Checkout, descriptor: EnvDescriptor) -> list[list[str]]:
+    """The ordered uv commands that execute the recorded policy."""
     project = ["--project", str(checkout.checkout_dir)]
     if descriptor.policy == "lockfile":
-        return ["uv", "sync", *project]
+        return [["uv", "sync", *project]]
     if descriptor.policy == "declared":
-        return ["uv", "pip", "install", *[str(path) for path in descriptor.manifests.requirements]]
-    return ["uv", "sync", *project]
+        return [["uv", "pip", "install", *[str(path) for path in descriptor.manifests.requirements]]]
+    if descriptor.policy == "poetry":
+        venv = checkout.checkout_dir.resolve() / ".venv"
+        return [
+            ["uv", "venv", *_venv_python_arg(descriptor.python_pin), str(venv)],
+            [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                str(venv / "bin" / "python"),
+                str(checkout.checkout_dir),
+            ],
+        ]
+    return [["uv", "sync", *project]]
+
+
+def _venv_python_arg(pin: str) -> list[str]:
+    """`--python <pin>` only for a concrete version, never a specifier."""
+    return ["--python", pin] if _CONCRETE_PYTHON_PIN.match(pin) else []
