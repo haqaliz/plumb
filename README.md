@@ -152,6 +152,14 @@ Three real papers are banked — each record replays byte-identical and every la
 
 Test-first is the house rule: every capability lands with its failing test written first, the suite runs offline, no network is reachable from any test, and a verdict is never assigned by a model. See [`CLAUDE.md`](CLAUDE.md) before opening an issue.
 
+## Support the project
+
+If this project is useful to you, you can chip in with a crypto donation:
+
+<a href="https://nowpayments.io/donation?api_key=52f38854-167a-4828-a00f-0424ab7dcc1e" target="_blank" rel="noreferrer noopener">
+    <img src="https://nowpayments.io/images/embeds/donation-button-black.svg" alt="Crypto donation button by NOWPayments">
+</a>
+
 ## Lineage
 
 Plumb generalizes a "reproduce & verify published work" capability out of genomics and points it at the literature at large — the deterministic spine (intake → run → re-derive → verdict → bundle) plus a compounding discrepancy corpus that gets sharper as base models improve.
