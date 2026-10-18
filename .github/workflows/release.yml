@@ -1,0 +1,60 @@
+name: Release
+
+# Publish to PyPI when a version tag is pushed:  git tag v0.1.0 && git push origin v0.1.0
+# Uses PyPI Trusted Publishing (OIDC) — no long-lived API token is stored. Configure the
+# pending publisher on PyPI first (see docs/LAUNCH.md, "Publishing").
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build sdist + wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv build
+      - name: smoke-test the wheel
+        run: |
+          uv venv --python 3.11 /tmp/plumb-smoke
+          uv pip install --python /tmp/plumb-smoke/bin/python dist/*.whl
+          /tmp/plumb-smoke/bin/plumb --help
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/plumb-verify
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: attach artifacts to the GitHub release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes

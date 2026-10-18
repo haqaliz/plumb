@@ -13,7 +13,7 @@ Point Plumb at a paper and the code behind it. It pins the code, builds an envir
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Built with uv](https://img.shields.io/badge/built%20with-uv-DE5FE9?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
 [![One runtime dep](https://img.shields.io/badge/runtime%20deps-one%20(pypdf)-3fb950)](pyproject.toml)
-[![Offline tests](https://img.shields.io/badge/tests-2021%20offline%20·%20no%20network-3fb950)](tests/)
+[![Offline tests](https://img.shields.io/badge/tests-2077%20offline%20·%20no%20network-3fb950)](tests/)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-3fb950)](https://github.com/haqaliz/plumb/issues)
 
 [Quickstart](#quickstart) · [How it works](#how-it-works) · [The verdict](#the-verdict) · [The number so far](#the-number-so-far) · [Vision](VISION.md) · [Roadmap](docs/ROADMAP.md) · [Contributing](#contributing)
@@ -54,8 +54,23 @@ Plumb's verdict is **grounded in execution, not opinion** — which means it get
 
 ## Quickstart
 
+**Install (PyPI `plumb-verify`):**
+
 ```bash
-uv sync && uv run pytest        # 2,021 tests, no network, one runtime dep (pypdf)
+uvx --from plumb-verify plumb --help   # run without installing
+pipx install plumb-verify              # or put the `plumb` script on your PATH
+```
+
+> 0.1.0 is packaged and release-ready but not published yet — the first tag is the owner step in
+> [`docs/LAUNCH.md`](docs/LAUNCH.md). Until then, install from a checkout below.
+
+The import package and the console script are both `plumb`; the *distribution* is `plumb-verify`
+because the PyPI name `plumb` belongs to an unrelated, older library.
+
+**From a checkout:**
+
+```bash
+uv sync && uv run pytest        # 2,077 tests, no network, one runtime dep (pypdf)
 ```
 
 **Verify a paper live:**
@@ -144,8 +159,10 @@ Three real papers are banked — each record replays byte-identical and every la
 - [`VISION.md`](VISION.md) — the thesis, the moat, non-goals.
 - [`CLAUDE.md`](CLAUDE.md) — guardrails and the verdict contract.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — phased plan and risk register (R1–R7).
+- [`docs/LAUNCH.md`](docs/LAUNCH.md) — the ordered punch-list to a public launch (Product Hunt).
 - [`docs/technical/CAPABILITY_ROADMAP.md`](docs/technical/CAPABILITY_ROADMAP.md) — C1..C8 capabilities in build order.
 - [`docs/technical/ARCHITECTURE.md`](docs/technical/ARCHITECTURE.md) — the design.
+- [`CHANGELOG.md`](CHANGELOG.md) — release history.
 - [`fixtures/gate/`](fixtures/gate/) — the banked real-paper records with provenance.
 
 ## Contributing

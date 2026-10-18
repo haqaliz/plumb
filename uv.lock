@@ -39,8 +39,8 @@ wheels = [
 ]
 
 [[package]]
-name = "plumb"
-version = "0.0.0"
+name = "plumb-verify"
+version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "pypdf" },

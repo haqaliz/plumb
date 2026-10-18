@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: offline suite (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 is the declared floor (requires-python); 3.13 is the newest supported.
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+      # The lock install is the only networked step; the suite itself reaches no network
+      # (tests/conftest.py makes any socket attempt raise, pinned by tests/test_no_network.py).
+      - run: uv sync --locked
+      - run: uv run pytest -q
+
+  build:
+    name: build sdist + wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv build
+      # Prove the built wheel installs standalone and the console script answers,
+      # independent of the checkout (the thing a `uvx`/`pipx` user gets).
+      - name: smoke-test the wheel
+        run: |
+          uv venv --python 3.11 /tmp/plumb-smoke
+          uv pip install --python /tmp/plumb-smoke/bin/python dist/*.whl
+          /tmp/plumb-smoke/bin/plumb --help

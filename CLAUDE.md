@@ -215,6 +215,8 @@ default.
 - **Python core** (via `uv`), CLI-first (`plumb`), self-hostable OSS engine; a hosted layer
   comes later. Exact stack details live in `docs/technical/ARCHITECTURE.md` — check it before
   assuming.
+- **Distribution is `plumb-verify`** (the PyPI name `plumb` is an unrelated older library); the
+  import package and console script deliberately stay `plumb`. Do not "fix" that mismatch.
 - Pinned versions, deterministic artifacts, content-addressed traces, and a signed replayable
   bundle are core requirements, not nice-to-haves.
 - Capture every (claim, re-derived value, verdict) into the discrepancy corpus wherever
@@ -235,9 +237,11 @@ engineering-defensible product.
 ```
 README.md                          # Repo front door
 VISION.md                          # Narrative thesis, moat, non-goals
+CHANGELOG.md                       # Release history
 CLAUDE.md                          # This file
 docs/
   ROADMAP.md                       # Phased plan + risk register
+  LAUNCH.md                        # Ordered punch-list to a public launch (Product Hunt)
   technical/CAPABILITY_ROADMAP.md  # C1..C8 engine capabilities in build order
   technical/ARCHITECTURE.md        # Design: intake → run → re-derive → verdict → bundle
   planning/{slug}/                 # In-flight PRDs, specs, and plans (per unit of work)
