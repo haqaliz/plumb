@@ -1,5 +1,25 @@
 # Product Hunt launch copy (pre-written, audited against the corpus)
 
+## 0. Field sheet (copy-paste)
+
+| PH field | Value |
+|---|---|
+| **Name** | `Plumb` |
+| **Tagline** (33/60) | `Run the paper. Check its numbers.` |
+| **URL** | `https://haqaliz.github.io/plumb/` |
+| **Description** (248/260) | see §2 |
+| **Topics** (max 3) | Developer Tools · Open Source · Science |
+| **Pricing** | Free |
+| **Platforms** | Web — it is a cross-platform CLI (macOS, Linux, Windows) |
+| **Thumbnail** | `assets/plumb-app-icon-240.png` (240×240) |
+| **Gallery** | `plumb-demo.gif` · `plumb-verify.png` · `plumb-corpus.png` · `plumb-site.png` · `plumb-social.png` |
+| **Makers** | Aliz (`haqaliz`) |
+| **Hunter** | self-hunt |
+| **Launch** | Wednesday 21 October 2026, 12:01 AM PT |
+| **First comment** | §3 |
+
+---
+
 Everything here is drafted before launch day so the day itself is execution, not invention. Every
 factual claim is backed by the repo; §8 is the audit.
 
@@ -24,6 +44,26 @@ Alternates, if that reads too terse:
 > LLM. Open source; the honest number is published with it.
 
 *248 characters — under the 260 limit.*
+
+
+### Optional PH prompts
+
+**How did you come up with the idea?**
+> I kept hitting the same wall in genomics: reproducing and verifying published work was routine
+> there, and the rest of the literature had nothing like it. Then the numbers landed — ~3.2% of
+> published computational notebooks reproduce at all, and frontier models hit ~6% precision on
+> real errata-worthy errors. The obvious fix (an LLM that reads and opines) measurably does not
+> work. So I built the part that does: re-run the author's own code and read the number it
+> actually printed.
+
+**What's next?**
+> A binding proposer (BYOK), so live mode stops needing a hand-written `--bindings` file — that
+> is the self-serve unlock. Then the no-code path (statcheck/GRIM-style internal consistency for
+> PDF-only papers), and a bigger panel: every runnable paper I can find, probed in public.
+
+**What's the story behind the name?**
+> A plumb line is the oldest tool for testing whether something stands true — and "to plumb" is to
+> investigate to the bottom. Plumb asks of a paper: does the claim hold when you actually run it?
 
 ## 3. Maker comment (the first thing people read)
 
@@ -60,7 +100,7 @@ Alternates, if that reads too terse:
 | 1 | `assets/plumb-demo.gif` | The 60-second replay: 31 claims, 30 bound, 30 REPRODUCED, 1 UNVERIFIED, 0 DIVERGED. |
 | 2 | `assets/plumb-verify.png` | A per-claim verdict table — the artifact, the locator, the re-derived value. |
 | 3 | `assets/plumb-corpus.png` | The honest number, with denominators and label authority. |
-| 4 | `site/` screenshot | The landing page, including what a DIVERGED does *not* assert. |
+| 4 | `assets/plumb-site.png` | The landing page, including what a DIVERGED does *not* assert. |
 | 5 | `assets/plumb-social.png` | The mark and the one-liner. |
 
 PH thumbnails are square; `plumb-social.png` crops cleanly. The GIF is 1400×620, under 100 KiB.
