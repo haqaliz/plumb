@@ -23,7 +23,7 @@ jobs:
       id-token: write # PyPI Trusted Publishing
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.0
       - run: uv build
       # A wheel that does not install standalone must never reach PyPI.
       - name: smoke-test the wheel
