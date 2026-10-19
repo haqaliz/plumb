@@ -7,11 +7,12 @@
 - assets/plumb-corpus.{svg,png} — corpus card: the 3-case pooled report + precision/recall.
 """
 from pathlib import Path
+import base64
 import re
 import subprocess
 import sys
 
-ROOT = Path("/Users/aliz/dev/at/plumb")
+ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
 BG = "#0d1117"
 PANEL = "#161b22"
@@ -162,39 +163,51 @@ def rasterize(names: dict[str, int]) -> None:
 
 
 def build_social_card() -> None:
-    """1280x640 social preview: the mark, wordmark, tagline, and the real pooled number."""
+    """1280x640 social preview: the app icon, the wordmark, and the real pooled number."""
     W, H = 1280, 640
+    icon = base64.b64encode((ASSETS / "plumb-app-icon.png").read_bytes()).decode("ascii")
     out = [svg_head(W, H)]
     out.append(f'<rect x="0" y="0" width="{W}" height="{H}" fill="{BG}"/>')
     out.append(f'<rect x="0" y="0" width="{W}" height="10" fill="{GREEN}"/>')
-    # the mark, inlined and scaled — no <image> dependency
-    out.append(f'<g transform="translate({W/2-64}, 86) scale(1)">{MARK_SHAPES}</g>')
-    out.append(f'<text x="{W/2}" y="266" font-size="64" font-weight="bold" fill="{FG}" '
-               f'text-anchor="middle">Plumb</text>')
     out.append(
-        f'<text x="{W/2}" y="318" font-size="24" fill="{DIM}" text-anchor="middle">'
+        f'<image x="{W/2-80}" y="48" width="160" height="160" '
+        f'href="data:image/png;base64,{icon}"/>'
+    )
+    out.append(
+        f'<text x="{W/2}" y="286" font-size="62" font-weight="bold" fill="{FG}" '
+        f'text-anchor="middle">Plumb</text>'
+    )
+    out.append(
+        f'<text x="{W/2}" y="330" font-size="23" fill="{DIM}" text-anchor="middle">'
         f'Execution-grounded research-integrity verifier</text>'
     )
     out.append(
-        f'<text x="{W/2}" y="352" font-size="19" fill="{DIM}" text-anchor="middle">'
+        f'<text x="{W/2}" y="362" font-size="18" fill="{DIM}" text-anchor="middle">'
         f'Re-runs a paper&apos;s own artifacts on your compute — a per-claim, reproducible verdict</text>'
     )
-    # the real pooled number
+    # One block per figure: a big number over its label. Four columns, no overlap.
     stats = [
-        ("117 REPRODUCED", GREEN),
-        ("15 DIVERGED · 1 confirmed", RED),
-        ("1 UNVERIFIED", AMBER),
-        ("133 claims · 132 bound", FG),
-        ("precision 1/15 (owner)", AMBER),
+        ("117", "REPRODUCED", GREEN),
+        ("15", "DIVERGED · 1 confirmed", RED),
+        ("132/133", "BOUND", FG),
+        ("1/15", "PRECISION · OWNER", AMBER),
     ]
-    x0, y0 = 180, 448
-    for i, (text, color) in enumerate(stats):
+    for i, (number, label, color) in enumerate(stats):
+        cx = 160 + i * 320
         out.append(
-            f'<text x="{(x0 + i * (W - 2 * x0) / len(stats))}" y="{y0}" font-size="17" '
-            f'fill="{color}" text-anchor="middle">{esc(text)}</text>'
+            f'<text x="{cx}" y="470" font-size="34" font-weight="bold" fill="{color}" '
+            f'text-anchor="middle">{esc(number)}</text>'
+        )
+        out.append(
+            f'<text x="{cx}" y="500" font-size="14" fill="{DIM}" '
+            f'text-anchor="middle">{esc(label)}</text>'
         )
     out.append(
-        f'<text x="{W/2}" y="506" font-size="15" fill="{BORDER}" text-anchor="middle">'
+        f'<text x="{W/2}" y="558" font-size="15" fill="{DIM}" text-anchor="middle">'
+        f'3 real papers · 133 claims</text>'
+    )
+    out.append(
+        f'<text x="{W/2}" y="592" font-size="15" fill="{BORDER}" text-anchor="middle">'
         f'github.com/haqaliz/plumb</text>'
     )
     out.append("</svg>")

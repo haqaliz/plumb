@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/haqaliz/plumb/master/assets/plumb-logo.png" alt="Plumb" width="110" />
+<img src="https://raw.githubusercontent.com/haqaliz/plumb/master/assets/plumb-app-icon.png" alt="Plumb" width="104" />
 
 # Plumb
 

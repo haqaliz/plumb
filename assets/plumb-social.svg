@@ -1,26 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1280" height="640" viewBox="0 0 1280 640" font-family="Menlo, Monaco, 'DejaVu Sans Mono', monospace">
 <rect x="0" y="0" width="1280" height="640" fill="#0d1117"/>
 <rect x="0" y="0" width="1280" height="10" fill="#3fb950"/>
-<g transform="translate(576.0, 86) scale(1)"> xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <line x1="64" y1="8" x2="64" y2="62" stroke="#3fb950" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="64" cy="62" r="2.5" fill="#3fb950"/>
-  <path d="M64 69
-           c-11 0 -19 7 -19 17
-           c0 12 14 21 19 26
-           c5 -5 19 -14 19 -26
-           c0 -10 -8 -17 -19 -17 Z"
-        fill="#3fb950"/>
-  <path d="M64 100 c-4 -8 -8 -12 -14 -16 c4 1 8 1 14 1 c6 0 10 0 14 -1 c-6 4 -10 8 -14 16 Z"
-        fill="#0d1117"/>
-  <circle cx="64" cy="82" r="2.2" fill="#e6edf3"/>
-</g>
-<text x="640.0" y="266" font-size="64" font-weight="bold" fill="#e6edf3" text-anchor="middle">Plumb</text>
-<text x="640.0" y="318" font-size="24" fill="#8b949e" text-anchor="middle">Execution-grounded research-integrity verifier</text>
-<text x="640.0" y="352" font-size="19" fill="#8b949e" text-anchor="middle">Re-runs a paper&apos;s own artifacts on your compute — a per-claim, reproducible verdict</text>
-<text x="180.0" y="448" font-size="17" fill="#3fb950" text-anchor="middle">117 REPRODUCED</text>
-<text x="364.0" y="448" font-size="17" fill="#f85149" text-anchor="middle">15 DIVERGED · 1 confirmed</text>
-<text x="548.0" y="448" font-size="17" fill="#d29922" text-anchor="middle">1 UNVERIFIED</text>
-<text x="732.0" y="448" font-size="17" fill="#e6edf3" text-anchor="middle">133 claims · 132 bound</text>
-<text x="916.0" y="448" font-size="17" fill="#d29922" text-anchor="middle">precision 1/15 (owner)</text>
-<text x="640.0" y="506" font-size="15" fill="#30363d" text-anchor="middle">github.com/haqaliz/plumb</text>
+<image x="560.0" y="48" width="160" height="160" href="data:image/png;base64,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"/>
+<text x="640.0" y="286" font-size="62" font-weight="bold" fill="#e6edf3" text-anchor="middle">Plumb</text>
+<text x="640.0" y="330" font-size="23" fill="#8b949e" text-anchor="middle">Execution-grounded research-integrity verifier</text>
+<text x="640.0" y="362" font-size="18" fill="#8b949e" text-anchor="middle">Re-runs a paper&apos;s own artifacts on your compute — a per-claim, reproducible verdict</text>
+<text x="160" y="470" font-size="34" font-weight="bold" fill="#3fb950" text-anchor="middle">117</text>
+<text x="160" y="500" font-size="14" fill="#8b949e" text-anchor="middle">REPRODUCED</text>
+<text x="480" y="470" font-size="34" font-weight="bold" fill="#f85149" text-anchor="middle">15</text>
+<text x="480" y="500" font-size="14" fill="#8b949e" text-anchor="middle">DIVERGED · 1 confirmed</text>
+<text x="800" y="470" font-size="34" font-weight="bold" fill="#e6edf3" text-anchor="middle">132/133</text>
+<text x="800" y="500" font-size="14" fill="#8b949e" text-anchor="middle">BOUND</text>
+<text x="1120" y="470" font-size="34" font-weight="bold" fill="#d29922" text-anchor="middle">1/15</text>
+<text x="1120" y="500" font-size="14" fill="#8b949e" text-anchor="middle">PRECISION · OWNER</text>
+<text x="640.0" y="558" font-size="15" fill="#8b949e" text-anchor="middle">3 real papers · 133 claims</text>
+<text x="640.0" y="592" font-size="15" fill="#30363d" text-anchor="middle">github.com/haqaliz/plumb</text>
 </svg>

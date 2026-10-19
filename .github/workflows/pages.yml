@@ -28,7 +28,7 @@ jobs:
         run: |
           mkdir -p _site/assets
           cp site/index.html site/styles.css _site/
-          cp assets/plumb-logo.svg assets/plumb-demo.gif \
+          cp assets/plumb-app-icon.png assets/plumb-demo.gif \
              assets/plumb-corpus.png assets/plumb-social.png _site/assets/
       - uses: actions/configure-pages@v6
         with:
