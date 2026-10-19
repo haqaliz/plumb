@@ -85,7 +85,15 @@ def copy_record(
         trace["run_id"] = "0" * 64
         (rec / "trace.json").write_text(json.dumps(trace), encoding="utf-8")
     elif tamper == "object":
-        sha = next(p.name for p in (rec / "objects").iterdir())
+        # Tamper an object the replay is guaranteed to read: the artifact the first
+        # binding's locator opens. Picking `next(iterdir())` instead is
+        # filesystem-order-dependent — replay only re-hashes the objects it reads
+        # (7 of this record's 21), so on ext4 the "first" entry can be an unread
+        # object and the tamper goes undetected (0 instead of RECORD_INVALID).
+        trace = json.loads((rec / "trace.json").read_text(encoding="utf-8"))
+        bindings = json.loads((rec / "bindings.json").read_text(encoding="utf-8"))["bindings"]
+        target = bindings[0]["artifact"]
+        sha = next(a["sha256"] for a in trace["artifacts"] if a["relpath"] == target)
         data = bytearray((rec / "objects" / sha).read_bytes())
         data[0] ^= 0x01
         (rec / "objects" / sha).write_bytes(bytes(data))

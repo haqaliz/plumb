@@ -39,7 +39,7 @@ from plumb.verify.bindings import CsvCell, HtmlTable, JsonPointer, NotebookCell,
 from plumb.verify.causes import NO_BINDING, WONT_RUN
 
 _THIS_DIR = Path(__file__).parent
-_REPO_ROOT = _THIS_DIR.parents[2]
+_REPO_ROOT = _THIS_DIR.parents[1]
 _SRC = _REPO_ROOT / "src"
 _GATE_DIR = _THIS_DIR.parent / "gate"
 _GOLDEN = _THIS_DIR / "golden" / "table_agrodesign.txt"
