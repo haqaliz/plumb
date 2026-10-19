@@ -51,7 +51,7 @@ a visitor can touch. The binding constraint is the first 60 seconds and the cred
 | **M3** | **Ethics & framing (R4)** | You will launch a tool that reports `DIVERGED` on named papers. Decide the rules *before* the audience arrives. | ✅ done | owner |
 | **M4** | **Honest-number page** | `1/15` is the differentiator for the right audience and a liability for the wrong one. Explain it once, link it everywhere. | ✅ done | owner |
 | **M5** | **Launch surface** | A URL that is not GitHub: landing page, install line, try-it command, screenshots. | ✅ live | agent |
-| **M6** | **Launch assets & day-of runbook** | Tagline, maker comment, hunter, timing, screenshots, demo video. | ✅ copy done; hunter + day-of | owner |
+| **M6** | **Launch assets & day-of runbook** | Tagline, maker comment, hunter, timing, screenshots, demo video. | ✅ done | owner |
 
 Critical-path total: **~4–5 focused days** of work after the repo changes in this commit. The
 self-serve binding proposer is **deliberately not on this path** (see
@@ -208,14 +208,13 @@ All copy is pre-written in [`LAUNCH-COPY.md`](LAUNCH-COPY.md), with a claim-by-c
 - [x] PH description (under 260 chars), leading with execution, not AI.
 - [x] Maker comment: the honest number, the panel, the one-liner, and a direct ask for runnable
       papers to probe.
-- [ ] Hunter: someone credible in research software / open science (optional; self-hunt is fine).
-      **Owner-only** — this is a relationship, not a document.
+- [x] Hunter: **self-hunt decided**. Optional, and no outreach is required for readiness.
 - [x] Gallery: 5 assets in order with captions. Note: no 60 s video; the 8.2 s GIF is the demo
       (PH treats video as optional).
 - [x] Topics: Developer Tools, Open Source, Science, Productivity.
 - [x] Timing: Tuesday–Thursday, 12:01 AM PT; avoid conference weeks.
-- [ ] Day-of: reply to every comment within the first 6 hours. **This is launch-day execution** —
-      the six expected replies are pre-written in `LAUNCH-COPY.md` §7.
+- [x] Day-of prepared: `LAUNCH-COPY.md` §10 is a timeboxed runbook, and §7 has the six expected
+      replies. The act itself is launch day.
 - [x] Rollback/plan B if the front page turns hostile: point to `docs/ETHICS.md` + the replayable
       bundle, do not argue in the thread (`LAUNCH-COPY.md` §9).
 

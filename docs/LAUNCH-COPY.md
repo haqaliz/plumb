@@ -10,7 +10,7 @@ gallery in the §4 order, topics in §5, launch 12:01 AM PT on a Tuesday–Thurs
 
 ## 1. Tagline (PH limit 60)
 
-> **Run the paper. Check its numbers.** — 32 characters
+> **Run the paper. Check its numbers.** — 33 characters
 
 Alternates, if that reads too terse:
 
@@ -19,10 +19,11 @@ Alternates, if that reads too terse:
 
 ## 2. Short description (PH limit 260)
 
-> Plumb re-runs a paper's own code and data on your compute, re-derives its quantitative claims
-> from what the run actually produced, and returns a per-claim verdict — REPRODUCED, DIVERGED, or
-> UNVERIFIED. Execution decides, never an LLM. Open source, one command, and the honest number
-> (precision 1/15) published alongside it.
+> Plumb re-runs a paper's own code on your compute, re-derives each claim from the actual run, and
+> returns a per-claim verdict: REPRODUCED, DIVERGED, or UNVERIFIED. Execution decides, never an
+> LLM. Open source; the honest number is published with it.
+
+*248 characters — under the 260 limit.*
 
 ## 3. Maker comment (the first thing people read)
 
@@ -71,9 +72,11 @@ Developer Tools · Open Source · Science · Productivity
 ## 6. Timing
 
 - **Tuesday–Thursday, 12:01 AM PT** (PH's day boundary). Avoid conference weeks and major model
-  launches.
+  launches. Next window: **Wednesday 21 October 2026**.
+- **Hunter: self-hunt.** Decided — no outreach required. The listing launches from the owner's
+  account; a hunter adds reach, not readiness.
 - Post the maker comment immediately; keep the honest number in the first reply, not buried.
-- Reply to every comment within the first 6 hours.
+- Reply to every comment within the first 6 hours (§10 has the runbook).
 
 ## 7. Day-of replies (pre-written)
 
@@ -134,3 +137,42 @@ Do not argue in the thread. Reply once, linking:
 
 Then invite the critic to re-run the replay and report what they get. A finding nobody can replay
 is an opinion; ours replays.
+
+
+---
+
+## 10. Launch-day runbook (the only work left)
+
+The repo, the site, the package and the copy are all done. What remains is the act of launching
+and the conversation after it.
+
+**T-1 day (10 minutes)**
+
+- [ ] Open https://haqaliz.github.io/plumb/ and click every link.
+- [ ] `uvx --from plumb-verify plumb --version` → `plumb 0.1.1`.
+- [ ] Paste the maker comment somewhere you can reach it fast (§3).
+- [ ] Have the gallery files open: `assets/plumb-demo.gif`, `plumb-verify.png`,
+      `plumb-corpus.png`, `plumb-social.png`.
+
+**Launch day (times PT)**
+
+| Time | Do |
+|---|---|
+| 12:01 AM | Submit the listing (name, tagline, 248-char description, URL, topics). Post the maker comment immediately. |
+| 00:05–00:30 | Send the link to 5–10 people who will genuinely engage. No vote rings, no asks for upvotes. |
+| 00:30–06:00 | Reply to every comment within ~15 minutes. Keep the honest number in the first reply. |
+| 06:00–12:00 | Second pass. For "can it verify my paper?", give the `--bindings` caveat and offer to probe their repo. |
+| 12:00–18:00 | Post one substantive update as a comment: a paper you probed live, with its verdict. |
+| 18:00–24:00 | Final pass, thank people, log every runnable-paper offer. |
+
+**Never, on the day**
+
+- Argue in the thread. Reply once, link `docs/METHOD.md` and `docs/ETHICS.md`, invite a replay.
+- Say or imply "AI found errors". Execution found a discrepancy; the review decided what it means.
+- Claim `15/15`, or omit the denominator from `1/15`.
+- Ask for upvotes. PH penalises it and it is not how this product earns trust.
+
+**The one-line answer to the worst comment**
+
+> The tool reported that the artifact's own run did not reproduce; the review refuted the finding,
+> and the corpus records both. That is the product: it shows its refutations.
