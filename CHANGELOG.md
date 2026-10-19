@@ -5,6 +5,25 @@ All notable changes to Plumb are recorded here. The format follows
 [Semantic Versioning](https://semver.org/). The distribution is published to PyPI as
 **`plumb-verify`** (the import package and console script are both `plumb`).
 
+## [0.1.1] — 2026-10-19
+
+### Added
+
+- `plumb --version` — prints the installed version and exits 0, so an install is verifiable in
+  one command.
+
+### Documentation
+
+- `docs/ETHICS.md` — what each verdict asserts and refuses to assert, when a `DIVERGED` is
+  publishable, label authority, and the author right-of-reply process.
+- `docs/METHOD.md` — the panel, the verbatim corpus report, how to read precision/recall `1/15`,
+  and the known limits.
+- `docs/LAUNCH.md` and `docs/LAUNCH-COPY.md` — the launch punch-list and the audited PH copy.
+- README: the committed-record replay is now the first command, with an embedded demo GIF and an
+  explicit note that live mode needs a hand-written `--bindings` today.
+- A static landing page under `site/`, deployed to GitHub Pages by
+  `.github/workflows/pages.yml`.
+
 ## [0.1.0] — 2026-10-19
 
 First public release: the deterministic spine, end to end, with the honest number published
