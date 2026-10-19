@@ -22,9 +22,9 @@ missing is the layer that lets a stranger *reach* it.
 | Honest measurement | **Published** | 133 claims, precision/recall `1/15` (`README.md`) |
 | Signed replayable bundles | **Built** | `bundles/agrodesign/`, `bundles/allowed_signers` |
 | Offline test suite | **Green** | 2,077 tests, network blocked (`tests/conftest.py`) |
-| CI | **Added in this change** | `.github/workflows/ci.yml` |
-| Installable distribution | **Added in this change**, publish pending | `pyproject.toml` → `plumb-verify` 0.1.0 |
-| Release pipeline | **Added in this change**, owner setup pending | `.github/workflows/release.yml` |
+| CI | **Green on master** | `.github/workflows/ci.yml` (build + py3.11 + py3.13) |
+| Installable distribution | **Published** | [`plumb-verify` 0.1.0](https://pypi.org/project/plumb-verify/) |
+| Release pipeline | **Working** | `.github/workflows/release.yml` — tag `v0.1.0` published 2026-10-19 |
 | 60-second first run | **Works**, not yet the front door | `plumb verify --from-record fixtures/gate/rcai` |
 | Landing page / URL | **Missing** | — |
 | Launch assets (tagline, GIF, copy) | **Missing** | `assets/plumb-social.png` exists |
@@ -45,15 +45,15 @@ a visitor can touch. The binding constraint is the first 60 seconds and the cred
 | # | Milestone | Why it sits here | Effort | Owner |
 |---|---|---|---|---|
 | **M0** | **CI safety net** | Every later change needs a green automated gate. Nothing else should land first. | ✅ done | agent |
-| **M1** | **Installable distribution** | A launch with "clone this repo" is not a launch. One command or it doesn't count. | ✅ repo / ~30 min PyPI setup | agent + owner |
+| **M1** | **Installable distribution** | A launch with "clone this repo" is not a launch. One command or it doesn't count. | ✅ done | agent + owner |
 | **M2** | **60-second first run** | The replay demo *is* the product's first impression. Make it the front door, not a footnote. | ~1 day | agent + owner |
 | **M3** | **Ethics & framing (R4)** | You will launch a tool that reports `DIVERGED` on named papers. Decide the rules *before* the audience arrives. | ~0.5 day | owner |
 | **M4** | **Honest-number page** | `1/15` is the differentiator for the right audience and a liability for the wrong one. Explain it once, link it everywhere. | ~0.5–1 day | owner |
 | **M5** | **Launch surface** | A URL that is not GitHub: landing page, install line, try-it command, screenshots. | ~1–2 days | agent + owner |
 | **M6** | **Launch assets & day-of runbook** | Tagline, maker comment, hunter, timing, screenshots, demo video. | ~1 day | owner |
 
-Critical-path total: **~4–5 focused days** of work after the repo changes in this commit, plus
-owner-only PyPI setup. The self-serve binding proposer is **deliberately not on this path** (see
+Critical-path total: **~4–5 focused days** of work after the repo changes in this commit. The
+self-serve binding proposer is **deliberately not on this path** (see
 [Deferred](#deferred--do-not-block-the-launch-on-these)).
 
 ---
@@ -82,10 +82,10 @@ Repo side (done in this change):
 - [x] `.github/workflows/release.yml` — push a `v*` tag → build → smoke-test → PyPI
       Trusted Publishing (OIDC, no long-lived token) → attach artifacts to the GitHub release.
 
-Owner side (blocking, ~30 min):
+Owner side (done 2026-10-19):
 
-- [ ] Create the PyPI **pending trusted publisher** (PyPI → *Publishing* → *Add a new pending
-      publisher* → GitHub). Every field must match this repo exactly:
+- [x] Created the PyPI **pending trusted publisher** (PyPI → *Publishing*). Fields as this repo
+      requires:
 
       | PyPI field | Value |
       |---|---|
@@ -95,18 +95,18 @@ Owner side (blocking, ~30 min):
       | Workflow name | `release.yml` |
       | Environment name | `pypi` |
 
-      Two traps: the project **must** be `plumb-verify` (`plumb` is owned by an unrelated older
-      library and will be rejected), and "Workflow name" means the **file name** under
-      `.github/workflows/` — `release.yml`, not the workflow's `name:` key. If a pending publisher
-      was created with the wrong values, delete it and add it again.
-- [ ] Create the `pypi` environment in GitHub repo settings (optionally require a reviewer).
-- [ ] Tag and push the first release: `git tag v0.1.0 && git push origin v0.1.0`.
-- [ ] Confirm the one-liners on a clean machine:
+      Two traps that cost a retry here: the project **must** be `plumb-verify` (`plumb` is owned by
+      an unrelated older library and is rejected), and "Workflow name" means the **file name**
+      under `.github/workflows/` — `release.yml`, not the workflow's `name:` key. A mismatch
+      surfaces as `invalid-publisher` at the token exchange; deleting the pending publisher and
+      re-adding it with the exact values above fixes it.
+- [x] Tagged and pushed the first release: `git tag v0.1.0 && git push origin v0.1.0`.
+- [x] Confirmed the one-liner from a clean cache:
       ```bash
       uvx --from plumb-verify plumb --help
       pipx install plumb-verify && plumb --help
       ```
-- [ ] Add the PyPI badge to `README.md` once the release is live (do not add a badge that 404s).
+- [x] Added the PyPI badge to `README.md`.
 
 **Known trade-off (documented, not hidden):** the distribution is `plumb-verify` but the import
 package and console script are `plumb`, because renaming `src/plumb` is a large, risky refactor for

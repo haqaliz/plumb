@@ -9,6 +9,7 @@
 Point Plumb at a paper and the code behind it. It pins the code, builds an environment, **re-runs the artifacts**, re-derives the paper's quantitative claims from what the run actually produced, and renders an honest verdict per claim — `REPRODUCED` / `WITHIN-TOLERANCE` / `DIVERGED` / `UNVERIFIED` — decided by *re-execution*, never by a model's opinion of the paper.
 
 [![Status](https://img.shields.io/badge/status-alpha%20·%20engine%20built-3fb950)](docs/ROADMAP.md)
+[![PyPI](https://img.shields.io/badge/pypi-plumb--verify-3fb950)](https://pypi.org/project/plumb-verify/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Built with uv](https://img.shields.io/badge/built%20with-uv-DE5FE9?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
@@ -60,9 +61,6 @@ Plumb's verdict is **grounded in execution, not opinion** — which means it get
 uvx --from plumb-verify plumb --help   # run without installing
 pipx install plumb-verify              # or put the `plumb` script on your PATH
 ```
-
-> 0.1.0 is packaged and release-ready but not published yet — the first tag is the owner step in
-> [`docs/LAUNCH.md`](docs/LAUNCH.md). Until then, install from a checkout below.
 
 The import package and the console script are both `plumb`; the *distribution* is `plumb-verify`
 because the PyPI name `plumb` belongs to an unrelated, older library.
