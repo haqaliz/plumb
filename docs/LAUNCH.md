@@ -84,9 +84,21 @@ Repo side (done in this change):
 
 Owner side (blocking, ~30 min):
 
-- [ ] Create the PyPI project with a **pending trusted publisher**:
-      PyPI → *Publishing* → *Add a new pending publisher* → GitHub, owner `haqaliz`,
-      repository `plumb`, workflow `release.yml`, environment `pypi`.
+- [ ] Create the PyPI **pending trusted publisher** (PyPI → *Publishing* → *Add a new pending
+      publisher* → GitHub). Every field must match this repo exactly:
+
+      | PyPI field | Value |
+      |---|---|
+      | PyPI Project Name | `plumb-verify` |
+      | Owner | `haqaliz` |
+      | Repository name | `plumb` |
+      | Workflow name | `release.yml` |
+      | Environment name | `pypi` |
+
+      Two traps: the project **must** be `plumb-verify` (`plumb` is owned by an unrelated older
+      library and will be rejected), and "Workflow name" means the **file name** under
+      `.github/workflows/` — `release.yml`, not the workflow's `name:` key. If a pending publisher
+      was created with the wrong values, delete it and add it again.
 - [ ] Create the `pypi` environment in GitHub repo settings (optionally require a reviewer).
 - [ ] Tag and push the first release: `git tag v0.1.0 && git push origin v0.1.0`.
 - [ ] Confirm the one-liners on a clean machine:
