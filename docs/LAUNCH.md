@@ -21,14 +21,15 @@ missing is the layer that lets a stranger *reach* it.
 | Verification engine (C1–C6) | **Built** | `src/plumb/`, panel in `fixtures/gate/` |
 | Honest measurement | **Published** | 133 claims, precision/recall `1/15` (`README.md`) |
 | Signed replayable bundles | **Built** | `bundles/agrodesign/`, `bundles/allowed_signers` |
-| Offline test suite | **Green** | 2,077 tests, network blocked (`tests/conftest.py`) |
+| Offline test suite | **Green** | 2,080 tests, network blocked (`tests/conftest.py`) |
 | CI | **Green on master** | `.github/workflows/ci.yml` (build + py3.11 + py3.13) |
 | Installable distribution | **Published** | [`plumb-verify` 0.1.0](https://pypi.org/project/plumb-verify/) |
 | Release pipeline | **Working** | `.github/workflows/release.yml` — tag `v0.1.0` published 2026-10-19 |
-| 60-second first run | **Works**, not yet the front door | `plumb verify --from-record fixtures/gate/rcai` |
+| 60-second first run | **Works and is the front door** | `README.md` quickstart (replay is the first command) |
 | Landing page / URL | **Missing** | — |
 | Launch assets (tagline, GIF, copy) | **Missing** | `assets/plumb-social.png` exists |
-| Ethics / right-of-reply policy (R4) | **Missing** | risk entry in `docs/ROADMAP.md` |
+| Ethics / right-of-reply policy (R4) | **Written** | `docs/ETHICS.md` |
+| Honest-number page | **Written** | `docs/METHOD.md` |
 | Self-serve verification of *any* paper | **Blocked** | `--bindings` is required; no proposer |
 
 **Readiness in one sentence:** the repo is launch-ready as a *demonstration of a method*; it is
@@ -46,9 +47,9 @@ a visitor can touch. The binding constraint is the first 60 seconds and the cred
 |---|---|---|---|---|
 | **M0** | **CI safety net** | Every later change needs a green automated gate. Nothing else should land first. | ✅ done | agent |
 | **M1** | **Installable distribution** | A launch with "clone this repo" is not a launch. One command or it doesn't count. | ✅ done | agent + owner |
-| **M2** | **60-second first run** | The replay demo *is* the product's first impression. Make it the front door, not a footnote. | ~1 day | agent + owner |
-| **M3** | **Ethics & framing (R4)** | You will launch a tool that reports `DIVERGED` on named papers. Decide the rules *before* the audience arrives. | ~0.5 day | owner |
-| **M4** | **Honest-number page** | `1/15` is the differentiator for the right audience and a liability for the wrong one. Explain it once, link it everywhere. | ~0.5–1 day | owner |
+| **M2** | **60-second first run** | The replay demo *is* the product's first impression. Make it the front door, not a footnote. | ✅ 3/4 (GIF left) | agent + owner |
+| **M3** | **Ethics & framing (R4)** | You will launch a tool that reports `DIVERGED` on named papers. Decide the rules *before* the audience arrives. | ✅ done | owner |
+| **M4** | **Honest-number page** | `1/15` is the differentiator for the right audience and a liability for the wrong one. Explain it once, link it everywhere. | ✅ done | owner |
 | **M5** | **Launch surface** | A URL that is not GitHub: landing page, install line, try-it command, screenshots. | ~1–2 days | agent + owner |
 | **M6** | **Launch assets & day-of runbook** | Tagline, maker comment, hunter, timing, screenshots, demo video. | ~1 day | owner |
 
@@ -127,14 +128,17 @@ That replays the Burtsev notebook paper end to end: 31 claims, 30 bound, 30 `REP
 1 `UNVERIFIED`, 0 `DIVERGED`, byte-identical every time. It is the "aha".
 
 - [x] The replay path works offline (verified 2026-10-19: 31 claims, 30 bound).
-- [ ] Make it the **first command** in `README.md`, above the live-verify command.
-- [ ] Decide whether to bundle the rcai record as package data so the demo is a true PyPI
-      one-liner (`uvx --from plumb-verify plumb demo`), or keep the checkout path. Bundling makes
-      the best first impression but redistributes a CC BY 4.0 paper inside the wheel and needs a
-      `plumb demo` entry point (new CLI surface + tests). **Not in 0.1.0.**
+- [x] Made it the **first command** in `README.md`, above live verify, with the honest note that
+      live mode is expert mode today.
+- [x] Decided **not** to bundle the rcai record as package data in 0.1.x: it would redistribute a
+      CC BY 4.0 paper inside the wheel and needs a `plumb demo` entry point (new CLI surface +
+      tests). The checkout path is the demo; revisit for 0.2 if the landing page wants a one-liner.
 - [ ] Record a ≤60 s screencast (terminal only, no voice needed): install → replay → the verdict
-      summary → `--json` piped to `head`. Save as `assets/plumb-demo.gif` (≤10 MB for PH).
-- [ ] Add a `plumb --version` flag (small; makes the install verifiable in one command).
+      summary → `--json` piped to `head`. Save as `assets/plumb-demo.gif` (≤10 MB for PH). This is
+      the only M2 item left; it needs a screen recorder, not code.
+- [x] Added `plumb --version` (test-first, `tests/cli/test_cli_core.py::TestVersionIsVerifiable`).
+      It is on `master` but **not** in the published 0.1.0 — it ships in 0.1.1, so the README's
+      install check stays `plumb --help` until then.
 
 Exit test: someone who has never seen the repo can produce a verdict table in under a minute from
 the landing page alone.
@@ -144,13 +148,14 @@ the landing page alone.
 `docs/ROADMAP.md` R4 is rated Medium likelihood / High impact: publishing "errors" against named
 papers and authors. A launch multiplies the audience and the risk.
 
-- [ ] Write `docs/ETHICS.md`: what a `DIVERGED` is and is not (a reproduction discrepancy against
+- [x] Wrote `docs/ETHICS.md`: what a `DIVERGED` is and is not (a reproduction discrepancy against
       the paper's own artifacts, **never** an accusation of misconduct); the human-review rule
       before any finding is published; the author right-of-reply process; the retraction path if
       a finding is refuted.
-- [ ] State the labeling policy for the panel: owner labels vs third-party labels, and how
-      `1/15` is computed (`plumb corpus report`).
-- [ ] Link `docs/ETHICS.md` from the landing page, the README, and the PH maker comment.
+- [x] Stated the labeling policy for the panel: owner labels vs third-party labels, and how
+      `1/15` is computed (`plumb corpus report`). See `docs/ETHICS.md` §3.
+- [x] Linked `docs/ETHICS.md` from the README (the landing page and PH maker comment links land in
+      M5/M6).
 
 Exit test: a journalist could read `docs/ETHICS.md` and correctly describe what Plumb does and does
 not claim, without asking you.
@@ -160,15 +165,13 @@ not claim, without asking you.
 The number is `precision/recall 1/15` against owner labels. On Product Hunt that is either your
 credibility or your coffin, depending on whether it is explained before it is quoted.
 
-- [ ] Write `docs/METHOD.md`: the panel (3 papers: AgroDesign, Perrin, Burtsev), what was measured,
+- [x] Wrote `docs/METHOD.md`: the panel (3 papers: AgroDesign, Perrin, Burtsev), what was measured,
       why 14 of 15 `DIVERGED` were refuted on review (Perrin's artifact is not run-to-run
       reproducible at written precision), and what that means (a reproducibility finding, not a
       paper error).
-- [ ] Publish the corpus report output verbatim (already reproducible via `plumb corpus report`).
-- [ ] Add a one-paragraph "How to read this number" block to the landing page and the README.
-- [ ] Pre-write the answer to the obvious hostile question: *"So your tool was wrong 14 out of 15
-      times?"* — No: the tool correctly detected that the artifact's own run does not reproduce;
-      the *label* refuted the discrepancy, not the verdict.
+- [x] Published the corpus report output verbatim (`docs/METHOD.md` §3).
+- [x] Added a "How to read this number" block to the README (landing page still pending in M5).
+- [x] Pre-wrote the answer to the obvious hostile question (`docs/METHOD.md` §8).
 
 Exit test: the number appears with its denominator, its label authority, and its explanation in the
 same viewport.

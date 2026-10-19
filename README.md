@@ -14,7 +14,7 @@ Point Plumb at a paper and the code behind it. It pins the code, builds an envir
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Built with uv](https://img.shields.io/badge/built%20with-uv-DE5FE9?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
 [![One runtime dep](https://img.shields.io/badge/runtime%20deps-one%20(pypdf)-3fb950)](pyproject.toml)
-[![Offline tests](https://img.shields.io/badge/tests-2077%20offline%20·%20no%20network-3fb950)](tests/)
+[![Offline tests](https://img.shields.io/badge/tests-2080%20offline%20·%20no%20network-3fb950)](tests/)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-3fb950)](https://github.com/haqaliz/plumb/issues)
 
 [Quickstart](#quickstart) · [How it works](#how-it-works) · [The verdict](#the-verdict) · [The number so far](#the-number-so-far) · [Vision](VISION.md) · [Roadmap](docs/ROADMAP.md) · [Contributing](#contributing)
@@ -65,13 +65,20 @@ pipx install plumb-verify              # or put the `plumb` script on your PATH
 The import package and the console script are both `plumb`; the *distribution* is `plumb-verify`
 because the PyPI name `plumb` belongs to an unrelated, older library.
 
-**From a checkout:**
+**The 60-second demo — replay a committed record, byte-identical.** No network, no environment
+build, no API key: the paper comes with a record of its own run, and the verdicts are re-derived
+from those committed bytes alone.
 
 ```bash
-uv sync && uv run pytest        # 2,077 tests, no network, one runtime dep (pypdf)
+git clone https://github.com/haqaliz/plumb && cd plumb
+uv run plumb verify --from-record fixtures/gate/rcai
 ```
 
-**Verify a paper live:**
+> 31 claims, 30 bound, 30 `REPRODUCED`, 1 `UNVERIFIED`, 0 `DIVERGED` — the first notebook-computed
+> paper through the spine, and the replay is byte-identical every time. Add `--json` for the
+> canonical document, or `--bank` to fold the case into the discrepancy corpus.
+
+**Verify a paper of your own, live:**
 
 ```bash
 uv run plumb verify <paper> <repo> [--rev REV] [--bindings bindings.json]
@@ -80,11 +87,14 @@ uv run plumb verify <paper> <repo> [--rev REV] [--bindings bindings.json]
 #   --bindings   your user-written bindings: which captured value each claim is checked against
 ```
 
-**Replay a committed record, byte-identical:**
+> **Live mode is expert-mode today.** `--bindings` is required and hand-written; there is no
+> binding proposer yet. That gap is the next capability, not a footnote — see
+> [`docs/LAUNCH.md`](docs/LAUNCH.md).
+
+**Develop:**
 
 ```bash
-uv run plumb verify --from-record fixtures/gate/rcai --json
-uv run plumb verify --from-record fixtures/gate/rcai --bank   # fold into the discrepancy corpus
+uv sync && uv run pytest        # 2,080 tests, no network, one runtime dep (pypdf)
 ```
 
 Exit contract: `0` iff every claim is decided; `1` on any `UNVERIFIED` or named cause; `2` on usage. Never a traceback; a harness failure is never a `DIVERGED`.
@@ -150,6 +160,8 @@ Three real papers are banked — each record replays byte-identical and every la
 
 **Totals: 133 claims, 132 bound, 117 `REPRODUCED`, 15 `DIVERGED` (14 refuted, 1 confirmed), 1 `UNVERIFIED` — precision/recall 1/15 against owner labels.** The 1/15 is the honest number: *one* republishable discrepancy out of fifteen flagged, because fourteen were the artifact's own run-to-run noise. The runnable-paper space is thin (consistent with ~3.2% notebook reproduction), and growing the panel is blocked by named engine gaps — figure-with-data locators and the fact that most papers ship no code at all (the C7 no-code path). The C2 poetry env policy gap is now closed (`src/plumb/intake/env.py`: a poetry-locked checkout is classified `"poetry"` and built via `uv pip install`, and a build that installs nothing is a named failure, never a silent empty venv; `fixtures/gate/perrin/README.md`, probe note 2026-10-17).
 
+**How to read that number:** the denominators, the label authority, the reason fourteen flags were refuted, and the answer to *"so your tool was wrong 14 out of 15 times?"* are in [`docs/METHOD.md`](docs/METHOD.md). What a `DIVERGED` does and does not assert — and the right-of-reply process — is in [`docs/ETHICS.md`](docs/ETHICS.md).
+
 ---
 
 ## Docs
@@ -158,6 +170,8 @@ Three real papers are banked — each record replays byte-identical and every la
 - [`CLAUDE.md`](CLAUDE.md) — guardrails and the verdict contract.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — phased plan and risk register (R1–R7).
 - [`docs/LAUNCH.md`](docs/LAUNCH.md) — the ordered punch-list to a public launch (Product Hunt).
+- [`docs/METHOD.md`](docs/METHOD.md) — the panel, the verbatim corpus report, and how to read `1/15`.
+- [`docs/ETHICS.md`](docs/ETHICS.md) — what a verdict asserts, publication rules, right of reply.
 - [`docs/technical/CAPABILITY_ROADMAP.md`](docs/technical/CAPABILITY_ROADMAP.md) — C1..C8 capabilities in build order.
 - [`docs/technical/ARCHITECTURE.md`](docs/technical/ARCHITECTURE.md) — the design.
 - [`CHANGELOG.md`](CHANGELOG.md) — release history.
