@@ -26,8 +26,8 @@ missing is the layer that lets a stranger *reach* it.
 | Installable distribution | **Published** | [`plumb-verify` 0.1.0](https://pypi.org/project/plumb-verify/) |
 | Release pipeline | **Working** | `.github/workflows/release.yml` — tag `v0.1.0` published 2026-10-19 |
 | 60-second first run | **Works and is the front door** | `README.md` quickstart (replay is the first command) |
-| Landing page / URL | **Missing** | — |
-| Launch assets | **GIF + social image done; copy in M6** | `assets/plumb-demo.gif`, `assets/plumb-social.png` |
+| Landing page / URL | **Built**; Pages enablement is the owner step | `site/`, `.github/workflows/pages.yml` |
+| Launch assets | **Done** | `docs/LAUNCH-COPY.md`, `assets/plumb-demo.gif`, `assets/plumb-social.png` |
 | Ethics / right-of-reply policy (R4) | **Written** | `docs/ETHICS.md` |
 | Honest-number page | **Written** | `docs/METHOD.md` |
 | Self-serve verification of *any* paper | **Blocked** | `--bindings` is required; no proposer |
@@ -50,8 +50,8 @@ a visitor can touch. The binding constraint is the first 60 seconds and the cred
 | **M2** | **60-second first run** | The replay demo *is* the product's first impression. Make it the front door, not a footnote. | ✅ done | agent |
 | **M3** | **Ethics & framing (R4)** | You will launch a tool that reports `DIVERGED` on named papers. Decide the rules *before* the audience arrives. | ✅ done | owner |
 | **M4** | **Honest-number page** | `1/15` is the differentiator for the right audience and a liability for the wrong one. Explain it once, link it everywhere. | ✅ done | owner |
-| **M5** | **Launch surface** | A URL that is not GitHub: landing page, install line, try-it command, screenshots. | ~1–2 days | agent + owner |
-| **M6** | **Launch assets & day-of runbook** | Tagline, maker comment, hunter, timing, screenshots, demo video. | ~1 day | owner |
+| **M5** | **Launch surface** | A URL that is not GitHub: landing page, install line, try-it command, screenshots. | ✅ built; enable Pages | agent + owner |
+| **M6** | **Launch assets & day-of runbook** | Tagline, maker comment, hunter, timing, screenshots, demo video. | ✅ copy done; hunter + day-of | owner |
 
 Critical-path total: **~4–5 focused days** of work after the repo changes in this commit. The
 self-serve binding proposer is **deliberately not on this path** (see
@@ -194,24 +194,30 @@ PH needs a URL. GitHub is not a product page.
       table), `plumb-corpus.png` (the corpus report), `plumb-social.png` (social card).
 - [x] No analytics, no cookies, no third-party requests — stated in the footer. Nothing to
       leak by construction.
+- [ ] **Enable GitHub Pages** (repo Settings -> Pages -> Source: GitHub Actions), then confirm
+      `https://haqaliz.github.io/plumb/` serves the page. **Owner-only; the one remaining M5 step.**
 
 Exit test: the page answers *what it is*, *how to try it in 60 s*, *what the number is*, and *what
 it does not claim* without scrolling into a wall of text.
 
 ## M6 — Launch assets & day-of runbook
 
-- [ ] Tagline (≤60 chars), e.g. *"Run the paper. Check its numbers."*
-- [ ] PH description (≤260 chars) leading with execution, not AI.
-- [ ] Maker comment: the honest number, the panel, the one-liner, and a direct ask for runnable
+All copy is pre-written in [`LAUNCH-COPY.md`](LAUNCH-COPY.md), with a claim-by-claim audit (§8).
+
+- [x] Tagline: **"Run the paper. Check its numbers."** (32 chars).
+- [x] PH description (under 260 chars), leading with execution, not AI.
+- [x] Maker comment: the honest number, the panel, the one-liner, and a direct ask for runnable
       papers to probe.
 - [ ] Hunter: someone credible in research software / open science (optional; self-hunt is fine).
-- [ ] Gallery: 3–5 images, demo GIF, 60 s video.
-- [ ] Topics: Developer Tools, Open Source, Science, Productivity.
-- [ ] Timing: Tuesday–Thursday, 12:01 AM PT (PH's day boundary); avoid a major conference week.
-- [ ] Day-of: reply to every comment within the first 6 hours; keep the honest number in the first
-      reply, not buried.
-- [ ] Rollback/plan B if the front page turns hostile: point to `docs/ETHICS.md` + the replayable
-      bundle and do not argue in the thread.
+      **Owner-only** — this is a relationship, not a document.
+- [x] Gallery: 5 assets in order with captions. Note: no 60 s video; the 8.2 s GIF is the demo
+      (PH treats video as optional).
+- [x] Topics: Developer Tools, Open Source, Science, Productivity.
+- [x] Timing: Tuesday–Thursday, 12:01 AM PT; avoid conference weeks.
+- [ ] Day-of: reply to every comment within the first 6 hours. **This is launch-day execution** —
+      the six expected replies are pre-written in `LAUNCH-COPY.md` §7.
+- [x] Rollback/plan B if the front page turns hostile: point to `docs/ETHICS.md` + the replayable
+      bundle, do not argue in the thread (`LAUNCH-COPY.md` §9).
 
 ---
 
@@ -249,8 +255,9 @@ The release workflow refuses to publish unless the wheel installs standalone and
 
 ## Definition of done for launch day
 
-- [ ] `uvx --from plumb-verify plumb --help` works on a machine that never saw the repo.
-- [ ] The 60-second replay (from a clone) produces 31 claims / 30 bound in one command.
-- [ ] The landing page states the honest number and links `docs/ETHICS.md` and `docs/METHOD.md`.
-- [ ] CI is green on `master`; the tag release is on PyPI and attached to the GitHub release.
-- [ ] The maker comment contains no claim the corpus cannot support.
+- [x] `uvx --from plumb-verify plumb --help` works from a clean cache (verified 2026-10-19).
+- [x] The 60-second replay (from a clone) produces 31 claims / 30 bound in one command.
+- [x] The landing page states the honest number and links `docs/ETHICS.md` and `docs/METHOD.md`
+      (`site/index.html`; live once Pages is enabled).
+- [x] CI is green on `master`; the tag release is on PyPI and attached to the GitHub release.
+- [x] The maker comment contains no claim the corpus cannot support (`LAUNCH-COPY.md` §8 audit).

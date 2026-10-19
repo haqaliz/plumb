@@ -1,0 +1,136 @@
+# Product Hunt launch copy (pre-written, audited against the corpus)
+
+Everything here is drafted before launch day so the day itself is execution, not invention. Every
+factual claim is backed by the repo; §8 is the audit.
+
+**Publishing checklist (owner):** Product name **Plumb**, URL `https://haqaliz.github.io/plumb/`,
+gallery in the §4 order, topics in §5, launch 12:01 AM PT on a Tuesday–Thursday.
+
+---
+
+## 1. Tagline (PH limit 60)
+
+> **Run the paper. Check its numbers.** — 32 characters
+
+Alternates, if that reads too terse:
+
+- **Re-run a paper's code. Verify its claims.** (44)
+- **Execution-grounded verification for research.** (47)
+
+## 2. Short description (PH limit 260)
+
+> Plumb re-runs a paper's own code and data on your compute, re-derives its quantitative claims
+> from what the run actually produced, and returns a per-claim verdict — REPRODUCED, DIVERGED, or
+> UNVERIFIED. Execution decides, never an LLM. Open source, one command, and the honest number
+> (precision 1/15) published alongside it.
+
+## 3. Maker comment (the first thing people read)
+
+> Hi Product Hunt — I'm Aliz, and I built Plumb.
+>
+> Every paper you read is a pile of numbers someone else's code printed. Peer review does not
+> re-run that code. LLM judges guess whether the numbers look right, and measurably cannot do it
+> (frontier models hit ~6% precision on errata-worthy errors). Plumb does the third thing: it
+> **re-runs the paper's own artifacts on your machine** and re-derives each claim from what the
+> run actually produced. Execution decides — never a model's opinion.
+>
+> **Try the 60-second demo** (offline, no environment build, no API key):
+>
+> ```
+> git clone https://github.com/haqaliz/plumb && cd plumb
+> uv run plumb verify --from-record fixtures/gate/rcai
+> ```
+>
+> **The honest number:** across 3 real papers and 133 claims, precision and recall are **1/15**
+> against owner labels. One republishable discrepancy out of fifteen flagged — because fourteen
+> were the artifact's own run-to-run noise and were refuted on review. The corpus records the
+> refutations instead of hiding the flags. A verifier reporting 15/15 there would be guessing.
+>
+> **What it does not do (yet):** live mode needs a hand-written `--bindings` file; there is no
+> binding proposer. Most papers ship no runnable code, and figure-only results are unreachable.
+> When Plumb cannot decide, it says `UNVERIFIED` — it never dresses that up as `REPRODUCED`.
+>
+> Point me at a paper with runnable code and I'll probe it during the launch.
+
+## 4. Gallery (in order)
+
+| # | Asset | Caption |
+|---|---|---|
+| 1 | `assets/plumb-demo.gif` | The 60-second replay: 31 claims, 30 bound, 30 REPRODUCED, 1 UNVERIFIED, 0 DIVERGED. |
+| 2 | `assets/plumb-verify.png` | A per-claim verdict table — the artifact, the locator, the re-derived value. |
+| 3 | `assets/plumb-corpus.png` | The honest number, with denominators and label authority. |
+| 4 | `site/` screenshot | The landing page, including what a DIVERGED does *not* assert. |
+| 5 | `assets/plumb-social.png` | The mark and the one-liner. |
+
+PH thumbnails are square; `plumb-social.png` crops cleanly. The GIF is 1400×620, under 100 KiB.
+
+## 5. Topics
+
+Developer Tools · Open Source · Science · Productivity
+
+## 6. Timing
+
+- **Tuesday–Thursday, 12:01 AM PT** (PH's day boundary). Avoid conference weeks and major model
+  launches.
+- Post the maker comment immediately; keep the honest number in the first reply, not buried.
+- Reply to every comment within the first 6 hours.
+
+## 7. Day-of replies (pre-written)
+
+**"Why not just ask an LLM?"**
+> Because it guesses. Frontier models hit ~6% precision on real errata-worthy errors — far below
+> the bar for flagging a paper. Plumb re-runs the author's own code and reads the number the run
+> printed. A model may extract a claim; only execution assigns the verdict.
+
+**"Your precision is 1/15 — why would I use this?"**
+> Because it tells you the truth. The 14 other flags were `DIVERGED` verdicts that owner review
+> refuted — the artifact does not run stably enough for its numbers to be paper errors. A tool
+> that reported 15/15 would be guessing. The corpus keeps every refutation visible.
+
+**"Does it send my paper or code to the cloud?"**
+> No. The paper, repo and data stay on your machine; only hashes and the verdicts you choose to
+> publish leave it. There is no server-side execution, and no analytics on the site.
+
+**"Can it verify my paper?"**
+> Live mode works today, but it needs a hand-written `--bindings` file mapping claims to the
+> values they should match — there is no proposer yet. If your paper ships runnable code, send me
+> the repo during the launch and I'll try it (and tell you if it lands `UNVERIFIED`).
+
+**"Is DIVERGED an accusation?"**
+> No. It means the artifact's own run contradicts the paper's own claim, at the written
+> precision. It is a reproduction discrepancy, never misconduct — see the ethics policy.
+
+**"What about R / Julia / MATLAB papers?"**
+> The spine is language-agnostic where the repo exposes an entry point; the first corpus is Python
+> and R data-analysis papers whose code actually runs. Coverage is the honest bottleneck: most
+> papers ship no code.
+
+## 8. Claim audit (every factual statement above, and its source)
+
+| Claim | Source |
+|---|---|
+| ~6% precision / ~21% recall for frontier models on errata-worthy errors | SPOT, arXiv 2505.11855 (`CLAUDE.md`) |
+| 3 papers, 133 claims, 132 bound, 117 REPRODUCED, 15 DIVERGED, 1 UNVERIFIED | `plumb corpus report`; `docs/METHOD.md` §3 |
+| precision / recall 1/15, owner labels | same report |
+| 14 of 15 refuted on review; Perrin's unseeded RNG | `fixtures/gate/perrin/README.md`; `docs/METHOD.md` §5 |
+| 31 claims / 30 bound / 30 REPRODUCED / 1 UNVERIFIED / 0 DIVERGED for rcai | `fixtures/gate/rcai/README.md`; the replay |
+| demo needs no network *once cloned*, no env build, no API key | `plumb verify --from-record` is offline; CI pins it |
+| live mode requires `--bindings`; no proposer | `src/plumb/cli/__init__.py`; `CAPABILITY_ROADMAP.md` C4 |
+| no egress; verdicts/hashes only | `CLAUDE.md` constraint #2 |
+| no analytics on the site | `site/index.html` (no scripts) |
+
+Nothing in this document claims a paper is wrong, that the tool finds errors at a high rate, or
+that self-serve verification of an arbitrary paper works today.
+
+---
+
+## 9. If the thread turns hostile
+
+Do not argue in the thread. Reply once, linking:
+
+- the **method and the number**: `docs/METHOD.md`
+- **what a DIVERGED is not**: `docs/ETHICS.md`
+- the **replayable bundle** for the one confirmed finding: `bundles/agrodesign/`
+
+Then invite the critic to re-run the replay and report what they get. A finding nobody can replay
+is an opinion; ours replays.
