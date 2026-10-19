@@ -27,7 +27,7 @@ missing is the layer that lets a stranger *reach* it.
 | Release pipeline | **Working** | `.github/workflows/release.yml` — tag `v0.1.0` published 2026-10-19 |
 | 60-second first run | **Works and is the front door** | `README.md` quickstart (replay is the first command) |
 | Landing page / URL | **Missing** | — |
-| Launch assets (tagline, GIF, copy) | **Missing** | `assets/plumb-social.png` exists |
+| Launch assets | **GIF + social image done; copy in M6** | `assets/plumb-demo.gif`, `assets/plumb-social.png` |
 | Ethics / right-of-reply policy (R4) | **Written** | `docs/ETHICS.md` |
 | Honest-number page | **Written** | `docs/METHOD.md` |
 | Self-serve verification of *any* paper | **Blocked** | `--bindings` is required; no proposer |
@@ -47,7 +47,7 @@ a visitor can touch. The binding constraint is the first 60 seconds and the cred
 |---|---|---|---|---|
 | **M0** | **CI safety net** | Every later change needs a green automated gate. Nothing else should land first. | ✅ done | agent |
 | **M1** | **Installable distribution** | A launch with "clone this repo" is not a launch. One command or it doesn't count. | ✅ done | agent + owner |
-| **M2** | **60-second first run** | The replay demo *is* the product's first impression. Make it the front door, not a footnote. | ✅ 3/4 (GIF left) | agent + owner |
+| **M2** | **60-second first run** | The replay demo *is* the product's first impression. Make it the front door, not a footnote. | ✅ done | agent |
 | **M3** | **Ethics & framing (R4)** | You will launch a tool that reports `DIVERGED` on named papers. Decide the rules *before* the audience arrives. | ✅ done | owner |
 | **M4** | **Honest-number page** | `1/15` is the differentiator for the right audience and a liability for the wrong one. Explain it once, link it everywhere. | ✅ done | owner |
 | **M5** | **Launch surface** | A URL that is not GitHub: landing page, install line, try-it command, screenshots. | ~1–2 days | agent + owner |
@@ -133,9 +133,11 @@ That replays the Burtsev notebook paper end to end: 31 claims, 30 bound, 30 `REP
 - [x] Decided **not** to bundle the rcai record as package data in 0.1.x: it would redistribute a
       CC BY 4.0 paper inside the wheel and needs a `plumb demo` entry point (new CLI surface +
       tests). The checkout path is the demo; revisit for 0.2 if the landing page wants a one-liner.
-- [ ] Record a ≤60 s screencast (terminal only, no voice needed): install → replay → the verdict
-      summary → `--json` piped to `head`. Save as `assets/plumb-demo.gif` (≤10 MB for PH). This is
-      the only M2 item left; it needs a screen recorder, not code.
+- [x] Rendered `assets/plumb-demo.gif` from the **real** replay (5 frames, 8.2 s, ~72 KiB) by
+      `tools/record_demo.sh` → `tools/render_demo_gif.py` (SVG frames → `rsvg-convert` → ImageMagick).
+      It is a deterministic render of the CLI's actual output, not a screencast — `vhs` produced no
+      file on this machine, so the reproducible renderer is the committed path. Embedded in the
+      README above the demo command.
 - [x] Added `plumb --version` (test-first, `tests/cli/test_cli_core.py::TestVersionIsVerifiable`).
       It is on `master` but **not** in the published 0.1.0 — it ships in 0.1.1, so the README's
       install check stays `plumb --help` until then.

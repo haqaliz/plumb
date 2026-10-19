@@ -74,6 +74,8 @@ git clone https://github.com/haqaliz/plumb && cd plumb
 uv run plumb verify --from-record fixtures/gate/rcai
 ```
 
+<img src="https://raw.githubusercontent.com/haqaliz/plumb/master/assets/plumb-demo.gif" alt="The 60-second demo: plumb --version, then a replay of the rcai record — 31 claims, 30 bound, 30 REPRODUCED, 1 UNVERIFIED, 0 DIVERGED." width="900" />
+
 > 31 claims, 30 bound, 30 `REPRODUCED`, 1 `UNVERIFIED`, 0 `DIVERGED` — the first notebook-computed
 > paper through the spine, and the replay is byte-identical every time. Add `--json` for the
 > canonical document, or `--bank` to fold the case into the discrepancy corpus.
