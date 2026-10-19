@@ -30,3 +30,6 @@ build/
 
 # Serena tool state (local)
 .serena/
+
+# Generated site assets (copied from assets/ by tools/preview_site.sh and Pages).
+/site/assets/

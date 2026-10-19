@@ -182,16 +182,18 @@ same viewport.
 
 PH needs a URL. GitHub is not a product page.
 
-- [ ] Landing page (new repo or `site/`, static; reuse `assets/plumb-social.svg` and
-      `assets/plumb-corpus.svg`): headline, the 60-second demo command, the verdict table,
-      the honest number, `docs/ETHICS.md` link, install line.
-- [ ] Install section with the two one-liners (`uvx --from plumb-verify …`,
-      `pipx install plumb-verify`).
-- [ ] "Try it without installing" — either the bundled replay or a hosted replay of one committed
-      record (no engine execution on the server; it is a static replay, not a service).
-- [ ] Screenshots: the verdict table (`plumb-verify.png` exists), the corpus report
-      (`plumb-corpus.png` exists), and one of the signed bundle verifying.
-- [ ] Analytics that do not violate constraint #2: page views only; no paper contents, no egress.
+- [x] Landing page: `site/index.html` + `site/styles.css`, static, no JS, deployed by
+      `.github/workflows/pages.yml` (`https://haqaliz.github.io/plumb/` once Pages is enabled).
+      Headline, the demo GIF, the verdict cards, the honest number, METHOD and ETHICS links.
+- [x] Install section with both one-liners (`pipx install plumb-verify`,
+      `uvx --from plumb-verify plumb --help`).
+- [x] "Try it without installing" is the clone + `--from-record` replay (an honest, static
+      demo — nothing executes on a server). The copy says "once cloned" because the clone itself
+      needs network.
+- [x] Images for the gallery: `plumb-demo.gif` (the replay), `plumb-verify.png` (the verdict
+      table), `plumb-corpus.png` (the corpus report), `plumb-social.png` (social card).
+- [x] No analytics, no cookies, no third-party requests — stated in the footer. Nothing to
+      leak by construction.
 
 Exit test: the page answers *what it is*, *how to try it in 60 s*, *what the number is*, and *what
 it does not claim* without scrolling into a wall of text.

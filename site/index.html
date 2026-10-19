@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plumb — run the paper, check its numbers</title>
+<meta name="description" content="Plumb re-runs a paper's own code and data on your compute, re-derives its quantitative claims from what the run actually produced, and returns a per-claim, reproducible verdict. Execution decides — never a model's opinion.">
+<meta property="og:title" content="Plumb — run the paper, check its numbers">
+<meta property="og:description" content="An execution-grounded research-integrity verifier. Re-runs a paper's own artifacts and returns a per-claim, reproducible verdict.">
+<meta property="og:image" content="https://raw.githubusercontent.com/haqaliz/plumb/master/assets/plumb-social.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/plumb-logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="nav">
+  <a class="brand" href="#top">
+    <img src="assets/plumb-logo.svg" alt="" width="26" height="26">
+    <span>Plumb</span>
+  </a>
+  <nav>
+    <a href="#demo">Demo</a>
+    <a href="#verdicts">Verdicts</a>
+    <a href="#number">The number</a>
+    <a href="#trust">Ethics</a>
+    <a href="https://github.com/haqaliz/plumb">GitHub</a>
+  </nav>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <p class="eyebrow">Execution-grounded research-integrity verifier</p>
+    <h1>Run the paper.<br>Check its numbers.</h1>
+    <p class="lede">
+      Plumb re-runs a paper's own code and data on <strong>your</strong> compute, re-derives its
+      quantitative claims from what the run actually produced, and returns a per-claim,
+      reproducible verdict — <span class="ok">REPRODUCED</span>,
+      <span class="warn">DIVERGED</span>, or <span class="dim">UNVERIFIED</span>.
+      Execution decides. Never a model's opinion.
+    </p>
+
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/haqaliz/plumb">View on GitHub</a>
+      <a class="btn" href="https://pypi.org/project/plumb-verify/">Install from PyPI</a>
+    </div>
+
+    <pre class="terminal"><code><span class="prompt">$</span> pipx install plumb-verify      <span class="c"># or: uvx --from plumb-verify plumb --help</span>
+<span class="prompt">$</span> plumb --version
+plumb 0.1.0</code></pre>
+  </section>
+
+  <section id="demo" class="panel">
+    <h2>The 60-second demo</h2>
+    <p class="sub">
+      Once cloned, the replay needs no network, no environment build, and no API key. The paper
+      ships with a record of its own run; the verdicts are re-derived from those committed bytes
+      alone.
+    </p>
+    <pre class="terminal"><code><span class="prompt">$</span> git clone https://github.com/haqaliz/plumb &amp;&amp; cd plumb
+<span class="prompt">$</span> uv run plumb verify --from-record fixtures/gate/rcai</code></pre>
+    <figure>
+      <img src="assets/plumb-demo.gif"
+           alt="The demo: plumb --version, then a replay of the rcai record producing 31 claims, 30 bound, 30 REPRODUCED, 1 UNVERIFIED, 0 DIVERGED."
+           width="1400" height="620" loading="lazy">
+      <figcaption>
+        31 claims · 30 bound · <span class="ok">30 REPRODUCED</span> ·
+        <span class="dim">1 UNVERIFIED</span> · <span class="ok">0 DIVERGED</span> —
+        byte-identical on every replay.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section id="verdicts">
+    <h2>The verdict</h2>
+    <p class="sub">Deliberately conservative. <code>UNVERIFIED</code> is never dressed up as <code>REPRODUCED</code>.</p>
+    <div class="grid four">
+      <article class="card">
+        <h3 class="ok">REPRODUCED</h3>
+        <p>The paper's value was re-derived from its own run, within the precision the paper wrote.</p>
+      </article>
+      <article class="card">
+        <h3 class="info">WITHIN-TOLERANCE</h3>
+        <p>Matches inside a stated numeric tolerance, not exactly.</p>
+      </article>
+      <article class="card">
+        <h3 class="warn">DIVERGED</h3>
+        <p>The artifact's own run contradicts the paper's own claim — never a harness failure.</p>
+      </article>
+      <article class="card">
+        <h3 class="dim">UNVERIFIED</h3>
+        <p>We could not decide: the repo won't run, the claim won't bind, the result is stale. The honest default.</p>
+      </article>
+    </div>
+    <p class="note">
+      A model may extract a claim or propose a binding. <strong>Execution assigns the verdict.</strong>
+      Every <code>DIVERGED</code> carries <code>review_required</code>.
+    </p>
+  </section>
+
+  <section id="number">
+    <h2>The number so far</h2>
+    <p class="sub">
+      Three real papers through the spine. Every figure carries its denominator and the authority
+      behind its labels.
+    </p>
+    <div class="stats">
+      <div><b>133</b><span>claims</span></div>
+      <div><b>132</b><span>bound</span></div>
+      <div><b class="ok">117</b><span>REPRODUCED</span></div>
+      <div><b class="warn">15</b><span>DIVERGED</span></div>
+      <div><b class="dim">1</b><span>UNVERIFIED</span></div>
+      <div><b>1/15</b><span>precision · recall (owner)</span></div>
+    </div>
+    <p class="honest">
+      <strong>One republishable discrepancy out of fifteen flagged.</strong> Fourteen were the
+      artifact's own run-to-run noise and were <em>refuted on review</em> — the corpus records the
+      refutation instead of hiding the flag. A verifier that reported 15/15 here would be guessing.
+    </p>
+    <p class="links">
+      <a href="https://github.com/haqaliz/plumb/blob/master/docs/METHOD.md">Read the method and the number →</a>
+    </p>
+  </section>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <ol class="spine">
+      <li><b>Intake</b><span>Paper claims extracted and selected by rule; the code pinned to a tree hash with a frozen environment.</span></li>
+      <li><b>Run</b><span>The repo's own entry point executed on your compute — script, console entry, or notebook. Outputs content-addressed, stale files never read.</span></li>
+      <li><b>Re-derive</b><span>Each claim bound to the value the run actually produced — JSON pointer, stdin, CSV cell, notebook cell or HTML table cell.</span></li>
+      <li><b>Decide</b><span>Compared in pinned <code>Decimal</code> at the paper's written precision. Execution yields the verdict.</span></li>
+      <li><b>Prove</b><span>A hash-listed, signed, replayable bundle a third party can re-run byte-identically. A finding nobody can replay is an opinion.</span></li>
+    </ol>
+  </section>
+
+  <section id="trust" class="panel">
+    <h2>Why you can check it</h2>
+    <div class="grid three">
+      <article class="card">
+        <h3>Execution decides</h3>
+        <p>No verdict comes from a model's opinion. A harness failure resolves to <code>UNVERIFIED</code>, never <code>DIVERGED</code>.</p>
+      </article>
+      <article class="card">
+        <h3>Signed, replayable bundles</h3>
+        <p>Paper hash, tree hash, environment, traces and verdicts, signed with <code>ssh-keygen</code> and replayable offline.</p>
+      </article>
+      <article class="card">
+        <h3>Runs on your compute</h3>
+        <p>The paper, code and data never leave your machine. Only hashes and verdicts you choose to publish ever do.</p>
+      </article>
+    </div>
+    <p class="links">
+      <a href="https://github.com/haqaliz/plumb/blob/master/docs/ETHICS.md">What a DIVERGED does and does not assert →</a>
+    </p>
+    <p class="limits">
+      <strong>Honest limits.</strong> Live mode is expert mode today: <code>--bindings</code> is
+      hand-written and there is no binding proposer yet. Most papers ship no runnable code, and
+      figure-only results are not reachable. When Plumb cannot decide, it says so.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <div>
+    <a href="https://github.com/haqaliz/plumb">GitHub</a>
+    <a href="https://pypi.org/project/plumb-verify/">PyPI</a>
+    <a href="https://github.com/haqaliz/plumb/blob/master/VISION.md">Vision</a>
+    <a href="https://github.com/haqaliz/plumb/blob/master/docs/ROADMAP.md">Roadmap</a>
+  </div>
+  <p>Apache-2.0 · built with uv · one runtime dependency · no analytics, no cookies.</p>
+</footer>
+
+</body>
+</html>
