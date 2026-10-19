@@ -57,6 +57,7 @@ import argparse
 from pathlib import Path
 import sys
 
+from plumb import __version__
 from plumb.bundle.causes import BundleRefused
 from plumb.corpus.causes import CorpusRefused
 from plumb.intake.causes import EnvBuildFailed, RevNotFound, SourceNotFound, UnsupportedArchive
@@ -204,6 +205,10 @@ def build_parser() -> argparse.ArgumentParser:
             "its label authority."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"plumb {__version__}",
+        help="print the installed version and exit",
     )
     subcommands = parser.add_subparsers(required=True, metavar="COMMAND")
     verify = subcommands.add_parser(

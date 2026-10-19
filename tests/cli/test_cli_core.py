@@ -156,6 +156,30 @@ class TestHelpDocumentsTheContract:
             assert flag in result.stdout
 
 
+class TestVersionIsVerifiable:
+    """`plumb --version` — the one-command check that an install actually landed.
+
+    Not part of `FLAGS`: those are `verify`'s flags. `--version` is top-level, so it
+    belongs to the top-level contract and is asserted here instead.
+    """
+
+    def test_version_is_documented_in_the_top_level_help(self) -> None:
+        assert "--version" in run_cli("--help").stdout
+
+    def test_the_console_script_prints_the_packaged_version_and_exits_zero(self) -> None:
+        import plumb
+
+        result = run_cli("--version")
+        assert result.returncode == 0
+        assert result.stdout.strip() == f"plumb {plumb.__version__}"
+
+    def test_the_in_process_surface_prints_the_packaged_version(self, capsys) -> None:
+        import plumb
+
+        assert main(["--version"]) == 0
+        assert capsys.readouterr().out.strip() == f"plumb {plumb.__version__}"
+
+
 class TestUsageErrorsExitTwo:
     """Acceptance 2: usage errors are argparse's own message on stderr, exit 2."""
 
