@@ -82,6 +82,12 @@ STUB_JUPYTER = f"""#!/bin/sh
 cat > analysis.ipynb <<'PLUMB_NOTEBOOK_EOF'
 {_EXECUTED_BODY}
 PLUMB_NOTEBOOK_EOF
+# The freshness guard compares an output's mtime to the run start. On a
+# coarse-mtime filesystem (container bind mounts, some runner VMs) a write made
+# microseconds after the start can round down to before it and read as
+# STALE_ARTIFACT -- the conservative outcome, but not what this fixture is
+# testing. Pin a future mtime: still after any run start, and deterministic.
+touch -t 203001010000 analysis.ipynb
 printf '0.91\\n'
 """
 
