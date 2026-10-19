@@ -26,7 +26,7 @@ missing is the layer that lets a stranger *reach* it.
 | Installable distribution | **Published** | [`plumb-verify` 0.1.0](https://pypi.org/project/plumb-verify/) |
 | Release pipeline | **Working** | `.github/workflows/release.yml` — tag `v0.1.0` published 2026-10-19 |
 | 60-second first run | **Works and is the front door** | `README.md` quickstart (replay is the first command) |
-| Landing page / URL | **Built**; Pages enablement is the owner step | `site/`, `.github/workflows/pages.yml` |
+| Landing page / URL | **Live** | <https://haqaliz.github.io/plumb/> |
 | Launch assets | **Done** | `docs/LAUNCH-COPY.md`, `assets/plumb-demo.gif`, `assets/plumb-social.png` |
 | Ethics / right-of-reply policy (R4) | **Written** | `docs/ETHICS.md` |
 | Honest-number page | **Written** | `docs/METHOD.md` |
@@ -50,7 +50,7 @@ a visitor can touch. The binding constraint is the first 60 seconds and the cred
 | **M2** | **60-second first run** | The replay demo *is* the product's first impression. Make it the front door, not a footnote. | ✅ done | agent |
 | **M3** | **Ethics & framing (R4)** | You will launch a tool that reports `DIVERGED` on named papers. Decide the rules *before* the audience arrives. | ✅ done | owner |
 | **M4** | **Honest-number page** | `1/15` is the differentiator for the right audience and a liability for the wrong one. Explain it once, link it everywhere. | ✅ done | owner |
-| **M5** | **Launch surface** | A URL that is not GitHub: landing page, install line, try-it command, screenshots. | ✅ built; enable Pages | agent + owner |
+| **M5** | **Launch surface** | A URL that is not GitHub: landing page, install line, try-it command, screenshots. | ✅ live | agent |
 | **M6** | **Launch assets & day-of runbook** | Tagline, maker comment, hunter, timing, screenshots, demo video. | ✅ copy done; hunter + day-of | owner |
 
 Critical-path total: **~4–5 focused days** of work after the repo changes in this commit. The
@@ -194,8 +194,8 @@ PH needs a URL. GitHub is not a product page.
       table), `plumb-corpus.png` (the corpus report), `plumb-social.png` (social card).
 - [x] No analytics, no cookies, no third-party requests — stated in the footer. Nothing to
       leak by construction.
-- [ ] **Enable GitHub Pages** (repo Settings -> Pages -> Source: GitHub Actions), then confirm
-      `https://haqaliz.github.io/plumb/` serves the page. **Owner-only; the one remaining M5 step.**
+- [x] Pages enabled (build type: workflow) and deployed: <https://haqaliz.github.io/plumb/>
+      returns 200 and serves the demo GIF.
 
 Exit test: the page answers *what it is*, *how to try it in 60 s*, *what the number is*, and *what
 it does not claim* without scrolling into a wall of text.
