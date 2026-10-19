@@ -216,3 +216,25 @@ and the conversation after it.
 
 > The tool reported that the artifact's own run did not reproduce; the review refuted the finding,
 > and the corpus records both. That is the product: it shows its refutations.
+
+---
+
+## 11. Shoutouts (pick 3)
+
+PH asks who helped you launch. Only name people who actually did; filler is obvious. Three that
+are true today:
+
+1. **The researchers who ship runnable artifacts** — the teams behind the three papers in Plumb's
+   first panel: Burtsev et al. (arXiv:2609.00137), the AgroDesign authors, and the Perrin authors
+   (Owkin's `hte`). A verifier is only possible because someone published code that actually runs.
+   Tag their PH profiles if they have them.
+
+2. **The people who measured the alternative** — the SPOT authors (arXiv:2505.11855). Their
+   precision/recall numbers for LLM judges are why Plumb is execution-grounded instead of another
+   model that opines about papers.
+
+3. **The uv team at Astral** — `uv` is what makes "pin it, build it, run it, one command" practical,
+   and it is a large part of why a 2,080-test offline suite stays pleasant to keep green.
+
+> If a person actually helped you — read a draft, told you to launch, gave you the first piece of
+> feedback — name them instead of one of these. That is the shoutout readers believe.
