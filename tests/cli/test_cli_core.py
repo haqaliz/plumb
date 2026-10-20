@@ -30,8 +30,10 @@ import pytest
 from plumb.bundle.causes import BundleRefused
 from plumb.corpus.causes import CorpusRefused
 from plumb.cli import (
+    ARTIFACT_TOO_LARGE,
     BINDING_INVALID,
     BUNDLE_REFUSED,
+    CAPTURE_LIMIT_EXCEEDED,
     CLI_CAUSES,
     CORPUS_REFUSED,
     ENTRYPOINT_AMBIGUOUS,
@@ -262,6 +264,7 @@ class TestEveryNamedCauseIsEmitted:
             USAGE_ERROR, PAPER_UNREADABLE, SOURCE_NOT_FOUND, REV_NOT_FOUND,
             UNSUPPORTED_ARCHIVE, ENV_BUILD_FAILED, ENTRYPOINT_MISSING,
             ENTRYPOINT_AMBIGUOUS, WONT_RUN, TIMEOUT, NO_ARTIFACT, STALE_ARTIFACT,
+            ARTIFACT_TOO_LARGE, CAPTURE_LIMIT_EXCEEDED,
             BINDING_INVALID, RECORD_INVALID, KEY_MISSING, BUNDLE_REFUSED,
             CORPUS_REFUSED, SPINE_ERROR,
         }

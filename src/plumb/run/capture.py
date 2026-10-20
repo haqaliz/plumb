@@ -43,10 +43,15 @@ import os
 from pathlib import Path
 from typing import ClassVar
 
-from plumb.run.causes import NO_ARTIFACT, STALE_ARTIFACT
+from plumb.run.causes import (
+    ARTIFACT_TOO_LARGE,
+    CAPTURE_LIMIT_EXCEEDED,
+    NO_ARTIFACT,
+    STALE_ARTIFACT,
+)
 from plumb.run.runner import RunResult
 
-__all__ = ["Artifact", "Capture", "StaleOutput", "capture_outputs"]
+__all__ = ["Artifact", "Capture", "CaptureCaps", "StaleOutput", "capture_outputs"]
 
 #: File suffixes captured as structured outputs, mapped to the artifact kind.
 _OUTPUT_KINDS = {".json": "json", ".csv": "csv"}
@@ -56,6 +61,17 @@ _NOTEBOOK_SUFFIX = ".ipynb"
 
 STDOUT = "<stdout>"
 STDERR = "<stderr>"
+
+
+@dataclass(frozen=True)
+class CaptureCaps:
+    """Evidence caps, in bytes; `None` means unbounded."""
+
+    max_artifact_bytes: int | None = 64 * 1024 * 1024
+    max_total_bytes: int | None = 256 * 1024 * 1024
+
+
+DEFAULT_CAPS = CaptureCaps()
 
 
 @dataclass(frozen=True)
@@ -105,28 +121,52 @@ class Capture:
         return data
 
 
-def capture_outputs(result: RunResult) -> Capture:
-    """Hash and store every fresh output of `result`; record the stale ones."""
+def capture_outputs(result: RunResult, *, caps: CaptureCaps = DEFAULT_CAPS) -> Capture:
+    """Hash and store every fresh output of `result`; record the stale and capped ones.
+
+    A file over a cap is refused before it is read (its size is known from `stat`), so the cap
+    bounds the bytes read, not just the bytes stored. The cap is never a truncation: an over-cap
+    artifact is absent and the run carries the cause, which governs every verdict.
+    """
     store = result.run_dir / "objects"
     store.mkdir(exist_ok=True)
+    causes: list[str] = []
+    total = 0
+
+    def over(size: int) -> bool:
+        """True when this artifact breaks a cap; records the cause and counts nothing."""
+        nonlocal total
+        if caps.max_artifact_bytes is not None and size > caps.max_artifact_bytes:
+            causes.append(ARTIFACT_TOO_LARGE)
+            return True
+        if caps.max_total_bytes is not None and total + size > caps.max_total_bytes:
+            causes.append(CAPTURE_LIMIT_EXCEEDED)
+            return True
+        total += size
+        return False
 
     def stored(data: bytes) -> str:
         digest = hashlib.sha256(data).hexdigest()
         (store / digest).write_bytes(data)
         return digest
 
-    artifacts = [
-        Artifact("stdout", STDOUT, stored(result.stdout), len(result.stdout), None),
-        Artifact(
-            "stderr", STDERR, stored(result.stderr), len(result.stderr), None,
-            diagnostic_only=True,
-        ),
-    ]
+    artifacts: list[Artifact] = []
+    for kind, relpath, data, diagnostic in (
+        ("stdout", STDOUT, result.stdout, False),
+        ("stderr", STDERR, result.stderr, True),
+    ):
+        if over(len(data)):
+            continue
+        artifacts.append(
+            Artifact(kind, relpath, stored(data), len(data), None, diagnostic)
+        )
     stale: list[StaleOutput] = []
     for relpath, path in _output_files(result.workdir):
         info = path.stat()
         if info.st_mtime_ns < result.started_at_ns:
             stale.append(StaleOutput(relpath, info.st_mtime_ns, info.st_size))
+            continue
+        if over(info.st_size):
             continue
         data = path.read_bytes()
         suffix = path.suffix.lower()
@@ -134,6 +174,8 @@ def capture_outputs(result: RunResult) -> Capture:
         artifacts.append(Artifact(kind, relpath, stored(data), len(data), info.st_mtime_ns))
         if kind == "notebook":
             for index, canonical in _notebook_cell_outputs(data):
+                if over(len(canonical)):
+                    continue
                 artifacts.append(
                     Artifact(
                         "notebook_cell",
@@ -145,12 +187,12 @@ def capture_outputs(result: RunResult) -> Capture:
                 )
 
     files = [a for a in artifacts if a.mtime_ns is not None]
-    silent = result.failure is None and not files and not result.stdout
+    silent = result.failure is None and not files and not result.stdout and not causes
     return Capture(
         store=store,
         artifacts=tuple(sorted(artifacts, key=lambda a: (a.kind, a.relpath))),
         stale=tuple(sorted(stale, key=lambda s: s.relpath)),
-        causes=(NO_ARTIFACT,) if silent else (),
+        causes=tuple(sorted(set(causes))) if causes else ((NO_ARTIFACT,) if silent else ()),
     )
 
 

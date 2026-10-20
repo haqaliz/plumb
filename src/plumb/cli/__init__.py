@@ -63,6 +63,8 @@ from plumb.corpus.causes import CorpusRefused
 from plumb.intake.causes import EnvBuildFailed, RevNotFound, SourceNotFound, UnsupportedArchive
 from plumb.pdf import PdfInputError
 from plumb.run.causes import (
+    ARTIFACT_TOO_LARGE,
+    CAPTURE_LIMIT_EXCEEDED,
     NO_ARTIFACT,
     STALE_ARTIFACT,
     TIMEOUT,
@@ -76,8 +78,10 @@ from plumb.cli.replay import replay_record
 from plumb.verify.causes import ENV_BUILD_FAILED, BindingInvalid
 
 __all__ = [
+    "ARTIFACT_TOO_LARGE",
     "BINDING_INVALID",
     "BUNDLE_REFUSED",
+    "CAPTURE_LIMIT_EXCEEDED",
     "CLI_CAUSES",
     "CORPUS_REFUSED",
     "ENTRYPOINT_AMBIGUOUS",
@@ -96,6 +100,9 @@ __all__ = [
     "USAGE_ERROR",
     "WONT_RUN",
     "build_parser",
+    "cmd_bundle_inspect",
+    "cmd_bundle_pack",
+    "cmd_bundle_verify",
     "cmd_corpus_bank",
     "cmd_corpus_report",
     "cmd_verify",
@@ -140,6 +147,8 @@ CLI_CAUSES = frozenset(
         RECORD_INVALID,
         KEY_MISSING,
         BUNDLE_REFUSED,
+        ARTIFACT_TOO_LARGE,
+        CAPTURE_LIMIT_EXCEEDED,
         CORPUS_REFUSED,
         SPINE_ERROR,
     }

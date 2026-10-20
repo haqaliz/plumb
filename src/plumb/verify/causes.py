@@ -24,6 +24,8 @@ emits them and they are deliberately outside `CAUSES`.
 from __future__ import annotations
 
 from plumb.run.causes import (
+    ARTIFACT_TOO_LARGE,
+    CAPTURE_LIMIT_EXCEEDED,
     NO_ARTIFACT,
     STALE_ARTIFACT,
     TIMEOUT,
@@ -35,6 +37,8 @@ from plumb.run.causes import (
 __all__ = [
     "AMBIGUOUS_BINDING",
     "ARTIFACT_PRECISION_COARSER",
+    "ARTIFACT_TOO_LARGE",
+    "CAPTURE_LIMIT_EXCEEDED",
     "BINDING_INVALID",
     "CAUSES",
     "ENTRYPOINT_AMBIGUOUS",
@@ -82,6 +86,8 @@ CAUSES = frozenset(
         TIMEOUT,
         NO_ARTIFACT,
         STALE_ARTIFACT,
+        ARTIFACT_TOO_LARGE,
+        CAPTURE_LIMIT_EXCEEDED,
         ENTRYPOINT_MISSING,
         ENTRYPOINT_AMBIGUOUS,
         ENV_BUILD_FAILED,
