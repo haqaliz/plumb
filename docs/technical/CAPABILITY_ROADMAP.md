@@ -285,8 +285,13 @@ notebook papers whose values sit only in pandas Styler HTML *without* the table-
 (built 2026-10-10, N1). The poetry env policy that was formerly named here as a blocker now
 exists (2026-10-17, `poetry-env-policy`): a poetry-only checkout is classified `"poetry"` and
 built via `uv pip install`, and an empty dependency environment is a named failure rather than a
-silent pass. That removes the empty-venv route; the Perrin re-probe at its recorded drift
-boundary is a separate dev-time aspect, and no claim is made here that the drift cleared. The
+silent pass. **The environment half of the Perrin re-probe is recorded (2026-10-21, #26,
+`fixtures/gate/perrin/reprobe_20261021.md`):** the generic policy builds the pinned checkout —
+134 packages, Python 3.11.15, `ok=True policy=poetry` — so the empty-venv route is gone for this
+checkout too. **The run was not re-executed** (measured >3.6 h for the p=20 scenario alone; the
+driver allows 12 h), so no claim is made that the drift cleared, and the 14 refuted `DIVERGED`s
+stand exactly as recorded. The scheduled re-run at the 2024-06-18 boundary remains a dev-time
+job, not a code gap. The
 precision/recall benchmark over a public corpus stays Phase 2.
 
 ## C6. Signed, replayable reproduction bundle
