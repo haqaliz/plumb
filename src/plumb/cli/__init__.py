@@ -70,6 +70,7 @@ from plumb.run.causes import (
     EntryPointAmbiguous,
     EntryPointMissing,
 )
+from plumb.cli.consistency import cmd_consistency
 from plumb.cli.corpus import cmd_corpus_bank, cmd_corpus_report
 from plumb.cli.render import render_verdicts
 from plumb.cli.replay import replay_record
@@ -96,6 +97,7 @@ __all__ = [
     "USAGE_ERROR",
     "WONT_RUN",
     "build_parser",
+    "cmd_consistency",
     "cmd_corpus_bank",
     "cmd_corpus_report",
     "cmd_verify",
@@ -246,6 +248,22 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--json", action="store_true",
                         help="emit canonical JSON instead of the verdict table")
     verify.set_defaults(handler=cmd_verify)
+    consistency = subcommands.add_parser(
+        "consistency",
+        help="check a paper's own numbers against each other (no code needed)",
+        description=(
+            "For papers with no runnable artifact: recompute each explicitly reported test "
+            "statistic's p from its own df (t, F, chi-square, z, r), and check reported means "
+            "against GRIM for their N. This is an internal-consistency signal — the weakest "
+            "Plumb emits — never a DIVERGED verdict: it never runs the paper's code and never "
+            "accuses the authors. Exit 0 when nothing is inconsistent, 1 when something is."
+        ),
+    )
+    consistency.add_argument("paper", metavar="<paper>",
+                             help="the paper: a readable .md or .pdf path")
+    consistency.add_argument("--json", action="store_true",
+                             help="emit canonical JSON instead of the finding table")
+    consistency.set_defaults(handler=cmd_consistency)
     corpus = subcommands.add_parser(
         "corpus",
         help="bank a verify record into, or report over, the discrepancy corpus",
