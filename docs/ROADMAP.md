@@ -38,11 +38,9 @@ Ship the self-hostable CLI: C1–C4 hardened + C6 (signed replayable bundle). `p
 <paper> <repo>` returns a per-claim verdict table and a bundle. BYOK LLM assist is opt-in and
 off by default. Publish the method.
 
-- **Status (2026-09-27):** the CLI's first slice is built (`verify-cli` — see
-  `docs/technical/CAPABILITY_ROADMAP.md` C4): live spine + `--from-record` replay, verdict
-  table / `--json`, signed bundle with `--out`. Remaining for this phase: harden against real
-  repos (R1 — cross-paper coverage is still unmeasured), the should-have `--timeout-seconds` /
-  `--run-dir` knobs, and the method write-up.
+- **Status (2026-10-21): complete.** R1 is measured (`plumb verify --bank`, 3 cases), the method
+  write-up is `docs/METHOD.md`, and the should-have `--timeout-seconds` / `--run-dir` knobs
+  landed (#19). Phase 1 has no open items.
 - **Status (2026-10-02; extended 2026-10-10):** the R1 measurement exists. `plumb verify --bank`
   closes the verify→corpus loop (`cross-paper-coverage`); the corpus holds **3 cases,
   133 claims, 132 bound, 117 `REPRODUCED`, 1 `UNVERIFIED`, 15 `DIVERGED`, precision/recall
@@ -64,9 +62,8 @@ off by default. Publish the method.
   Evidence: `fixtures/gate/perrin/README.md`,
   `docs/planning/cross-paper-coverage/panel-run/screening.md`. **The finding is the
   number itself**: the runnable-paper space is thin (consistent with ~3.2% notebook
-  reproduction), and growing the panel is blocked by named engine gaps — a poetry env
-  policy (C2), figure-with-data locators. Remaining:
-  `--timeout-seconds` / `--run-dir` knobs and the method write-up.
+  reproduction), and growing the panel is blocked by a named engine gap — figure-with-data
+  locators (the poetry env policy landed 2026-10-17).
 
 ## Phase 2 — Corpus + benchmark + no-code path (months 2–3)
 

@@ -30,6 +30,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -317,3 +318,67 @@ class TestZeroClaimPaper:
         document = json.loads(capsys.readouterr().out)
         assert code == 0
         assert document["verdicts"] == []
+
+class TestRunKnobs:
+    """Issue #19: `--timeout-seconds` and `--run-dir` reach the runner, safely."""
+
+    def test_help_lists_both_knobs(self, capsys) -> None:
+        assert main(["verify", "--help"]) == 0
+        out = capsys.readouterr().out
+        assert "--timeout-seconds" in out
+        assert "--run-dir" in out
+
+    @pytest.mark.parametrize("value", ["0", "-3", "abc", "nan", "inf"])
+    def test_a_bad_timeout_is_a_usage_error(self, value: str, capsys) -> None:
+        code = main(live_argv("--timeout-seconds", value))
+        captured = capsys.readouterr()
+        assert code == 2
+        assert "--timeout-seconds" in captured.err
+        assert "Traceback" not in captured.err
+
+    def test_both_knobs_are_rejected_with_from_record(self, capsys) -> None:
+        for extra in (("--run-dir", "somewhere"), ("--timeout-seconds", "5")):
+            code = main(["verify", "--from-record", "nope", *extra])
+            err = capsys.readouterr().err
+            assert code == 2
+            assert "unrecognized arguments" not in err
+            assert "--from-record" in err
+
+    def test_the_timeout_kills_a_long_run(self, tmp_path: Path, capsys,
+                                          work_root: Path) -> None:
+        repo = tmp_path / "sleepy"
+        repo.mkdir()
+        (repo / "main.py").write_text("import time\ntime.sleep(30)\n", encoding="utf-8")
+        started = time.monotonic()
+        code = main(["verify", str(PAPER), str(repo), "--bindings", str(BINDINGS),
+                     "--no-env-build", "--timeout-seconds", "1"])
+        elapsed = time.monotonic() - started
+        captured = capsys.readouterr()
+        assert code == 1
+        assert elapsed < 20
+        assert "TIMEOUT" in captured.err
+        assert "UNVERIFIED: 2" in captured.out
+
+    def test_an_explicit_run_dir_holds_the_work_and_objects(self, tmp_path: Path, capsys,
+                                                           work_root: Path) -> None:
+        run_dir = tmp_path / "my-run"
+        code = main(live_argv("--run-dir", str(run_dir)))
+        captured = capsys.readouterr()
+        assert code == 0
+        assert str(run_dir) not in captured.out  # never leaks the absolute path
+        assert (run_dir / "work" / "main.py").is_file()
+        assert any((run_dir / "objects").iterdir())
+        assert not work_root.exists()  # the derived slot was not created
+
+    def test_a_non_empty_run_dir_is_refused_and_left_intact(self, tmp_path: Path, capsys,
+                                                            work_root: Path) -> None:
+        run_dir = tmp_path / "occupied"
+        run_dir.mkdir()
+        marker = run_dir / "keep-me.txt"
+        marker.write_text("previous run\n", encoding="utf-8")
+        code = main(live_argv("--run-dir", str(run_dir)))
+        captured = capsys.readouterr()
+        assert code == 1
+        assert "SPINE_ERROR" in captured.err
+        assert "not empty" in captured.err
+        assert marker.read_text(encoding="utf-8") == "previous run\n"
