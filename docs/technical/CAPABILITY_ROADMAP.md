@@ -286,8 +286,11 @@ notebook papers whose values sit only in pandas Styler HTML *without* the table-
 exists (2026-10-17, `poetry-env-policy`): a poetry-only checkout is classified `"poetry"` and
 built via `uv pip install`, and an empty dependency environment is a named failure rather than a
 silent pass. That removes the empty-venv route; the Perrin re-probe at its recorded drift
-boundary is a separate dev-time aspect, and no claim is made here that the drift cleared. The
-precision/recall benchmark over a public corpus stays Phase 2.
+boundary is a separate dev-time aspect, and no claim is made here that the drift cleared.
+**The public benchmark is published (2026-10-21, #22):** `docs/benchmark/REPORT.md` is
+regenerated from the three committed gate records by `tools/benchmark.py`, and a test fails if
+the committed report drifts from a fresh build. The number it states is the same honest
+`1/15 (owner)`; what changed is that it is now reproducible rather than hand-copied.
 
 ## C6. Signed, replayable reproduction bundle
 
