@@ -228,7 +228,17 @@ trace and objects. Two engine gaps it exposed, fixed test-first: bindings may de
 without it the paper's `2.500` was a false `ARTIFACT_PRECISION_COARSER`), and `parse_trace`
 reads a `RunTrace` back.
 
-**Not built:** a binding proposer (`PROPOSER_UNGROUNDED`/`MODEL_ONLY_SIGNAL` stay reserved).
+**The BYOK binding proposer is built (2026-10-21, #24)** (`src/plumb/propose/`): `plumb verify
+--proposer CMD` runs a user-supplied command on the user's compute (JSON request on stdin: claims
+and the run's locatable artifact paths; a bindings-shaped document on stdout — no SDK, no model
+name and no network code in the repo). Every proposal is re-grounded before it is kept: the claim
+must be the paper's, the artifact must be one the run wrote, the locator must parse under the
+same rules a hand-written file must satisfy, and it must resolve to exactly one fresh value;
+otherwise the proposal is dropped with `PROPOSER_UNGROUNDED` or `MODEL_ONLY_SIGNAL` on stderr
+(never a silent drop, never a verdict cause). The accepted bindings then pass `load_bindings` and
+`verify_claims` exactly as a hand-written file does — so a model can never assign a verdict — and
+they travel in the bundle, which means a proposed verification replays without the model.
+`--bindings` remains the default and the two are mutually exclusive.
 **The `notebook_cell` locator landed 2026-10-10** (`notebook-cell-locator`): a pointer into a
 cell's canonical outputs array, stale cells resolve to their notebook file and are never
 read, kinds stay disjoint from `json_pointer`.

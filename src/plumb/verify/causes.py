@@ -17,8 +17,10 @@ silent pass and never `DIVERGED`). The vocabulary is the union of:
   `PRECISION_AMBIGUOUS`, `ARTIFACT_PRECISION_COARSER`.
 
 `PROPOSER_UNGROUNDED` and `MODEL_ONLY_SIGNAL` (`ARCHITECTURE.md`) are
-**reserved**: they belong to a binding proposer that does not exist, so nothing
-emits them and they are deliberately outside `CAUSES`.
+**reserved**: they belong to the BYOK binding proposer (`plumb.propose`), not to
+the verdict vocabulary. A dropped proposal never becomes a verdict cause — the
+claim is `NO_BINDING` and the run's evidence decides — so the names stay outside
+`CAUSES` on purpose.
 """
 
 from __future__ import annotations

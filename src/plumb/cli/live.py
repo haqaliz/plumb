@@ -50,6 +50,7 @@ from plumb.extract.pipeline import extract_claims
 from plumb.intake.checkout import resolve_archive, resolve_git, resolve_local
 from plumb.intake.env import EnvBuild, build_environment, describe_environment, uv_sync_runner
 from plumb.pdf import PdfInputError, pdf_to_markdown
+from plumb.propose import propose_bindings
 from plumb.run import run_and_capture
 from plumb.run.causes import NO_ARTIFACT, EntryPointAmbiguous, EntryPointMissing
 from plumb.run.entrypoint import resolve_entrypoint
@@ -74,6 +75,9 @@ _JSON = {"sort_keys": True, "ensure_ascii": False, "separators": (",", ":")}
 
 #: The default timeout, matching the isolation posture C2 records.
 _TIMEOUT_SECONDS = 1800
+
+#: The bindings document used when a proposer has nothing to bind against (no run).
+_EMPTY_BINDINGS = b'{"bindings": []}'
 
 
 def repo_kind(repo: str) -> str | None:
@@ -161,7 +165,12 @@ def _spine(args: argparse.Namespace, record_dir: Path | None = None):
     """
     paper_bytes, paper_format, paper_text = _read_paper(Path(args.paper))
     claims, _ = extract_claims(paper_text)
-    bindings_bytes = _read_bindings(args.bindings)
+    proposer = args.proposer
+    if proposer is None:
+        bindings_bytes = _read_bindings(args.bindings)
+    else:
+        # A proposal is grounded against the capture, which does not exist until the run does.
+        bindings_bytes = _EMPTY_BINDINGS
     bindings = load_bindings(bindings_bytes, [c.id for c in claims])
 
     kind = repo_kind(args.repo)
@@ -184,6 +193,11 @@ def _spine(args: argparse.Namespace, record_dir: Path | None = None):
     trace, capture = run_and_capture(
         checkout, env_build, entrypoint, run_dir=run_dir, timeout_seconds=_TIMEOUT_SECONDS,
     )
+    if proposer is not None and trace.failure is None:
+        bindings_bytes, refusals = propose_bindings(proposer, claims, capture)
+        for refusal in refusals:
+            print(f"plumb propose: {refusal.cause}: {refusal.detail}", file=sys.stderr)
+        bindings = load_bindings(bindings_bytes, [c.id for c in claims])
     verdicts = verify_claims(claims, bindings, Completed(trace, capture))
     if args.out is not None:
         _build_bundle(args, paper_bytes, paper_format, Path(args.paper), claims,

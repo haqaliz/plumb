@@ -83,15 +83,17 @@ uv run plumb verify --from-record fixtures/gate/rcai
 **Verify a paper of your own, live:**
 
 ```bash
-uv run plumb verify <paper> <repo> [--rev REV] [--bindings bindings.json]
+uv run plumb verify <paper> <repo> [--rev REV] [--bindings bindings.json | --proposer CMD]
 #   <paper>  a local PDF/Markdown — the claims are extracted and selected by rule
 #   <repo>   a local dir, git URL (with --rev), or archive — pinned checkout + env
 #   --bindings   your user-written bindings: which captured value each claim is checked against
+#   --proposer   a BYOK command that proposes those bindings; every proposal is re-grounded
+#                against the run before it is kept (a model may propose; execution decides)
 ```
 
-> **Live mode is expert-mode today.** `--bindings` is required and hand-written; there is no
-> binding proposer yet. That gap is the next capability, not a footnote — see
-> [`docs/LAUNCH.md`](docs/LAUNCH.md).
+> **Live mode is expert-mode.** You need `--bindings` (hand-written) or `--proposer` (BYOK: you
+> supply a command that proposes bindings; Plumb keeps only proposals that resolve to a real value
+> in the run). Neither is a one-click path from a paper's PDF yet.
 
 **Develop:**
 

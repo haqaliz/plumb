@@ -54,8 +54,8 @@ a visitor can touch. The binding constraint is the first 60 seconds and the cred
 | **M6** | **Launch assets & day-of runbook** | Tagline, maker comment, hunter, timing, screenshots, demo video. | ✅ done | owner |
 
 Critical-path total: **~4–5 focused days** of work after the repo changes in this commit. The
-self-serve binding proposer is **deliberately not on this path** (see
-[Deferred](#deferred--do-not-block-the-launch-on-these)).
+self-serve binding proposer was **deliberately not on this path** at launch and has since
+landed (#24).
 
 ---
 
@@ -226,7 +226,6 @@ These are real gaps. They are listed here so nobody mistakes the launch for "fin
 
 | Gap | Why it is deferred | When |
 |---|---|---|
-| **C4 binding proposer (BYOK)** | The single biggest product gap: a stranger cannot verify *their own* paper without hand-writing `--bindings`. It is weeks of work and a capability, not a launch task. | Next unit after launch; the first demand-pull feature |
 | **C7 no-code path** | Most papers ship no runnable code. Until statcheck/GRIM lands, the answer to most papers is "cannot verify", which must be framed, not hidden. | Phase 2 |
 | **Hosted layer (C8)** | Demand-pull by design (`ROADMAP.md`). | Post-PH traction |
 | **`--timeout-seconds` / `--run-dir` knobs** | Should-have hardening from Phase 1; not user-visible on the demo path. | With the proposer |
