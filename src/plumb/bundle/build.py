@@ -64,6 +64,7 @@ def build_bundle(
     environment: str,
     source: SourceRecord,
     signer,
+    created: str | None = None,
 ) -> Path:
     """Write, check and sign the bundle at `out`; refuse rather than sign a bad one."""
     out = Path(out)
@@ -71,6 +72,8 @@ def build_bundle(
         raise BundleRefused(f"{out} exists and is not empty; a bundle is written fresh")
     if paper_format not in PAPER_MEMBERS:
         raise BundleRefused(f"paper_format must be one of {sorted(PAPER_MEMBERS)}")
+    if created is not None and (not isinstance(created, str) or not created):
+        raise BundleRefused("created must be a non-empty string when supplied")
 
     claims = list(claims)
     raw = paper_text(paper, paper_format)
@@ -102,6 +105,8 @@ def build_bundle(
         "run_id": trace.run_id,
         "members": [],
     }
+    if created is not None:
+        manifest["created"] = created
     out.mkdir(parents=True, exist_ok=True)
     try:
         for relpath, data in members.items():

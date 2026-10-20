@@ -67,6 +67,8 @@ STRUCTURED = (MANIFEST, *FIXED_MEMBERS)
 _OBJECT = re.compile(r"objects/[0-9a-f]{64}")
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 _MANIFEST_FIELDS = {"format", "signer", "paper", "source", "tree_hash", "run_id", "members"}
+#: Present only when the builder supplied it; manifests without it still verify.
+_OPTIONAL_MANIFEST_FIELDS = {"created"}
 _PAPER_FIELDS = {"format", "sha256", "source", "included"}
 _SOURCE_FIELDS = {
     "kind", "location", "rev_requested", "rev_resolved", "rev_defaulted", "size_cap_bytes",
@@ -128,8 +130,16 @@ def verify_bundle(
 def read_manifest(data: bytes) -> dict[str, Any]:
     try:
         manifest = json.loads(data.decode("utf-8"))
-        if not isinstance(manifest, dict) or set(manifest) != _MANIFEST_FIELDS:
+        if (
+            not isinstance(manifest, dict)
+            or not _MANIFEST_FIELDS <= set(manifest)
+            or set(manifest) - _MANIFEST_FIELDS - _OPTIONAL_MANIFEST_FIELDS
+        ):
             raise ValueError(f"a manifest has exactly the fields {sorted(_MANIFEST_FIELDS)}")
+        if "created" in manifest and (
+            not isinstance(manifest["created"], str) or not manifest["created"]
+        ):
+            raise ValueError("created must be a non-empty string when present")
         if manifest["format"] != FORMAT:
             raise ValueError(f"format {manifest['format']!r} is not {FORMAT!r}")
         paper = manifest["paper"]

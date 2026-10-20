@@ -70,6 +70,7 @@ from plumb.run.causes import (
     EntryPointAmbiguous,
     EntryPointMissing,
 )
+from plumb.cli.bundle import cmd_bundle_inspect, cmd_bundle_pack, cmd_bundle_verify
 from plumb.cli.corpus import cmd_corpus_bank, cmd_corpus_report
 from plumb.cli.render import render_verdicts
 from plumb.cli.replay import replay_record
@@ -202,7 +203,8 @@ def build_parser() -> argparse.ArgumentParser:
             "write-once discrepancy corpus; a record that would not replay does not "
             "bank. corpus report [--store DIR] reports coverage, precision and "
             "recall over the banked cases, every figure with its denominator and "
-            "its label authority."
+            "its label authority. bundle verify|inspect|pack checks, reads or "
+            "archives a signed bundle; verify exits 1 with named causes."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -302,6 +304,44 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--json", action="store_true",
                         help="emit canonical JSON instead of the report table")
     report.set_defaults(handler=cmd_corpus_report)
+    bundle = subcommands.add_parser(
+        "bundle",
+        help="verify, inspect or pack a signed reproduction bundle",
+        description=(
+            "A bundle is evidence only if a third party can check it. `verify` checks the "
+            "signature against the allowed signers you choose, every member, the claims' "
+            "grounding in the paper, and the re-derived verdicts, and exits 1 with named "
+            "causes when it does not hold. `inspect` reads the manifest's declared fields "
+            "without checking the signature. `pack` writes deterministic .tar/.tar.gz "
+            "bytes. A directory or an archive is accepted by verify and inspect."
+        ),
+    )
+    bundle_commands = bundle.add_subparsers(required=True, metavar="SUBCOMMAND")
+    b_verify = bundle_commands.add_parser("verify", help="check a bundle's signature and evidence")
+    b_verify.add_argument("bundle", metavar="<bundle>",
+                          help="a bundle directory, or a .tar/.tar.gz/.tgz of one")
+    b_verify.add_argument("--allowed-signers", metavar="FILE", required=True,
+                          help="OpenSSH allowed_signers file naming the principal you trust")
+    b_verify.add_argument("--principal", metavar="NAME", default="plumb-bundle",
+                          help="the signer identity you expect (default: plumb-bundle)")
+    b_verify.add_argument("--paper", metavar="FILE",
+                          help="the paper, when the bundle omits it")
+    b_verify.add_argument("--json", action="store_true",
+                          help="emit canonical JSON instead of the summary line")
+    b_verify.set_defaults(handler=cmd_bundle_verify)
+    b_inspect = bundle_commands.add_parser(
+        "inspect", help="print the signed manifest's declared fields")
+    b_inspect.add_argument("bundle", metavar="<bundle>",
+                           help="a bundle directory, or a .tar/.tar.gz/.tgz of one")
+    b_inspect.add_argument("--json", action="store_true",
+                           help="emit canonical JSON instead of the field lines")
+    b_inspect.set_defaults(handler=cmd_bundle_inspect)
+    b_pack = bundle_commands.add_parser(
+        "pack", help="write a deterministic archive of a bundle directory")
+    b_pack.add_argument("bundle", metavar="<bundle>", help="a bundle directory")
+    b_pack.add_argument("--out", metavar="FILE", required=True,
+                        help="the archive to write (.tar, .tar.gz or .tgz)")
+    b_pack.set_defaults(handler=cmd_bundle_pack)
     return parser
 
 
