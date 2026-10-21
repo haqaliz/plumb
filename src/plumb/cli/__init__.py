@@ -54,6 +54,7 @@ else is a usage error), a `--out` bundle has an existing signer key, and
 from __future__ import annotations
 
 import argparse
+import math
 from pathlib import Path
 import sys
 
@@ -245,6 +246,11 @@ def build_parser() -> argparse.ArgumentParser:
                         help="omit the paper from the bundle")
     verify.add_argument("--json", action="store_true",
                         help="emit canonical JSON instead of the verdict table")
+    verify.add_argument("--timeout-seconds", metavar="SECONDS", type=_positive_seconds,
+                        help="kill the run after SECONDS (default: 1800)")
+    verify.add_argument("--run-dir", metavar="DIR",
+                        help="the run area: working copy and captured objects "
+                             "(default: a slot under ~/.plumb-runs, keyed by the inputs)")
     verify.set_defaults(handler=cmd_verify)
     corpus = subcommands.add_parser(
         "corpus",
@@ -330,11 +336,14 @@ def cmd_verify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int
                 args.bindings is not None,
                 args.rev is not None,
                 args.no_env_build,
+                args.run_dir is not None,
+                args.timeout_seconds is not None,
             )
         ):
             parser.error(
                 "--from-record replays a record and cannot be combined with <paper>, "
-                "<repo>, --bindings, --rev or --no-env-build"
+                "<repo>, --bindings, --rev, --no-env-build, --run-dir or "
+                "--timeout-seconds"
             )
         if args.out is not None:
             _check_signer_key(args.signer_key)
@@ -355,6 +364,17 @@ def cmd_verify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int
     if kind != "git" and args.rev is not None:
         parser.error("--rev applies only to a git-URL <repo>")
     return run_live(args)
+
+
+def _positive_seconds(text: str) -> float:
+    """A finite, positive number of seconds; anything else is a usage error."""
+    try:
+        value = float(text)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"expected a number of seconds, got {text!r}") from exc
+    if not math.isfinite(value) or value <= 0:
+        raise argparse.ArgumentTypeError(f"expected a positive number of seconds, got {text!r}")
+    return value
 
 
 def _check_paper(paper: str) -> None:

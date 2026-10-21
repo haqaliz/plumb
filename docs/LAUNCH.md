@@ -229,7 +229,6 @@ These are real gaps. They are listed here so nobody mistakes the launch for "fin
 | **C4 binding proposer (BYOK)** | The single biggest product gap: a stranger cannot verify *their own* paper without hand-writing `--bindings`. It is weeks of work and a capability, not a launch task. | Next unit after launch; the first demand-pull feature |
 | **C7 no-code path** | Most papers ship no runnable code. Until statcheck/GRIM lands, the answer to most papers is "cannot verify", which must be framed, not hidden. | Phase 2 |
 | **Hosted layer (C8)** | Demand-pull by design (`ROADMAP.md`). | Post-PH traction |
-| **`--timeout-seconds` / `--run-dir` knobs** | Should-have hardening from Phase 1; not user-visible on the demo path. | With the proposer |
 | **Module rename `plumb` → `plumb_verify`** | Removes the PyPI collision but touches every import and test. No user value today. | Only if install collisions are reported |
 
 ---

@@ -8,7 +8,9 @@ write and self-verify the signed bundle. Everything is on the user's compute;
 nothing here reaches a network the user did not authorize.
 
 **The run area is the CLI's own cache, keyed by inputs.** `WORK_ROOT` defaults
-to `~/.plumb-runs` (documented in `--help`); the checkout (git/archive sources),
+to `~/.plumb-runs` (documented in `--help`); `--run-dir DIR` puts the working copy
+and captured objects somewhere else (never wiping a non-empty directory), and
+`--timeout-seconds` overrides the 1800 s wall clock. The checkout (git/archive sources),
 the run directory and its captured objects all live there, named
 deterministically from the inputs (`run-<tree-digest12>-<argv-hash8>`), and a
 re-run replaces the previous run's slot rather than piling up. The trace never
@@ -179,10 +181,18 @@ def _spine(args: argparse.Namespace, record_dir: Path | None = None):
         verdicts = verify_claims(claims, bindings, NoRun.from_exception(exc))
         return verdicts, (exc.cause, str(exc)), None
 
-    run_dir = derive_run_dir(WORK_ROOT, checkout.tree_hash, entrypoint.argv)
-    _reset(run_dir)
+    if args.run_dir is not None:
+        # A user-supplied run area is never wiped: the runner refuses a non-empty
+        # directory rather than deleting a previous run's outputs.
+        run_dir = Path(args.run_dir).expanduser()
+    else:
+        run_dir = derive_run_dir(WORK_ROOT, checkout.tree_hash, entrypoint.argv)
+        _reset(run_dir)
+    timeout_seconds = (
+        args.timeout_seconds if args.timeout_seconds is not None else _TIMEOUT_SECONDS
+    )
     trace, capture = run_and_capture(
-        checkout, env_build, entrypoint, run_dir=run_dir, timeout_seconds=_TIMEOUT_SECONDS,
+        checkout, env_build, entrypoint, run_dir=run_dir, timeout_seconds=timeout_seconds,
     )
     verdicts = verify_claims(claims, bindings, Completed(trace, capture))
     if args.out is not None:
