@@ -78,6 +78,7 @@ from plumb.cli.consistency import cmd_consistency
 from plumb.cli.corpus import cmd_corpus_bank, cmd_corpus_report
 from plumb.cli.render import render_verdicts
 from plumb.cli.replay import replay_record
+from plumb.propose import PROPOSER_FAILED
 from plumb.verify.causes import ENV_BUILD_FAILED, BindingInvalid
 
 __all__ = [
@@ -93,6 +94,7 @@ __all__ = [
     "KEY_MISSING",
     "NO_ARTIFACT",
     "PAPER_UNREADABLE",
+    "PROPOSER_FAILED",
     "RECORD_INVALID",
     "REV_NOT_FOUND",
     "SOURCE_NOT_FOUND",
@@ -148,6 +150,7 @@ CLI_CAUSES = frozenset(
         NO_ARTIFACT,
         STALE_ARTIFACT,
         BINDING_INVALID,
+        PROPOSER_FAILED,
         RECORD_INVALID,
         KEY_MISSING,
         BUNDLE_REFUSED,
@@ -202,6 +205,7 @@ def build_parser() -> argparse.ArgumentParser:
             "  --signer-key PATH    SSH private key for bundle signing\n"
             "                       (default: ~/.ssh/plumb_bundle_ed25519)\n"
             "  --no-paper           omit the paper from the bundle\n"
+            "  --proposer CMD       a BYOK command proposing bindings; re-grounded\n"
             "  --json               emit canonical JSON instead of the verdict table"
         ),
         epilog=(
@@ -209,8 +213,10 @@ def build_parser() -> argparse.ArgumentParser:
             "  0  every claim decided and the run succeeded\n"
             "  1  any UNVERIFIED verdict, spine failure, or named cause\n"
             "  2  usage error\n\n"
-            "--bindings FILE is required in live mode; --from-record carries its own "
-            "record and takes no <paper>, <repo>, --bindings, --rev or --no-env-build.\n\n"
+            "Live mode needs exactly one of --bindings FILE or --proposer CMD; a proposed "
+            "binding is kept only if it locates a real value in the run, and the accepted "
+            "bindings travel in the bundle. --from-record carries its own record and takes "
+            "no <paper>, <repo>, --bindings, --proposer, --rev or --no-env-build.\n\n"
             "corpus bank <record-dir> [--store DIR] folds a verify record into the "
             "write-once discrepancy corpus; a record that would not replay does not "
             "bank. corpus report [--store DIR] reports coverage, precision and "
@@ -231,8 +237,9 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Re-derive the paper's quantitative claims from its own artifacts and "
             "decide each one. Live mode (the default) runs the spine end-to-end; "
-            "--from-record replays a committed record instead. --bindings FILE is "
-            "required in live mode."
+            "--from-record replays a committed record instead. Live mode needs "
+            "exactly one of --bindings FILE (hand-written) or --proposer CMD (BYOK, "
+            "re-grounded against the run)."
         ),
     )
     verify.add_argument("paper", nargs="?", metavar="<paper>",
@@ -242,7 +249,11 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--rev", metavar="REV",
                         help="git revision for a git-URL <repo>")
     verify.add_argument("--bindings", metavar="FILE",
-                        help="JSON bindings file (required in live mode)")
+                        help="JSON bindings file (one of --bindings, --proposer is required)")
+    verify.add_argument("--proposer", metavar="CMD",
+                        help="a BYOK command that proposes bindings on stdin/stdout; every "
+                             "proposal is re-grounded against the run (one of --bindings, "
+                             "--proposer is required)")
     verify.add_argument("--out", metavar="DIR",
                         help="write a signed, replayable bundle to DIR")
     verify.add_argument("--bank", action="store_true",
@@ -401,6 +412,7 @@ def cmd_verify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int
                 args.paper is not None,
                 args.repo is not None,
                 args.bindings is not None,
+                args.proposer is not None,
                 args.rev is not None,
                 args.no_env_build,
                 args.run_dir is not None,
@@ -409,8 +421,8 @@ def cmd_verify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int
         ):
             parser.error(
                 "--from-record replays a record and cannot be combined with <paper>, "
-                "<repo>, --bindings, --rev, --no-env-build, --run-dir or "
-                "--timeout-seconds"
+                "<repo>, --bindings, --proposer, --rev, --no-env-build, --run-dir "
+                "or --timeout-seconds"
             )
         if args.out is not None:
             _check_signer_key(args.signer_key)
@@ -418,8 +430,10 @@ def cmd_verify(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int
 
     if args.paper is None or args.repo is None:
         parser.error("the following arguments are required: paper, repo")
-    if args.bindings is None:
-        parser.error("--bindings FILE is required in live mode (see --help)")
+    if args.bindings is None and args.proposer is None:
+        parser.error("--bindings FILE or --proposer CMD is required in live mode (see --help)")
+    if args.bindings is not None and args.proposer is not None:
+        parser.error("--bindings and --proposer are alternatives: give exactly one")
     _check_paper(args.paper)
     if args.out is not None:
         _check_signer_key(args.signer_key)
