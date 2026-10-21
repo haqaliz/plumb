@@ -321,8 +321,14 @@ supplied by the verifier and checked against its SHA-256. **The AgroDesign bundl
 (`bundles/agrodesign/`, signed with the dedicated `plumb-bundle` key; public key in
 `bundles/allowed_signers`) verifies, including from a fresh clone, and
 `tools/bundle_replay.py` re-ran it from a clean clone in the frozen environment with a
-byte-identical run id. **Not built:** transparency logs / sigstore, timestamps, key rotation,
-tar packaging, a `plumb bundle` CLI.
+byte-identical run id. **The five named gaps closed (2026-10-21, `bundle-hardening`):** a
+`plumb bundle verify|inspect|pack` CLI, deterministic `.tar`/`.tar.gz` packaging (with safe
+extraction: absolute paths, `..`, links and devices refused), an optional signed `created`
+field (self-asserted, not a third-party timestamp), and key rotation (OpenSSH's line-based
+`allowed_signers`; a rotated file with retired and current keys verifies, and the procedure is
+in `bundles/README.md`). **Still not built: transparency logs / sigstore** — they need a
+third-party service and a crypto dependency, which the zero-dependency bundle design rejects;
+the reason is recorded in `bundles/README.md` rather than papered over.
 
 ## C7. Internal-consistency checks (no-code path)
 
