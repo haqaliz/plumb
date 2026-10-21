@@ -18,9 +18,10 @@ run's id, and the record refuses one without them.
    is `UNVERIFIED` with that cause;
 2. the trace's recorded failure (`WONT_RUN`, `TIMEOUT`): every claim, even if the
    failed run's outputs were captured and would have matched;
-3. `NO_ARTIFACT`: every claim;
-4. per claim: no binding → `NO_BINDING`; then locate, then compare.
-
+3. a recorded evidence cap (`ARTIFACT_TOO_LARGE`, `CAPTURE_LIMIT_EXCEEDED`): every
+   claim — a capped run is not evidence;
+4. `NO_ARTIFACT`: every claim;
+5. per claim: no binding → `NO_BINDING`; then locate, then compare.
 So **no harness-side failure can produce `DIVERGED`** (`CLAUDE.md` #3). The
 precedence lives in `_run_level_cause`, which the guard test patches out to
 prove the suite would notice.
@@ -33,6 +34,7 @@ prove the suite would notice.
 | `ENV_BUILD_FAILED` | seam (`NoRun`) | C2's environment build failed; nothing ran |
 | `WONT_RUN`, `TIMEOUT` | seam | the run failed or was killed |
 | `NO_ARTIFACT` | seam | the run succeeded but wrote nothing capturable |
+| `ARTIFACT_TOO_LARGE`, `CAPTURE_LIMIT_EXCEEDED` | seam | a cap refused an artifact; a capped run is not evidence |
 | `NO_BINDING` | seam / locate | no binding; target not written; locator matched nothing |
 | `STALE_ARTIFACT` | locate | the target predates the run; its bytes are never read |
 | `AMBIGUOUS_BINDING` | locate | the locator matched more than one value |
@@ -60,6 +62,8 @@ from plumb.run.causes import EntryPointAmbiguous, EntryPointMissing
 from plumb.run.trace import RunTrace, derive_run_id
 from plumb.verify.bindings import Binding, load_bindings
 from plumb.verify.causes import (
+    ARTIFACT_TOO_LARGE,
+    CAPTURE_LIMIT_EXCEEDED,
     CAUSES,
     ENTRYPOINT_AMBIGUOUS,
     ENTRYPOINT_MISSING,
@@ -157,6 +161,9 @@ def _run_level_cause(trace: RunTrace) -> str | None:
     """The cause that governs every claim of this run, if the run itself failed."""
     if trace.failure is not None:
         return trace.failure.cause
+    for cause in (ARTIFACT_TOO_LARGE, CAPTURE_LIMIT_EXCEEDED):
+        if cause in trace.causes:
+            return cause
     if NO_ARTIFACT in trace.causes:
         return NO_ARTIFACT
     return None

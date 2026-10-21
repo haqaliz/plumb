@@ -19,6 +19,8 @@ a verdict.
 from __future__ import annotations
 
 __all__ = [
+    "ARTIFACT_TOO_LARGE",
+    "CAPTURE_LIMIT_EXCEEDED",
     "NO_ARTIFACT",
     "STALE_ARTIFACT",
     "TIMEOUT",
@@ -35,6 +37,10 @@ TIMEOUT = "TIMEOUT"
 STALE_ARTIFACT = "STALE_ARTIFACT"
 #: The run succeeded but produced nothing capturable (no fresh file, empty stdout).
 NO_ARTIFACT = "NO_ARTIFACT"
+#: One output (or stream) outgrew the per-artifact cap: refused, never truncated.
+ARTIFACT_TOO_LARGE = "ARTIFACT_TOO_LARGE"
+#: The run's captured evidence outgrew the total cap: later artifacts are refused.
+CAPTURE_LIMIT_EXCEEDED = "CAPTURE_LIMIT_EXCEEDED"
 
 
 class EntryPointMissing(RuntimeError):

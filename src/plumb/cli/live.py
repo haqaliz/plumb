@@ -53,7 +53,13 @@ from plumb.intake.checkout import resolve_archive, resolve_git, resolve_local
 from plumb.intake.env import EnvBuild, build_environment, describe_environment, uv_sync_runner
 from plumb.pdf import PdfInputError, pdf_to_markdown
 from plumb.run import run_and_capture
-from plumb.run.causes import NO_ARTIFACT, EntryPointAmbiguous, EntryPointMissing
+from plumb.run.causes import (
+    ARTIFACT_TOO_LARGE,
+    CAPTURE_LIMIT_EXCEEDED,
+    NO_ARTIFACT,
+    EntryPointAmbiguous,
+    EntryPointMissing,
+)
 from plumb.run.entrypoint import resolve_entrypoint
 from plumb.verify import (
     UNVERIFIED,
@@ -272,6 +278,9 @@ def _trace_failure(trace) -> tuple[str, str] | None:
     """The run-level (cause, detail) a completed run records, if any."""
     if trace.failure is not None:
         return trace.failure.cause, trace.failure.detail
+    for cause in (ARTIFACT_TOO_LARGE, CAPTURE_LIMIT_EXCEEDED):
+        if cause in trace.causes:
+            return cause, "the run's captured evidence exceeded its size cap"
     if NO_ARTIFACT in trace.causes:
         return NO_ARTIFACT, "the run succeeded but wrote no capturable output"
     return None

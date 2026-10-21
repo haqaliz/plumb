@@ -14,10 +14,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from plumb.run.capture import CaptureCaps, capture_outputs
+from plumb.run.trace import build_trace
 from plumb.verify import CAUSES, UNVERIFIED, Completed, load_bindings, verify_claims
 from plumb.verify import causes
 from test_false_diverged_guard import assert_guard
-from verify_helpers import bindings_json, claim, run_full, writes_notebook
+from verify_helpers import (
+    OK_BUILD,
+    bindings_json,
+    claim,
+    entry,
+    make_checkout,
+    run_full,
+    writes,
+    writes_notebook,
+)
 
 PROGRAM = (
     "import json, pathlib\n"
@@ -76,5 +87,36 @@ def test_each_binding_and_comparison_cause_is_emitted(tmp_path: Path) -> None:
         assert (verdicts[c.id].verdict, verdicts[c.id].cause) == (UNVERIFIED, expected), expected
 
 
+def _cap_causes(tmp_path: Path) -> set[str]:
+    """The two evidence-cap causes, each through a real run and its verdict."""
+    from plumb.run.runner import run_entrypoint
+
+    scenarios = (
+        (causes.ARTIFACT_TOO_LARGE, writes("results.json", "x" * 200),
+         CaptureCaps(max_artifact_bytes=10)),
+        (causes.CAPTURE_LIMIT_EXCEEDED,
+         writes("a.json", '{"v": 1}') + writes("b.json", '{"v": 2}'),
+         CaptureCaps(max_artifact_bytes=1000, max_total_bytes=12)),
+    )
+    seen = set()
+    for index, (expected, program, caps) in enumerate(scenarios):
+        root = tmp_path / f"cap{index}"
+        checkout = make_checkout(root / "proj")
+        result = run_entrypoint(
+            checkout, OK_BUILD, entry(program), run_dir=root / "run"
+        )
+        capture = capture_outputs(result, caps=caps)
+        trace = build_trace(checkout, result, capture)
+        assert expected in trace.causes, expected
+        one = claim("0.87")
+        bindings = load_bindings(
+            bindings_json((one, "results.json", ptr("/auc"))), [one.id]
+        )
+        (verdict,) = verify_claims([one], bindings, Completed(trace, capture)).verdicts
+        assert (verdict.verdict, verdict.cause) == (UNVERIFIED, expected), expected
+        seen.add(expected)
+    return seen
+
+
 def test_the_vocabulary_is_exactly_what_the_engine_emits(tmp_path: Path) -> None:
-    assert set(CASES) | assert_guard(tmp_path / "guard") == CAUSES
+    assert set(CASES) | assert_guard(tmp_path / "guard") | _cap_causes(tmp_path / "caps") == CAUSES

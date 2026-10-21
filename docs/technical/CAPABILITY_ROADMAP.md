@@ -175,8 +175,12 @@ resolved cell→file and never read, kinds disjoint from `json_pointer`, no new 
 **HTML table-cell addressing landed 2026-10-10** (`notebook-paper`, N1): a `table`
 `{row, column}` mode addresses one `<td>` inside a pointed `text/html` leaf — pandas Styler
 renders values only inside a single HTML string, the field's dominant notebook-table path.
-**Not built:** resource caps
-beyond the timeout, and container isolation. C4's first slice (2026-09-25) consumes the trace and capture; verdicts
+**Resource caps landed (2026-10-21, #21):** one artifact and the run's total captured bytes are
+bounded (`CaptureCaps`, 64 MiB / 256 MiB by default); an over-cap artifact is refused before it
+is read — never truncated — and `ARTIFACT_TOO_LARGE` / `CAPTURE_LIMIT_EXCEEDED` are recorded
+causes that govern every verdict. **Container isolation is still deferred**: it needs a Docker
+runtime in CI and a new dependency, and C2 already records subprocess isolation as the posture
+(`env.py:50-57`); the reason is written down rather than implied. C4's first slice (2026-09-25) consumes the trace and capture; verdicts
 ran on a real paper for the first time on 2026-09-26 (AgroDesign, see C4); the Phase 0 gate
 now has its signed bundle (C6, 2026-09-27), and with the owner's review of the `DIVERGED` the
 Phase 0 gate is met.

@@ -28,6 +28,8 @@ that cause recorded; none can ever produce `DIVERGED`:
 | `TIMEOUT` (recorded) | the process group outlived its timeout and was killed | `TIMEOUT` |
 | `STALE_ARTIFACT` (recorded) | an output file's mtime predates the run start | `STALE_ARTIFACT` |
 | `NO_ARTIFACT` (recorded) | a successful run wrote no fresh output and nothing to stdout | `NO_ARTIFACT` |
+| `ARTIFACT_TOO_LARGE` (recorded) | one output or stream outgrew the per-artifact cap; refused, never truncated | `ARTIFACT_TOO_LARGE` |
+| `CAPTURE_LIMIT_EXCEEDED` (recorded) | the run's captured evidence outgrew the total cap | `CAPTURE_LIMIT_EXCEEDED` |
 
 **Offline contract.** Tests never touch the network: every entry point is the
 test interpreter running a local program, and the run env sets
@@ -35,8 +37,11 @@ test interpreter running a local program, and the run env sets
 the fallback entry point, executed through the checkout's own
 ``jupyter nbconvert --execute --inplace``; each fresh notebook is captured
 whole-file (``notebook``) plus one ``notebook_cell`` artifact per output-bearing
-cell. The C4 ``notebook_cell`` locator is the named follow-on; resource caps
-beyond the timeout are recorded, not enforced.
+cell. **Resource caps** bound the evidence read and stored: one artifact and
+the run's total captured bytes, each a recorded cause that governs the
+verdicts. A run that floods stdout is still buffered by the runner before the
+cap applies (`shortcut: stdout/stderr are capped after the fact, stream them
+when a real process floods memory`). Container isolation is still deferred.
 """
 
 from __future__ import annotations
@@ -45,8 +50,16 @@ from pathlib import Path
 
 from plumb.intake.checkout import Checkout
 from plumb.intake.env import EnvBuild
-from plumb.run.capture import Artifact, Capture, StaleOutput, capture_outputs
+from plumb.run.capture import (
+    Artifact,
+    Capture,
+    CaptureCaps,
+    StaleOutput,
+    capture_outputs,
+)
 from plumb.run.causes import (
+    ARTIFACT_TOO_LARGE,
+    CAPTURE_LIMIT_EXCEEDED,
     NO_ARTIFACT,
     STALE_ARTIFACT,
     TIMEOUT,
@@ -59,12 +72,15 @@ from plumb.run.runner import RunFailure, RunResult, run_entrypoint
 from plumb.run.trace import RunTrace, build_trace, derive_run_id, parse_trace, serialize_trace
 
 __all__ = [
+    "ARTIFACT_TOO_LARGE",
+    "CAPTURE_LIMIT_EXCEEDED",
     "NO_ARTIFACT",
     "STALE_ARTIFACT",
     "TIMEOUT",
     "WONT_RUN",
     "Artifact",
     "Capture",
+    "CaptureCaps",
     "EntryPoint",
     "EntryPointAmbiguous",
     "EntryPointMissing",
@@ -90,10 +106,11 @@ def run_and_capture(
     *,
     run_dir: Path | str | None = None,
     timeout_seconds: float = 1800,
+    caps: CaptureCaps | None = None,
 ) -> tuple[RunTrace, Capture]:
     """Run, capture, and trace; the capture is how C4 reads the outputs."""
     result = run_entrypoint(
         checkout, env_build, entrypoint, run_dir=run_dir, timeout_seconds=timeout_seconds
     )
-    capture = capture_outputs(result)
+    capture = capture_outputs(result) if caps is None else capture_outputs(result, caps=caps)
     return build_trace(checkout, result, capture), capture
