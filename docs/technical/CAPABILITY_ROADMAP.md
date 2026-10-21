@@ -347,6 +347,21 @@ size, so counting it as one would distort the bind-and-re-derive coverage number
 **Guardrail:** constraint #3 — an internal inconsistency is labeled as such, never rendered as a
 ground-truth `DIVERGED` from re-execution.
 
+**Status (2026-10-21, #23): the first slice is built** under `src/plumb/consistency/` with
+`plumb consistency <paper> [--json]`. `statcheck` recomputes an explicitly reported statistic's p
+from its own df (t, F, χ², z, r) with no SciPy dependency, and compares `t`/`z`/`r` against
+**both** the two-sided and one-sided p, so an unlabeled one-sided report is never flagged; a
+bound (`p < .001`) is checked as a bound, rounding at the paper's own precision is never a
+finding, and a missing df is `NOT_APPLICABLE`. `GRIM` checks a mean against its N at the reported
+precision (Decimal, no float) behind a deliberately narrow gate: one explicit `mean = …` and one
+`N = …` in the same sentence. Labels are `INTERNAL_INCONSISTENCY` / `CONSISTENT` /
+`NOT_APPLICABLE` — never `DIVERGED` — and the CLI says so on every run. Limits: GRIM applies only
+to means of integer-valued items, which prose cannot establish, so a `CONSISTENT` label means
+"this check found nothing", never a clean bill; chi-square symmetric-statistics variants and
+one-tailed conventions are out of scope. No real no-code paper has been run through it yet — the
+panel has runnable artifacts, and the labels' calibration against a labeled no-code corpus is the
+next step.
+
 ## C8. Hosted layer (BYOK, opt-in) — the business
 
 **What:** a managed service journals, labs, and authors run submissions through, with the OSS
