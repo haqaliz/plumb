@@ -1,6 +1,6 @@
 [project]
 name = "plumb-verify"
-version = "0.1.1"
+version = "0.2.0"
 description = "Execution-grounded research-integrity verifier: re-run a paper's own artifacts and return a per-claim, reproducible verdict"
 readme = "README.md"
 requires-python = ">=3.11"

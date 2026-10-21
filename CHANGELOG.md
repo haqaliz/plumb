@@ -5,7 +5,7 @@ All notable changes to Plumb are recorded here. The format follows
 [Semantic Versioning](https://semver.org/). The distribution is published to PyPI as
 **`plumb-verify`** (the import package and console script are both `plumb`).
 
-## [Unreleased]
+## [0.2.0] — 2026-10-21
 
 ### Added
 
