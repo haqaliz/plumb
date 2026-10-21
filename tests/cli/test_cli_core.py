@@ -142,7 +142,7 @@ class TestHelpDocumentsTheContract:
         assert "Exit codes" in out
         assert "usage error" in out
         assert "UNVERIFIED" in out
-        assert "required in live mode" in out
+        assert "one of --bindings, --proposer" in out
 
     def test_help_output_is_byte_identical_across_invocations(self, capsys) -> None:
         """Acceptance 6: the determinism floor for help text, in-process."""
