@@ -57,7 +57,10 @@ Provenance, licences and the reproduction commands for each case live beside the
 
 ## 3. The report, verbatim
 
-Produced by `plumb corpus report` over the three banked cases:
+Produced by `plumb corpus report` over the three banked cases. The same report, with the
+refuted-verdict accounting and the case ids, is committed at
+[`docs/benchmark/REPORT.md`](benchmark/REPORT.md) and regenerated from the gate records by
+`uv run python tools/benchmark.py` (CI fails if it is stale):
 
 ```
 CASE                     | CLAIMS | BOUND | REPRODUCED | WITHIN-TOLERANCE | DIVERGED | UNVERIFIED | LABELED | CONFIRMED
