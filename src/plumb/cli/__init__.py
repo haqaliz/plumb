@@ -194,7 +194,7 @@ def build_parser() -> argparse.ArgumentParser:
             "is evidence.\n\n"
             "Flags:\n"
             "  --rev REV            git revision for a git-URL <repo>\n"
-            "  --bindings FILE      JSON bindings file (required in live mode)\n"
+            "  --bindings FILE      JSON bindings file (one of --bindings, --proposer)\n"
             "  --out DIR            write a signed, replayable bundle to DIR\n"
             "  --bank               bank the run's record into the write-once\n"
             "                       discrepancy corpus (default store: corpus/local)\n"
@@ -205,7 +205,10 @@ def build_parser() -> argparse.ArgumentParser:
             "  --signer-key PATH    SSH private key for bundle signing\n"
             "                       (default: ~/.ssh/plumb_bundle_ed25519)\n"
             "  --no-paper           omit the paper from the bundle\n"
+            "  --timeout-seconds S  kill the run after S seconds (default: 1800)\n"
+            "  --run-dir DIR        the run area (working copy + captured objects)\n"
             "  --proposer CMD       a BYOK command proposing bindings; re-grounded\n"
+            "                       against the run before any is kept\n"
             "  --json               emit canonical JSON instead of the verdict table"
         ),
         epilog=(

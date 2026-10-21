@@ -226,7 +226,7 @@ These are real gaps. They are listed here so nobody mistakes the launch for "fin
 
 | Gap | Why it is deferred | When |
 |---|---|---|
-| **C7 no-code path** | Most papers ship no runnable code. Until statcheck/GRIM lands, the answer to most papers is "cannot verify", which must be framed, not hidden. | Phase 2 |
+| **C7 calibration** | The statcheck/GRIM first slice has landed (`plumb consistency`); what remains is calibration against a labeled no-code corpus, which does not exist yet. | When such a corpus exists |
 | **Hosted layer (C8)** | Demand-pull by design (`ROADMAP.md`). | Post-PH traction |
 | **Module rename `plumb` → `plumb_verify`** | Removes the PyPI collision but touches every import and test. No user value today. | Only if install collisions are reported |
 

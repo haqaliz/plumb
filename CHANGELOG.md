@@ -5,6 +5,39 @@ All notable changes to Plumb are recorded here. The format follows
 [Semantic Versioning](https://semver.org/). The distribution is published to PyPI as
 **`plumb-verify`** (the import package and console script are both `plumb`).
 
+## [Unreleased]
+
+### Added
+
+- `plumb verify --proposer CMD` — a BYOK binding proposer. The command runs on the user's compute,
+  receives the claims and the run's artifact paths, and every proposal is re-grounded against the
+  run before it is kept (`PROPOSER_UNGROUNDED` / `MODEL_ONLY_SIGNAL` otherwise). Accepted bindings
+  travel in the bundle, so a proposed verification replays without the model. `--bindings` stays
+  the default and the two are mutually exclusive.
+- `plumb consistency <paper> [--json]` — C7's no-code path: statcheck (t, F, χ², z, r) and GRIM,
+  with no SciPy dependency. Labels are `INTERNAL_INCONSISTENCY` / `CONSISTENT` /
+  `NOT_APPLICABLE`; never a verdict, and the CLI says so on every run.
+- `plumb bundle verify|inspect|pack` — check a bundle without Python, read its declared fields, or
+  write a deterministic `.tar`/`.tar.gz` (safe extraction: absolute paths, `..`, links and devices
+  refused). `build_bundle(created=...)` adds an optional signed timestamp.
+- `plumb verify --timeout-seconds SECONDS` and `--run-dir DIR` — the runner's wall clock and run
+  area, with an explicit run directory never wiped.
+- Evidence caps in C3 (64 MiB per artifact, 256 MiB per run): an over-cap artifact is refused
+  before it is read, never truncated, and `ARTIFACT_TOO_LARGE` / `CAPTURE_LIMIT_EXCEEDED` govern
+  every verdict of the run.
+- `tools/benchmark.py` and `docs/benchmark/REPORT.md` — the C5 precision/recall report regenerated
+  from the committed gate records, with `--check` for CI.
+- `docs/findings/agrodesign.md` — the first confirmed finding, prepared but not published, with
+  the right-of-reply checklist open and a test pinning its numbers to the signed bundle.
+
+### Documentation
+
+- `fixtures/gate/perrin/reprobe_20261021.md` — the environment half of the Perrin re-probe: the
+  generic poetry policy builds the pinned checkout (134 packages, Python 3.11.15). The 12 h run
+  was not re-executed, so no drift claim is made.
+- C6's remaining gaps are closed except sigstore/transparency logs (deferred with the reason
+  recorded); C3's container isolation is deferred with its reason recorded.
+
 ## [0.1.1] — 2026-10-19
 
 ### Added

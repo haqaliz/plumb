@@ -95,10 +95,18 @@ uv run plumb verify <paper> <repo> [--rev REV] [--bindings bindings.json | --pro
 > supply a command that proposes bindings; Plumb keeps only proposals that resolve to a real value
 > in the run). Neither is a one-click path from a paper's PDF yet.
 
+**Other commands:**
+
+```bash
+plumb consistency <paper> [--json]        # no code needed: statcheck + GRIM, clearly weaker
+plumb bundle verify|inspect|pack <dir>    # check, read or archive a signed bundle
+plumb corpus report                       # coverage / precision / recall, with denominators
+```
+
 **Develop:**
 
 ```bash
-uv sync && uv run pytest        # 2,080 tests, no network, one runtime dep (pypdf)
+uv sync && uv run pytest        # 2,169 tests, no network, one runtime dep (pypdf)
 ```
 
 Exit contract: `0` iff every claim is decided; `1` on any `UNVERIFIED` or named cause; `2` on usage. Never a traceback; a harness failure is never a `DIVERGED`.
