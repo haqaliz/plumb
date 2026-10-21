@@ -52,6 +52,11 @@ A `DIVERGED` is **not** a finding. It becomes a candidate finding only when all 
 Only then is it reported, framed as a reproduction discrepancy, with the bundle attached and the
 method published.
 
+Prepared findings live in [`docs/findings/`](findings/) and are **unpublished** until the
+human checklist in each note is complete: owner sign-off, author contact, the reply window, and a
+recorded outcome. The note states the claim id, the reported and re-derived values, and the replay
+command, and a test pins its numbers to the signed bundle.
+
 ### The case that defines the process: Perrin
 
 Plumb's own corpus contains the strongest argument for this policy. On Perrin
